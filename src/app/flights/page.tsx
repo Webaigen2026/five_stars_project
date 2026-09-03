@@ -2,7 +2,20 @@ import Footer from "../../components/layout/Footer";
 import Header from "../../components/layout/Header";
 import FlightSearchForm from "../../components/flights/FlightSearchForm";
 
-export default function FlightsPage() {
+type SearchParams = Promise<{
+  from?: string;
+  to?: string;
+  departure?: string;
+  passengers?: string;
+}>;
+
+export default async function FlightsPage({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
+  const params = await searchParams;
+
   return (
     <>
       <Header />
@@ -25,7 +38,12 @@ export default function FlightsPage() {
         </section>
 
         <section className="mx-auto max-w-7xl px-6 py-12">
-          <FlightSearchForm />
+          <FlightSearchForm
+            initialFrom={params.from}
+            initialTo={params.to}
+            initialDeparture={params.departure}
+            initialPassengers={params.passengers}
+          />
         </section>
       </main>
 

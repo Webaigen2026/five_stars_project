@@ -2,6 +2,12 @@ import Link from "next/link";
 
 import Footer from "../../../components/layout/Footer";
 import Header from "../../../components/layout/Header";
+import { formatAirportRoute } from "../../../data/airports";
+import {
+  buildModifySearchHref,
+  formatEmptyFlightSearchMessage,
+  formatSearchDate,
+} from "../../../lib/flight-search";
 import { db } from "../../../prisma/db";
 
 type SearchParams = Promise<{
@@ -50,6 +56,13 @@ export default async function FlightResultsPage({
 
   const allFlights = await db.orm.public.Flight.all();
 
+  const modifySearchHref = buildModifySearchHref({
+    from,
+    to,
+    departure,
+    passengers,
+  });
+
   const matchingFlights = allFlights.filter((flight) => {
     const matchesOrigin =
       !fromQuery ||
@@ -87,7 +100,7 @@ export default async function FlightResultsPage({
             </p>
 
             <h1 className="mt-3 text-4xl font-semibold tracking-tight text-slate-950">
-              {from || "Departure"} → {to || "Destination"}
+              {formatAirportRoute(from, to)}
             </h1>
 
             <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2 text-sm text-slate-600">
@@ -95,7 +108,7 @@ export default async function FlightResultsPage({
                 <span>
                   Departure:{" "}
                   <strong className="font-medium text-slate-900">
-                    {departure}
+                    {formatSearchDate(departure)}
                   </strong>
                 </span>
               )}
@@ -109,7 +122,7 @@ export default async function FlightResultsPage({
             </div>
 
             <Link
-              href="/flights"
+              href={modifySearchHref}
               className="mt-6 inline-flex text-sm font-semibold text-primary transition hover:text-primary-hover"
             >
               ← Modify search
@@ -160,15 +173,11 @@ export default async function FlightResultsPage({
                           </p>
 
                           <p className="mt-1 text-sm font-medium text-slate-900">
-                            {flight.originCode}
-                          </p>
-
-                          <p className="mt-1 text-sm text-slate-600">
-                            {flight.origin}
+                            {flight.origin} ({flight.originCode})
                           </p>
                         </div>
 
-                        <div className="hidden min-w-40 text-center sm:block">
+                        <div className="min-w-0 text-left sm:min-w-40 sm:text-center">
                           <p className="text-xs font-medium uppercase tracking-wider text-slate-400">
                             {formatDuration(
                               flight.durationMinutes
@@ -190,11 +199,7 @@ export default async function FlightResultsPage({
                           </p>
 
                           <p className="mt-1 text-sm font-medium text-slate-900">
-                            {flight.destinationCode}
-                          </p>
-
-                          <p className="mt-1 text-sm text-slate-600">
-                            {flight.destination}
+                            {flight.destination} ({flight.destinationCode})
                           </p>
                         </div>
                       </div>
@@ -235,15 +240,18 @@ export default async function FlightResultsPage({
               </h2>
 
               <p className="mt-3 text-slate-600">
-                We couldn&apos;t find any flights matching this
-                route.
+                {formatEmptyFlightSearchMessage({ from, to, departure })}
+              </p>
+
+              <p className="mt-2 text-slate-600">
+                Try another date or route.
               </p>
 
               <Link
-                href="/flights"
+                href={modifySearchHref}
                 className="mt-6 inline-flex rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-primary-hover"
               >
-                Try another search
+                Modify search
               </Link>
             </div>
           )}

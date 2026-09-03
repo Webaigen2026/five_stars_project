@@ -3,34 +3,51 @@
 import { FormEvent, useState } from "react";
 import { useRouter } from "next/navigation";
 
-export default function FlightSearchForm() {
+import {
+  buildFlightSearchParams,
+  isKnownAirportCode,
+  validateFlightSearch,
+} from "../../lib/flight-search";
+import AirportSelect from "./AirportSelect";
+
+type FlightSearchFormProps = {
+  initialFrom?: string;
+  initialTo?: string;
+  initialDeparture?: string;
+  initialPassengers?: string;
+};
+
+function asInitialAirport(value?: string) {
+  return value && isKnownAirportCode(value) ? value.trim().toUpperCase() : "";
+}
+
+export default function FlightSearchForm({
+  initialFrom,
+  initialTo,
+  initialDeparture,
+  initialPassengers,
+}: FlightSearchFormProps) {
   const router = useRouter();
 
-  const [from, setFrom] = useState("");
-  const [to, setTo] = useState("");
-  const [departure, setDeparture] = useState("");
-  const [passengers, setPassengers] = useState("1");
+  const [from, setFrom] = useState(asInitialAirport(initialFrom));
+  const [to, setTo] = useState(asInitialAirport(initialTo));
+  const [departure, setDeparture] = useState(initialDeparture ?? "");
+  const [passengers, setPassengers] = useState(initialPassengers ?? "1");
+  const [error, setError] = useState<string | null>(null);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const params = new URLSearchParams();
+    const values = { from, to, departure, passengers };
+    const validationError = validateFlightSearch(values);
 
-    if (from) {
-      params.set("from", from);
+    if (validationError) {
+      setError(validationError);
+      return;
     }
 
-    if (to) {
-      params.set("to", to);
-    }
-
-    if (departure) {
-      params.set("departure", departure);
-    }
-
-    params.set("passengers", passengers);
-
-    router.push(`/flights/results?${params.toString()}`);
+    setError(null);
+    router.push(`/flights/results?${buildFlightSearchParams(values).toString()}`);
   }
 
   return (
@@ -49,45 +66,31 @@ export default function FlightSearchForm() {
         onSubmit={handleSubmit}
         className="grid gap-4 md:grid-cols-2 lg:grid-cols-5"
       >
-        <div>
-          <label
-            htmlFor="from"
-            className="mb-2 block text-sm font-medium text-slate-700"
-          >
-            From
-          </label>
+        <AirportSelect
+          id="from"
+          name="from"
+          label="From"
+          value={from}
+          excludeCode={to}
+          describedBy={error ? "flight-search-error" : undefined}
+          onChange={(code) => {
+            setFrom(code);
+            setError(null);
+          }}
+        />
 
-          <input
-            id="from"
-            name="from"
-            type="text"
-            value={from}
-            onChange={(event) => setFrom(event.target.value)}
-            placeholder="Boston"
-            required
-            className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none transition placeholder:text-slate-400 focus:border-primary focus:ring-2 focus:ring-primary/20"
-          />
-        </div>
-
-        <div>
-          <label
-            htmlFor="to"
-            className="mb-2 block text-sm font-medium text-slate-700"
-          >
-            To
-          </label>
-
-          <input
-            id="to"
-            name="to"
-            type="text"
-            value={to}
-            onChange={(event) => setTo(event.target.value)}
-            placeholder="Cap-Haïtien"
-            required
-            className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none transition placeholder:text-slate-400 focus:border-primary focus:ring-2 focus:ring-primary/20"
-          />
-        </div>
+        <AirportSelect
+          id="to"
+          name="to"
+          label="To"
+          value={to}
+          excludeCode={from}
+          describedBy={error ? "flight-search-error" : undefined}
+          onChange={(code) => {
+            setTo(code);
+            setError(null);
+          }}
+        />
 
         <div>
           <label
@@ -102,7 +105,10 @@ export default function FlightSearchForm() {
             name="departure"
             type="date"
             value={departure}
-            onChange={(event) => setDeparture(event.target.value)}
+            onChange={(event) => {
+              setDeparture(event.target.value);
+              setError(null);
+            }}
             required
             className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
           />
@@ -141,6 +147,16 @@ export default function FlightSearchForm() {
           </button>
         </div>
       </form>
+
+      {error ? (
+        <p
+          id="flight-search-error"
+          role="alert"
+          className="mt-4 text-sm font-medium text-red-600"
+        >
+          {error}
+        </p>
+      ) : null}
     </div>
   );
 }
