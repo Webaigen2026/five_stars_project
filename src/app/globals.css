@@ -75,3 +75,33 @@ a {
   background: var(--primary);
   color: #ffffff;
 }
+
+@media print {
+  @page {
+    size: auto;
+    margin: 0.6in;
+  }
+
+  body {
+    background: #ffffff;
+    color: #0f172a;
+  }
+
+  .print-hide {
+    display: none !important;
+  }
+
+  .print-itinerary {
+    max-width: none;
+    padding: 0;
+    background: #ffffff;
+    box-shadow: none;
+  }
+
+  .print-itinerary-card {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    box-shadow: none;
+    background: #ffffff;
+  }
+}

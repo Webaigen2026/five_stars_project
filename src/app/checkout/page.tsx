@@ -1,9 +1,11 @@
 import Link from "next/link";
 
+import BookingStatusBadge from "../../components/booking/BookingStatusBadge";
 import CheckoutPaymentButton from "../../components/booking/CheckoutPaymentButton";
 import Footer from "../../components/layout/Footer";
 import Header from "../../components/layout/Header";
 import { getCurrentUser } from "../../lib/auth";
+import { getBookingStatusPresentation } from "../../lib/booking-status";
 import { isPayableBookingStatus } from "../../lib/payments";
 import { db } from "../../prisma/db";
 
@@ -120,6 +122,7 @@ export default async function CheckoutPage({
   const total = booking.total;
   const fareEach =
     passengerCount > 0 ? Math.round(subtotal / passengerCount) : 0;
+  const bookingStatus = getBookingStatusPresentation(booking.status);
   const currentUser = await getCurrentUser();
   const isOwnerCustomer =
     currentUser?.role === "CUSTOMER" && currentUser.id === booking.userId;
@@ -155,6 +158,19 @@ export default async function CheckoutPage({
               Review your flight and pricing details before
               continuing to payment.
             </p>
+
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+              <p className="text-sm text-slate-600">
+                Booking{" "}
+                <span className="font-semibold text-slate-950">
+                  {booking.bookingReference}
+                </span>
+              </p>
+              <BookingStatusBadge status={booking.status} />
+              <p className="text-sm text-slate-600">
+                {bookingStatus.description}
+              </p>
+            </div>
           </div>
         </section>
 

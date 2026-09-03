@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
+import BookingStatusBadge from "../../components/booking/BookingStatusBadge";
 import Footer from "../../components/layout/Footer";
 import Header from "../../components/layout/Header";
 import { getCurrentUser } from "../../lib/auth";
@@ -14,14 +15,6 @@ function formatDateTime(value: string) {
   return new Intl.DateTimeFormat("en-US", {
     dateStyle: "medium",
     timeStyle: "short",
-  }).format(new Date(value));
-}
-
-function formatTime(value: string) {
-  return new Intl.DateTimeFormat("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
   }).format(new Date(value));
 }
 
@@ -71,7 +64,8 @@ export default async function MyTripsPage() {
             </h1>
 
             <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-600">
-              Review saved flight bookings and continue to checkout.
+              Review saved flight bookings and open a trip for itinerary
+              details.
             </p>
           </div>
         </section>
@@ -116,14 +110,12 @@ export default async function MyTripsPage() {
                       {flight && (
                         <p className="mt-2 text-sm text-slate-600">
                           {flight.code} · Departs{" "}
-                          {formatTime(flight.departureTime)}
+                          {formatDateTime(flight.departureTime)}
                         </p>
                       )}
                     </div>
 
-                    <span className="rounded-full bg-sky-50 px-4 py-2 text-sm font-semibold text-primary">
-                      {booking.status}
-                    </span>
+                    <BookingStatusBadge status={booking.status} />
                   </div>
 
                   <dl className="mt-6 grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
@@ -162,10 +154,10 @@ export default async function MyTripsPage() {
                     </p>
 
                     <Link
-                      href={`/checkout?booking=${encodeURIComponent(booking.bookingReference)}`}
+                      href={`/my-trips/${encodeURIComponent(booking.bookingReference)}`}
                       className="inline-flex rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-primary-hover"
                     >
-                      View booking
+                      View trip
                     </Link>
                   </div>
                 </article>
