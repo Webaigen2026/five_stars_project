@@ -48,6 +48,13 @@ export function isPaymentStatus(value: string): value is PaymentStatus {
   return (PAYMENT_STATUSES as readonly string[]).includes(value);
 }
 
+export function isStripeConfigured() {
+  return Boolean(
+    process.env.STRIPE_SECRET_KEY?.trim() &&
+      process.env.NEXT_PUBLIC_APP_URL?.trim()
+  );
+}
+
 export function isPayableBookingStatus(
   value: string
 ): value is PayableBookingStatus {

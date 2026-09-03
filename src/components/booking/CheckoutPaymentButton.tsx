@@ -4,14 +4,16 @@ import { useState } from "react";
 
 export default function CheckoutPaymentButton({
   bookingReference,
+  disabled = false,
 }: {
   bookingReference: string;
+  disabled?: boolean;
 }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function handleClick() {
-    if (isSubmitting) {
+    if (isSubmitting || disabled) {
       return;
     }
 
@@ -54,7 +56,7 @@ export default function CheckoutPaymentButton({
       <button
         type="button"
         onClick={() => void handleClick()}
-        disabled={isSubmitting}
+        disabled={isSubmitting || disabled}
         className="w-full rounded-xl bg-primary px-5 py-3 font-semibold text-white transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-70"
       >
         {isSubmitting ? "Preparing payment..." : "Continue to Payment"}

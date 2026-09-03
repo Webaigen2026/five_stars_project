@@ -34,22 +34,22 @@ const STATUS_PRESENTATION: Record<
 > = {
   DRAFT: {
     label: "Draft",
-    description:
-      "Your booking has been created but payment has not been completed.",
+    description: "Your booking is ready for payment.",
     confirmationSummary: "Booking created — payment not completed.",
     paymentAvailable: true,
     kind: "active",
   },
   PENDING_PAYMENT: {
     label: "Pending payment",
-    description: "Your payment is awaiting confirmation.",
+    description:
+      "Your payment has been started and is awaiting confirmation.",
     confirmationSummary: "Payment confirmation pending.",
     paymentAvailable: true,
     kind: "active",
   },
   PAID: {
     label: "Paid",
-    description: "Payment was received. Your booking is being confirmed.",
+    description: "Payment has been received.",
     confirmationSummary: "Payment received.",
     paymentAvailable: false,
     kind: "active",
@@ -70,7 +70,7 @@ const STATUS_PRESENTATION: Record<
   },
   COMPLETED: {
     label: "Completed",
-    description: "This trip has been completed.",
+    description: "This trip is complete.",
     confirmationSummary: "This trip has been completed.",
     paymentAvailable: false,
     kind: "complete",
@@ -91,7 +91,7 @@ const STATUS_PRESENTATION: Record<
   },
   FAILED: {
     label: "Failed",
-    description: "This booking could not be completed.",
+    description: "Payment was not completed.",
     confirmationSummary: "This booking could not be completed.",
     paymentAvailable: false,
     kind: "failed",

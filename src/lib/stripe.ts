@@ -24,6 +24,8 @@ function readStripeSecretKey() {
 
 let stripeClient: Stripe | null = null;
 
+export { isStripeConfigured } from "./payments";
+
 export function getStripe() {
   if (!stripeClient) {
     stripeClient = new Stripe(readStripeSecretKey(), {

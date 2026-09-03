@@ -1,12 +1,16 @@
 import Link from "next/link";
 
 import BookingStatusBadge from "../../components/booking/BookingStatusBadge";
-import CheckoutPaymentButton from "../../components/booking/CheckoutPaymentButton";
+import CheckoutPaymentPanel from "../../components/booking/CheckoutPaymentPanel";
 import Footer from "../../components/layout/Footer";
 import Header from "../../components/layout/Header";
 import { getCurrentUser } from "../../lib/auth";
 import { getBookingStatusPresentation } from "../../lib/booking-status";
-import { isPayableBookingStatus } from "../../lib/payments";
+import {
+  canReviewCheckoutBooking,
+  getCheckoutPaymentAction,
+} from "../../lib/checkout";
+import { isStripeConfigured } from "../../lib/payments";
 import { db } from "../../prisma/db";
 
 type SearchParams = Promise<{
@@ -25,6 +29,15 @@ function formatTime(value: string) {
   }).format(new Date(value));
 }
 
+function formatDate(value: string) {
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(new Date(value));
+}
+
 function formatDuration(minutes: number) {
   const hours = Math.floor(minutes / 60);
   const remainingMinutes = minutes % 60;
@@ -39,9 +52,11 @@ function formatMoney(cents: number) {
 function CheckoutError({
   title,
   message,
+  showMyTrips,
 }: {
   title: string;
   message: string;
+  showMyTrips?: boolean;
 }) {
   return (
     <>
@@ -60,12 +75,22 @@ function CheckoutError({
 
             <p className="mt-4 text-slate-600">{message}</p>
 
-            <Link
-              href="/flights"
-              className="mt-6 inline-flex rounded-xl bg-primary px-6 py-3 font-semibold text-white transition hover:bg-primary-hover"
-            >
-              Search Flights
-            </Link>
+            <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
+              <Link
+                href="/flights"
+                className="inline-flex rounded-xl bg-primary px-6 py-3 font-semibold text-white transition hover:bg-primary-hover"
+              >
+                Back to Flights
+              </Link>
+              {showMyTrips ? (
+                <Link
+                  href="/my-trips"
+                  className="inline-flex rounded-xl border border-slate-200 px-6 py-3 font-semibold text-slate-700 transition hover:bg-slate-50"
+                >
+                  Back to My Trips
+                </Link>
+              ) : null}
+            </div>
           </div>
         </section>
       </main>
@@ -80,12 +105,14 @@ export default async function CheckoutPage({
 }: Props) {
   const params = await searchParams;
   const bookingReference = params.booking?.trim() ?? "";
+  const currentUser = await getCurrentUser();
 
   if (!bookingReference) {
     return (
       <CheckoutError
-        title="Booking reference missing"
+        title="Booking reference missing."
         message="We could not find a booking reference for this checkout. Search for a flight to start a new booking."
+        showMyTrips={Boolean(currentUser)}
       />
     );
   }
@@ -97,47 +124,60 @@ export default async function CheckoutPage({
   if (!booking) {
     return (
       <CheckoutError
-        title="Booking not found"
+        title="Booking not found."
         message="We could not find a booking with that reference."
+        showMyTrips={Boolean(currentUser)}
       />
     );
   }
 
-  const flight = await db.orm.public.Flight.where({
-    id: booking.flightId,
-  }).first();
-
-  if (!flight) {
+  if (!canReviewCheckoutBooking(booking.userId, currentUser?.id ?? null)) {
     return (
       <CheckoutError
-        title="Flight not found"
-        message="We could not find the flight for this booking."
+        title="Booking not available."
+        message="This booking is not available for review."
+        showMyTrips
       />
     );
   }
 
+  const [flight, passengers] = await Promise.all([
+    db.orm.public.Flight.select(
+      "id",
+      "code",
+      "airline",
+      "aircraft",
+      "origin",
+      "originCode",
+      "destination",
+      "destinationCode",
+      "departureTime",
+      "arrivalTime",
+      "durationMinutes"
+    )
+      .where({ id: booking.flightId })
+      .first(),
+    db.orm.public.Passenger.select("id", "firstName", "lastName", "nationality")
+      .where({ bookingId: booking.id })
+      .all(),
+  ]);
+
+  const sortedPassengers = [...passengers].sort((left, right) => left.id - right.id);
   const passengerCount = booking.passengerCount;
-  const subtotal = booking.subtotal;
-  const taxesAndFees = booking.taxesAndFees;
-  const total = booking.total;
   const fareEach =
-    passengerCount > 0 ? Math.round(subtotal / passengerCount) : 0;
+    passengerCount > 0 ? Math.round(booking.subtotal / passengerCount) : 0;
   const bookingStatus = getBookingStatusPresentation(booking.status);
-  const currentUser = await getCurrentUser();
-  const isOwnerCustomer =
-    currentUser?.role === "CUSTOMER" && currentUser.id === booking.userId;
-
-  let paymentAction: "signin" | "hidden" | "ineligible" | "ready";
-
-  if (!currentUser || booking.userId == null) {
-    paymentAction = "signin";
-  } else if (!isOwnerCustomer) {
-    paymentAction = "hidden";
-  } else if (!isPayableBookingStatus(booking.status)) {
-    paymentAction = "ineligible";
-  } else {
-    paymentAction = "ready";
-  }
+  const isOwner =
+    currentUser != null && currentUser.id === booking.userId;
+  const paymentAction = getCheckoutPaymentAction({
+    bookingUserId: booking.userId,
+    bookingStatus: booking.status,
+    currentUserId: currentUser?.id ?? null,
+    currentUserRole: currentUser?.role ?? null,
+    stripeConfigured: isStripeConfigured(),
+  });
+  const tripHref = `/my-trips/${encodeURIComponent(booking.bookingReference)}`;
+  const itineraryHref = `${tripHref}/itinerary`;
 
   return (
     <>
@@ -154,12 +194,6 @@ export default async function CheckoutPage({
               Review your trip
             </h1>
 
-            <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-600">
-              Review your flight and pricing details before
-              continuing to payment. Seats are subject to
-              availability until payment is confirmed.
-            </p>
-
             <div className="mt-6 flex flex-wrap items-center gap-3">
               <p className="text-sm text-slate-600">
                 Booking{" "}
@@ -168,96 +202,91 @@ export default async function CheckoutPage({
                 </span>
               </p>
               <BookingStatusBadge status={booking.status} />
-              <p className="text-sm text-slate-600">
-                {bookingStatus.description}
-              </p>
             </div>
+
+            <p className="mt-3 max-w-2xl text-lg leading-8 text-slate-600">
+              {bookingStatus.description}
+            </p>
           </div>
         </section>
 
         <section className="mx-auto max-w-7xl px-6 py-12">
           <div className="grid gap-8 lg:grid-cols-[1fr_380px]">
             <div className="space-y-6">
-              <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-                <div className="flex flex-wrap items-center justify-between gap-4">
-                  <div>
-                    <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">
-                      Selected Flight
-                    </p>
+              <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">
+                  Flight itinerary
+                </p>
 
-                    <h2 className="mt-2 text-2xl font-semibold text-slate-950">
-                      {flight.origin} → {flight.destination}
+                {flight ? (
+                  <>
+                    <div className="mt-3 flex flex-wrap items-start justify-between gap-4">
+                      <div>
+                        <h2 className="text-2xl font-semibold text-slate-950">
+                          {flight.origin} ({flight.originCode}) →{" "}
+                          {flight.destination} ({flight.destinationCode})
+                        </h2>
+                        <p className="mt-2 text-sm text-slate-600">
+                          {flight.airline}
+                          {flight.aircraft ? ` · ${flight.aircraft}` : ""}
+                        </p>
+                      </div>
+                      <div className="rounded-full bg-sky-50 px-4 py-2 text-sm font-semibold text-primary">
+                        {flight.code}
+                      </div>
+                    </div>
+
+                    <div className="mt-8 grid gap-6 sm:grid-cols-[1fr_auto_1fr] sm:items-center">
+                      <div>
+                        <p className="text-3xl font-semibold text-slate-950">
+                          {formatTime(flight.departureTime)}
+                        </p>
+                        <p className="mt-2 text-sm font-semibold text-slate-900">
+                          {flight.origin} ({flight.originCode})
+                        </p>
+                        <p className="mt-1 text-sm text-slate-600">
+                          {formatDate(flight.departureTime)}
+                        </p>
+                      </div>
+
+                      <div className="min-w-0 text-left sm:min-w-40 sm:text-center">
+                        <p className="text-xs font-medium uppercase tracking-wider text-slate-400">
+                          {formatDuration(flight.durationMinutes)}
+                        </p>
+                        <div className="my-2 h-px bg-slate-300" />
+                        <p className="text-xs text-slate-500">Nonstop</p>
+                      </div>
+
+                      <div className="sm:text-right">
+                        <p className="text-3xl font-semibold text-slate-950">
+                          {formatTime(flight.arrivalTime)}
+                        </p>
+                        <p className="mt-2 text-sm font-semibold text-slate-900">
+                          {flight.destination} ({flight.destinationCode})
+                        </p>
+                        <p className="mt-1 text-sm text-slate-600">
+                          {formatDate(flight.arrivalTime)}
+                        </p>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <h2 className="mt-3 text-2xl font-semibold text-slate-950">
+                      Flight details unavailable.
                     </h2>
-
-                    <p className="mt-2 text-sm text-slate-600">
-                      {flight.airline}
+                    <p className="mt-3 text-slate-600">
+                      We could not load the flight for this booking. Your
+                      booking reference and price are still shown from the
+                      saved booking.
                     </p>
+                  </>
+                )}
+              </section>
 
-                    <p className="mt-1 text-sm text-slate-600">
-                      Booking{" "}
-                      <span className="font-semibold text-slate-950">
-                        {booking.bookingReference}
-                      </span>
-                    </p>
-                  </div>
-
-                  <div className="rounded-full bg-sky-50 px-4 py-2 text-sm font-semibold text-primary">
-                    {flight.code}
-                  </div>
-                </div>
-
-                <div className="mt-8 grid gap-6 sm:grid-cols-[1fr_auto_1fr] sm:items-center">
-                  <div>
-                    <p className="text-3xl font-semibold text-slate-950">
-                      {formatTime(
-                        flight.departureTime
-                      )}
-                    </p>
-
-                    <p className="mt-2 text-sm font-semibold text-slate-900">
-                      {flight.originCode}
-                    </p>
-
-                    <p className="mt-1 text-sm text-slate-600">
-                      {flight.origin}
-                    </p>
-                  </div>
-
-                  <div className="hidden min-w-40 text-center sm:block">
-                    <p className="text-xs font-medium uppercase tracking-wider text-slate-400">
-                      {formatDuration(
-                        flight.durationMinutes
-                      )}
-                    </p>
-
-                    <div className="my-2 h-px bg-slate-300" />
-
-                    <p className="text-xs text-slate-500">
-                      Nonstop
-                    </p>
-                  </div>
-
-                  <div className="sm:text-right">
-                    <p className="text-3xl font-semibold text-slate-950">
-                      {formatTime(
-                        flight.arrivalTime
-                      )}
-                    </p>
-
-                    <p className="mt-2 text-sm font-semibold text-slate-900">
-                      {flight.destinationCode}
-                    </p>
-
-                    <p className="mt-1 text-sm text-slate-600">
-                      {flight.destination}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+              <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
                 <h2 className="text-xl font-semibold text-slate-950">
-                  Passenger information
+                  Travelers
                 </h2>
 
                 <p className="mt-2 text-slate-600">
@@ -265,15 +294,97 @@ export default async function CheckoutPage({
                   <span className="font-semibold text-slate-950">
                     {passengerCount}
                   </span>{" "}
-                  {passengerCount === 1
-                    ? "passenger"
-                    : "passengers"}.
+                  {passengerCount === 1 ? "passenger" : "passengers"}.
                 </p>
+
+                {sortedPassengers.length > 0 ? (
+                  <ol className="mt-5 space-y-4">
+                    {sortedPassengers.map((passenger, index) => (
+                      <li
+                        key={passenger.id}
+                        className="rounded-2xl border border-slate-200 px-4 py-3"
+                      >
+                        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+                          Passenger {index + 1}
+                        </p>
+                        <p className="mt-1 font-semibold text-slate-950">
+                          {`${passenger.firstName} ${passenger.lastName}`}
+                        </p>
+                        {passenger.nationality ? (
+                          <p className="mt-1 text-sm text-slate-600">
+                            {passenger.nationality}
+                          </p>
+                        ) : null}
+                      </li>
+                    ))}
+                  </ol>
+                ) : (
+                  <p className="mt-5 text-sm text-slate-600">
+                    Traveler names will appear here once passenger details are
+                    on file.
+                  </p>
+                )}
+
+                {sortedPassengers.length > 0 &&
+                sortedPassengers.length !== passengerCount ? (
+                  <p className="mt-4 text-sm text-slate-600">
+                    This booking lists {passengerCount}{" "}
+                    {passengerCount === 1 ? "traveler" : "travelers"}, and{" "}
+                    {sortedPassengers.length} traveler{" "}
+                    {sortedPassengers.length === 1 ? "record is" : "records are"}{" "}
+                    on file.
+                  </p>
+                ) : null}
 
                 <p className="mt-5 text-sm font-semibold text-slate-700">
                   Passenger details saved
                 </p>
-              </div>
+                {isOwner ? (
+                  <p className="mt-2 text-sm text-slate-600">
+                    Review this trip anytime in{" "}
+                    <Link
+                      href={tripHref}
+                      className="font-semibold text-primary transition hover:text-primary-hover"
+                    >
+                      My Trips
+                    </Link>
+                    .
+                  </p>
+                ) : null}
+              </section>
+
+              <nav className="flex flex-wrap gap-3" aria-label="Checkout actions">
+                {currentUser ? (
+                  <Link
+                    href="/my-trips"
+                    className="inline-flex rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                  >
+                    Back to My Trips
+                  </Link>
+                ) : null}
+                {isOwner ? (
+                  <>
+                    <Link
+                      href={tripHref}
+                      className="inline-flex rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                    >
+                      View trip
+                    </Link>
+                    <Link
+                      href={itineraryHref}
+                      className="inline-flex rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                    >
+                      View itinerary
+                    </Link>
+                  </>
+                ) : null}
+                <Link
+                  href="/flights"
+                  className="inline-flex rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                >
+                  Book another flight
+                </Link>
+              </nav>
             </div>
 
             <aside>
@@ -291,19 +402,15 @@ export default async function CheckoutPage({
                     <span className="text-slate-600">
                       {passengerCount} × {formatMoney(fareEach)}
                     </span>
-
                     <span className="font-medium text-slate-950">
-                      {formatMoney(subtotal)}
+                      {formatMoney(booking.subtotal)}
                     </span>
                   </div>
 
                   <div className="flex justify-between gap-4">
-                    <span className="text-slate-600">
-                      Taxes & fees
-                    </span>
-
+                    <span className="text-slate-600">Taxes & fees</span>
                     <span className="font-medium text-slate-950">
-                      {formatMoney(taxesAndFees)}
+                      {formatMoney(booking.taxesAndFees)}
                     </span>
                   </div>
 
@@ -312,47 +419,21 @@ export default async function CheckoutPage({
                       <span className="font-semibold text-slate-950">
                         Total
                       </span>
-
                       <span className="text-3xl font-semibold tracking-tight text-slate-950">
-                        {formatMoney(total)}
+                        {formatMoney(booking.total)}
                       </span>
                     </div>
-
                     <p className="mt-2 text-right text-xs text-slate-500">
                       USD
                     </p>
                   </div>
                 </div>
 
-                {paymentAction === "ready" ? (
-                  <CheckoutPaymentButton
+                {paymentAction !== "hidden" ? (
+                  <CheckoutPaymentPanel
                     bookingReference={booking.bookingReference}
+                    paymentAction={paymentAction}
                   />
-                ) : paymentAction === "signin" ? (
-                  <div className="mt-6">
-                    <p className="text-sm font-medium text-slate-600">
-                      Sign in is required before payment.
-                    </p>
-                    <Link
-                      href="/login"
-                      className="mt-3 inline-flex w-full items-center justify-center rounded-xl bg-primary px-5 py-3 font-semibold text-white transition hover:bg-primary-hover"
-                    >
-                      Sign in to pay
-                    </Link>
-                  </div>
-                ) : paymentAction === "ineligible" ? (
-                  <div className="mt-6">
-                    <p className="text-sm font-medium text-slate-600">
-                      This booking is not eligible for payment.
-                    </p>
-                    <button
-                      type="button"
-                      disabled
-                      className="mt-3 w-full cursor-not-allowed rounded-xl bg-slate-300 px-5 py-3 font-semibold text-slate-500"
-                    >
-                      Continue to Payment
-                    </button>
-                  </div>
                 ) : null}
               </div>
             </aside>
