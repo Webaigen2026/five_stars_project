@@ -19,7 +19,7 @@ function formatDateTime(value: string) {
 export default async function AccountPage() {
   const currentUser = await requireUser();
 
-  const [user, trips, cargo, charter, messages] = await Promise.all([
+  const [user, trips, cargo, charter, messages, travelers] = await Promise.all([
     db.orm.public.User.select(
       "id",
       "email",
@@ -51,6 +51,11 @@ export default async function AccountPage() {
         total: aggregate.count(),
       })
     ),
+    db.orm.public.TravelerProfile.where({ userId: currentUser.id }).aggregate(
+      (aggregate) => ({
+        total: aggregate.count(),
+      })
+    ),
   ]);
 
   if (!user) {
@@ -74,9 +79,9 @@ export default async function AccountPage() {
       value: charter.total,
     },
     {
-      label: "My Messages",
-      href: "/my-messages",
-      value: messages.total,
+      label: "Saved Travelers",
+      href: "/account/travelers",
+      value: travelers.total,
     },
   ];
 

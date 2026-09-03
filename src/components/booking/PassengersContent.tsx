@@ -1,9 +1,17 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
-import PassengerForm from "../booking/PassengerForm";
+import PassengerForm, {
+  EMPTY_PASSENGER_VALUES,
+  type PassengerFormValues,
+} from "./PassengerForm";
+import {
+  travelerDisplayName,
+  type SafeTraveler,
+} from "../../lib/traveler-shared";
 
 const PASSENGER_FIELDS = [
   "firstName",
@@ -16,11 +24,46 @@ const PASSENGER_FIELDS = [
   "passportExpiry",
 ] as const;
 
+const SELECTION_OTHER = "other";
+const SELECTION_MYSELF = "myself";
+
+function travelerToPassengerValues(traveler: SafeTraveler): PassengerFormValues {
+  return {
+    firstName: traveler.firstName,
+    lastName: traveler.lastName,
+    dateOfBirth: traveler.dateOfBirth,
+    gender: traveler.gender,
+    nationality: traveler.nationality,
+    passportNumber: traveler.passportNumber,
+    passportCountry: traveler.passportCountry,
+    passportExpiry: traveler.passportExpiry,
+  };
+}
+
+function selectionToTravelerId(
+  selection: string,
+  primaryId: number | null
+): number | null {
+  if (selection === SELECTION_MYSELF) {
+    return primaryId;
+  }
+
+  if (selection.startsWith("id:")) {
+    const id = Number(selection.slice(3));
+    return Number.isInteger(id) && id > 0 ? id : null;
+  }
+
+  return null;
+}
+
 export default function PassengersContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [travelers, setTravelers] = useState<SafeTraveler[] | null>(null);
+  const [isSignedIn, setIsSignedIn] = useState(false);
+  const [selections, setSelections] = useState<string[]>([]);
 
   const flightId = searchParams.get("flight") ?? "";
   const passengerParam = searchParams.get("passengers") ?? "1";
@@ -32,6 +75,96 @@ export default function PassengersContent() {
       ? 1
       : Math.min(parsedPassengerCount, 6);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadTravelers() {
+      try {
+        const response = await fetch("/api/travelers");
+
+        if (response.status === 401) {
+          if (!cancelled) {
+            setIsSignedIn(false);
+            setTravelers(null);
+          }
+          return;
+        }
+
+        const payload = (await response.json().catch(() => null)) as
+          | { travelers?: SafeTraveler[] }
+          | null;
+
+        if (!cancelled && response.ok) {
+          setIsSignedIn(true);
+          setTravelers(payload?.travelers ?? []);
+        }
+      } catch {
+        if (!cancelled) {
+          setIsSignedIn(false);
+          setTravelers(null);
+        }
+      }
+    }
+
+    void loadTravelers();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    setSelections((current) => {
+      if (current.length === passengerCount) {
+        return current;
+      }
+
+      return Array.from({ length: passengerCount }, (_, index) => current[index] ?? "");
+    });
+  }, [passengerCount]);
+
+  const primaryTraveler = useMemo(
+    () => travelers?.find((traveler) => traveler.isPrimary) ?? null,
+    [travelers]
+  );
+
+  const usedTravelerIds = useMemo(() => {
+    const ids = new Set<number>();
+
+    for (const selection of selections) {
+      const id = selectionToTravelerId(selection, primaryTraveler?.id ?? null);
+
+      if (id != null) {
+        ids.add(id);
+      }
+    }
+
+    return ids;
+  }, [selections, primaryTraveler]);
+
+  function defaultsForIndex(index: number): PassengerFormValues {
+    const selection = selections[index] ?? "";
+    const travelerId = selectionToTravelerId(
+      selection,
+      primaryTraveler?.id ?? null
+    );
+
+    if (travelerId == null) {
+      return EMPTY_PASSENGER_VALUES;
+    }
+
+    const traveler = travelers?.find((item) => item.id === travelerId);
+    return traveler ? travelerToPassengerValues(traveler) : EMPTY_PASSENGER_VALUES;
+  }
+
+  function handleSelectionChange(index: number, value: string) {
+    setSelections((current) => {
+      const next = [...current];
+      next[index] = value;
+      return next;
+    });
+  }
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -41,16 +174,7 @@ export default function PassengersContent() {
 
     const formData = new FormData(event.currentTarget);
     const passengers = Array.from({ length: passengerCount }, (_, index) => {
-      const passenger = {
-        firstName: "",
-        lastName: "",
-        dateOfBirth: "",
-        gender: "",
-        nationality: "",
-        passportNumber: "",
-        passportCountry: "",
-        passportExpiry: "",
-      };
+      const passenger = { ...EMPTY_PASSENGER_VALUES };
 
       for (const field of PASSENGER_FIELDS) {
         passenger[field] = String(
@@ -59,6 +183,10 @@ export default function PassengersContent() {
       }
 
       return passenger;
+    });
+
+    const saveFlags = Array.from({ length: passengerCount }, (_, index) => {
+      return formData.get(`passengers.${index}.saveTraveler`) === "on";
     });
 
     setError(null);
@@ -92,6 +220,30 @@ export default function PassengersContent() {
         return;
       }
 
+      if (isSignedIn) {
+        const saveRequests = passengers.flatMap((passenger, index) => {
+          if (!saveFlags[index]) {
+            return [];
+          }
+
+          return [
+            fetch("/api/travelers", {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                ...passenger,
+                label: `${passenger.firstName} ${passenger.lastName}`.trim(),
+                isPrimary: false,
+              }),
+            }).catch(() => null),
+          ];
+        });
+
+        await Promise.all(saveRequests);
+      }
+
       router.push(
         `/checkout?booking=${encodeURIComponent(payload.bookingReference)}`
       );
@@ -101,6 +253,8 @@ export default function PassengersContent() {
       setIsSubmitting(false);
     }
   }
+
+  const showTravelerControls = isSignedIn && travelers !== null;
 
   return (
     <>
@@ -138,10 +292,121 @@ export default function PassengersContent() {
       </section>
 
       <section className="mx-auto max-w-5xl px-6 py-12">
+        {showTravelerControls && travelers.length === 0 && (
+          <p className="mb-6 rounded-2xl border border-slate-200 bg-white px-5 py-4 text-sm text-slate-600">
+            Save your traveler details for faster booking next time.{" "}
+            <Link
+              href="/account/travelers"
+              className="font-semibold text-primary transition hover:text-primary-hover"
+            >
+              Add a saved traveler
+            </Link>
+          </p>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-6">
-          {Array.from({ length: passengerCount }).map((_, index) => (
-            <PassengerForm key={index} index={index} />
-          ))}
+          {Array.from({ length: passengerCount }).map((_, index) => {
+            const selection = selections[index] ?? "";
+            const travelerId = selectionToTravelerId(
+              selection,
+              primaryTraveler?.id ?? null
+            );
+            const filledFromProfile = travelerId != null;
+            const myselfSelectedWithoutPrimary =
+              selection === SELECTION_MYSELF && !primaryTraveler;
+
+            return (
+              <div key={index} className="space-y-3">
+                {showTravelerControls && (
+                  <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                    <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">
+                      Passenger {index + 1}
+                    </p>
+                    <label
+                      htmlFor={`traveler-select-${index}`}
+                      className="mt-3 block text-sm font-medium text-slate-700"
+                    >
+                      Who is traveling?
+                    </label>
+                    <select
+                      id={`traveler-select-${index}`}
+                      value={selection}
+                      onChange={(event) =>
+                        handleSelectionChange(index, event.target.value)
+                      }
+                      className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                    >
+                      <option value="">Select traveler</option>
+                      <option
+                        value={SELECTION_MYSELF}
+                        disabled={
+                          primaryTraveler != null &&
+                          usedTravelerIds.has(primaryTraveler.id) &&
+                          selectionToTravelerId(
+                            selection,
+                            primaryTraveler.id
+                          ) !== primaryTraveler.id
+                        }
+                      >
+                        Myself
+                      </option>
+                      {(travelers ?? [])
+                        .filter((traveler) => !traveler.isPrimary)
+                        .map((traveler) => {
+                          const selectedElsewhere =
+                            usedTravelerIds.has(traveler.id) &&
+                            selectionToTravelerId(
+                              selection,
+                              primaryTraveler?.id ?? null
+                            ) !== traveler.id;
+
+                          return (
+                            <option
+                              key={traveler.id}
+                              value={`id:${traveler.id}`}
+                              disabled={selectedElsewhere}
+                            >
+                              {travelerDisplayName(traveler)}
+                            </option>
+                          );
+                        })}
+                      <option value={SELECTION_OTHER}>Someone else</option>
+                    </select>
+
+                    {myselfSelectedWithoutPrimary && (
+                      <p className="mt-3 text-sm text-slate-600">
+                        Set up my traveler profile to fill these details
+                        automatically.{" "}
+                        <Link
+                          href="/account/travelers"
+                          className="font-semibold text-primary transition hover:text-primary-hover"
+                        >
+                          Set up my traveler profile
+                        </Link>
+                      </p>
+                    )}
+
+                    {filledFromProfile && (
+                      <p className="mt-3 text-sm text-slate-600">
+                        Details filled from your saved traveler profile. You
+                        can review them below.
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                <PassengerForm
+                  key={`${index}-${selection}`}
+                  index={index}
+                  defaults={defaultsForIndex(index)}
+                  showSaveCheckbox={
+                    isSignedIn &&
+                    (selection === SELECTION_OTHER || selection === "")
+                  }
+                />
+              </div>
+            );
+          })}
 
           <div className="rounded-3xl border border-slate-200 bg-white p-6">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
