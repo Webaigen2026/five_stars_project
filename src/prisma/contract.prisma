@@ -1,0 +1,243 @@
+// use prisma-next
+
+model User {
+  id Int @id @default(autoincrement())
+
+  email    String @unique
+  password String
+
+  firstName String?
+  lastName  String?
+
+  role String @default("CUSTOMER")
+
+  emailVerified Boolean @default(false)
+
+  failedLoginAttempts Int @default(0)
+  lockedUntil         TimestamptzString?
+
+  bookings Booking[]
+  cargoRequests CargoRequest[]
+  charterRequests CharterRequest[]
+  contactMessages ContactMessage[]
+  emailVerificationTokens EmailVerificationToken[]
+  sessions Session[]
+
+  createdAt TimestamptzString @default(now())
+  updatedAt temporal.updatedAtString()
+}
+
+model Flight {
+  id Int @id @default(autoincrement())
+
+  code String @unique
+
+  airline  String
+  aircraft String?
+
+  origin          String
+  originCode      String
+  destination     String
+  destinationCode String
+
+  departureTime TimestamptzString
+  arrivalTime   TimestamptzString
+
+  durationMinutes Int
+
+  // Stored in cents
+  price Int
+
+  totalSeats     Int
+  availableSeats Int
+
+  status String @default("SCHEDULED")
+
+  bookings Booking[]
+
+  createdAt TimestamptzString @default(now())
+  updatedAt temporal.updatedAtString()
+}
+
+model Booking {
+  id Int @id @default(autoincrement())
+
+  bookingReference String @unique
+
+  user   User? @relation(fields: [userId], references: [id])
+  userId Int?
+
+  flight   Flight @relation(fields: [flightId], references: [id])
+  flightId Int
+
+  passengerCount Int
+
+  // Stored in cents
+  subtotal     Int
+  taxesAndFees Int
+  total        Int
+
+  status String @default("DRAFT")
+
+  passengers Passenger[]
+  payment    Payment?
+
+  createdAt TimestamptzString @default(now())
+  updatedAt temporal.updatedAtString()
+}
+
+model Passenger {
+  id Int @id @default(autoincrement())
+
+  booking   Booking @relation(fields: [bookingId], references: [id])
+  bookingId Int
+
+  firstName String
+  lastName  String
+
+  // Date-only values kept as YYYY-MM-DD strings
+  dateOfBirth String
+
+  gender      String
+  nationality String
+
+  passportNumber  String
+  passportCountry String
+  passportExpiry  String
+
+  createdAt TimestamptzString @default(now())
+  updatedAt temporal.updatedAtString()
+}
+
+model Payment {
+  id Int @id @default(autoincrement())
+
+  booking   Booking @relation(fields: [bookingId], references: [id])
+  bookingId Int @unique
+
+  // Stored in cents
+  amount Int
+
+  currency String @default("USD")
+  status   String @default("PENDING")
+
+  provider String?
+
+  stripePaymentIntentId String?
+  stripeCheckoutId      String?
+
+  paidAt TimestamptzString?
+
+  createdAt TimestamptzString @default(now())
+  updatedAt temporal.updatedAtString()
+}
+
+model EmailVerificationToken {
+  id Int @id @default(autoincrement())
+
+  user   User @relation(fields: [userId], references: [id])
+  userId Int
+
+  tokenHash String @unique
+  expiresAt TimestamptzString
+
+  createdAt TimestamptzString @default(now())
+}
+
+model Session {
+  id String @id
+
+  user   User @relation(fields: [userId], references: [id])
+  userId Int
+
+  expiresAt TimestamptzString
+  revokedAt TimestamptzString?
+
+  createdAt TimestamptzString @default(now())
+}
+
+model CargoRequest {
+  id Int @id @default(autoincrement())
+
+  user   User? @relation(fields: [userId], references: [id])
+  userId Int?
+
+  reference String @unique
+
+  fullName String
+  email    String
+  phone    String?
+
+  origin      String
+  destination String
+
+  cargoType String
+
+  description String?
+
+  quantity Int?
+  weight   String?
+
+  preferredDate String?
+
+  status String @default("NEW")
+
+  createdAt TimestamptzString @default(now())
+  updatedAt temporal.updatedAtString()
+}
+
+model CharterRequest {
+  id Int @id @default(autoincrement())
+
+  user   User? @relation(fields: [userId], references: [id])
+  userId Int?
+
+  reference String @unique
+
+  fullName String
+  email    String
+  phone    String?
+
+  origin      String
+  destination String
+
+  departureDate String
+  returnDate    String?
+
+  passengerCount Int
+
+  aircraftPreference String?
+  budget             String?
+
+  notes String?
+
+  status String @default("NEW")
+
+  createdAt TimestamptzString @default(now())
+  updatedAt temporal.updatedAtString()
+}
+
+model ContactMessage {
+  id Int @id @default(autoincrement())
+
+  user   User? @relation(fields: [userId], references: [id])
+  userId Int?
+
+  reference String @unique
+
+  fullName String
+  email    String
+  phone    String?
+
+  subject String
+  message String
+
+  category String?
+
+  status String @default("NEW")
+
+  internalNote String?
+
+  createdAt TimestamptzString @default(now())
+  updatedAt temporal.updatedAtString()
+}

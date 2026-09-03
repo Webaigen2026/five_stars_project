@@ -1,0 +1,174 @@
+type PassengerFormProps = {
+    index: number;
+  };
+  
+  export default function PassengerForm({
+    index,
+  }: PassengerFormProps) {
+    const passengerNumber = index + 1;
+  
+    return (
+      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="mb-6">
+          <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">
+            Passenger {passengerNumber}
+          </p>
+  
+          <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
+            Passenger information
+          </h2>
+        </div>
+  
+        <div className="grid gap-5 md:grid-cols-2">
+          <div>
+            <label
+              htmlFor={`firstName-${index}`}
+              className="mb-2 block text-sm font-medium text-slate-700"
+            >
+              First name
+            </label>
+  
+            <input
+              id={`firstName-${index}`}
+              name={`passengers.${index}.firstName`}
+              type="text"
+              required
+              placeholder="First name"
+              className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+            />
+          </div>
+  
+          <div>
+            <label
+              htmlFor={`lastName-${index}`}
+              className="mb-2 block text-sm font-medium text-slate-700"
+            >
+              Last name
+            </label>
+  
+            <input
+              id={`lastName-${index}`}
+              name={`passengers.${index}.lastName`}
+              type="text"
+              required
+              placeholder="Last name"
+              className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+            />
+          </div>
+  
+          <div>
+            <label
+              htmlFor={`dateOfBirth-${index}`}
+              className="mb-2 block text-sm font-medium text-slate-700"
+            >
+              Date of birth
+            </label>
+  
+            <input
+              id={`dateOfBirth-${index}`}
+              name={`passengers.${index}.dateOfBirth`}
+              type="date"
+              required
+              className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+            />
+          </div>
+  
+          <div>
+            <label
+              htmlFor={`gender-${index}`}
+              className="mb-2 block text-sm font-medium text-slate-700"
+            >
+              Gender
+            </label>
+  
+            <select
+              id={`gender-${index}`}
+              name={`passengers.${index}.gender`}
+              required
+              defaultValue=""
+              className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+            >
+              <option value="" disabled>
+                Select gender
+              </option>
+  
+              <option value="MALE">Male</option>
+              <option value="FEMALE">Female</option>
+              <option value="OTHER">Other</option>
+            </select>
+          </div>
+  
+          <div>
+            <label
+              htmlFor={`nationality-${index}`}
+              className="mb-2 block text-sm font-medium text-slate-700"
+            >
+              Nationality
+            </label>
+  
+            <input
+              id={`nationality-${index}`}
+              name={`passengers.${index}.nationality`}
+              type="text"
+              required
+              placeholder="Haitian"
+              className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+            />
+          </div>
+  
+          <div>
+            <label
+              htmlFor={`passportNumber-${index}`}
+              className="mb-2 block text-sm font-medium text-slate-700"
+            >
+              Passport number
+            </label>
+  
+            <input
+              id={`passportNumber-${index}`}
+              name={`passengers.${index}.passportNumber`}
+              type="text"
+              required
+              placeholder="Passport number"
+              className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 uppercase outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+            />
+          </div>
+  
+          <div>
+            <label
+              htmlFor={`passportCountry-${index}`}
+              className="mb-2 block text-sm font-medium text-slate-700"
+            >
+              Passport issuing country
+            </label>
+  
+            <input
+              id={`passportCountry-${index}`}
+              name={`passengers.${index}.passportCountry`}
+              type="text"
+              required
+              placeholder="Haiti"
+              className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+            />
+          </div>
+  
+          <div>
+            <label
+              htmlFor={`passportExpiry-${index}`}
+              className="mb-2 block text-sm font-medium text-slate-700"
+            >
+              Passport expiration
+            </label>
+  
+            <input
+              id={`passportExpiry-${index}`}
+              name={`passengers.${index}.passportExpiry`}
+              type="date"
+              required
+              className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }

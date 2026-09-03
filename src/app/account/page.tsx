@@ -1,0 +1,194 @@
+import Link from "next/link";
+import { redirect } from "next/navigation";
+
+import ChangePasswordForm from "../../components/account/ChangePasswordForm";
+import ProfileForm from "../../components/account/ProfileForm";
+import ResendVerificationButton from "../../components/auth/ResendVerificationButton";
+import Footer from "../../components/layout/Footer";
+import Header from "../../components/layout/Header";
+import { requireUser } from "../../lib/authorization";
+import { db } from "../../prisma/db";
+
+function formatDateTime(value: string) {
+  return new Intl.DateTimeFormat("en-US", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(value));
+}
+
+export default async function AccountPage() {
+  const currentUser = await requireUser();
+
+  const [user, trips, cargo, charter, messages] = await Promise.all([
+    db.orm.public.User.select(
+      "id",
+      "email",
+      "firstName",
+      "lastName",
+      "role",
+      "emailVerified",
+      "createdAt"
+    )
+      .where({ id: currentUser.id })
+      .first(),
+    db.orm.public.Booking.where({ userId: currentUser.id }).aggregate(
+      (aggregate) => ({
+        total: aggregate.count(),
+      })
+    ),
+    db.orm.public.CargoRequest.where({ userId: currentUser.id }).aggregate(
+      (aggregate) => ({
+        total: aggregate.count(),
+      })
+    ),
+    db.orm.public.CharterRequest.where({ userId: currentUser.id }).aggregate(
+      (aggregate) => ({
+        total: aggregate.count(),
+      })
+    ),
+    db.orm.public.ContactMessage.where({ userId: currentUser.id }).aggregate(
+      (aggregate) => ({
+        total: aggregate.count(),
+      })
+    ),
+  ]);
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  const activity = [
+    {
+      label: "My Trips",
+      href: "/my-trips",
+      value: trips.total,
+    },
+    {
+      label: "My Cargo",
+      href: "/my-cargo",
+      value: cargo.total,
+    },
+    {
+      label: "My Charter",
+      href: "/my-charter",
+      value: charter.total,
+    },
+    {
+      label: "My Messages",
+      href: "/my-messages",
+      value: messages.total,
+    },
+  ];
+
+  return (
+    <>
+      <Header />
+
+      <main className="min-h-screen bg-slate-50">
+        <section className="border-b border-slate-200 bg-white">
+          <div className="mx-auto max-w-7xl px-6 py-16">
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
+              Account
+            </p>
+            <h1 className="mt-3 text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
+              Profile & security
+            </h1>
+            <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-600">
+              Update your personal details and password. Email and role cannot
+              be changed here.
+            </p>
+          </div>
+        </section>
+
+        <section className="mx-auto max-w-7xl px-6 py-12">
+          <div className="grid gap-6 lg:grid-cols-2">
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
+              <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">
+                Profile information
+              </p>
+              <h2 className="mt-2 text-2xl font-semibold text-slate-950">
+                Your details
+              </h2>
+              <dl className="mt-5 space-y-3 text-sm">
+                <div className="flex justify-between gap-4">
+                  <dt className="text-slate-500">Email</dt>
+                  <dd className="font-medium text-slate-950">{user.email}</dd>
+                </div>
+                <div className="flex justify-between gap-4">
+                  <dt className="text-slate-500">Role</dt>
+                  <dd className="font-medium text-slate-950">{user.role}</dd>
+                </div>
+                <div className="flex justify-between gap-4">
+                  <dt className="text-slate-500">Created</dt>
+                  <dd className="text-slate-950">
+                    {formatDateTime(user.createdAt)}
+                  </dd>
+                </div>
+              </dl>
+              <ProfileForm
+                firstName={user.firstName ?? ""}
+                lastName={user.lastName ?? ""}
+              />
+            </div>
+
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
+              <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">
+                Security
+              </p>
+              <h2 className="mt-2 text-2xl font-semibold text-slate-950">
+                Change password
+              </h2>
+              <p className="mt-2 text-sm text-slate-600">
+                Other signed-in devices will be signed out after a successful
+                password change.
+              </p>
+              <ChangePasswordForm />
+            </div>
+
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
+              <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">
+                Email verification
+              </p>
+              <h2 className="mt-2 text-2xl font-semibold text-slate-950">
+                {user.email}
+              </h2>
+              <p className="mt-3 text-sm font-medium text-slate-950">
+                {user.emailVerified ? "Email verified" : "Email not verified"}
+              </p>
+              {!user.emailVerified && (
+                <ResendVerificationButton email={user.email} />
+              )}
+            </div>
+
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
+              <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">
+                Account activity
+              </p>
+              <h2 className="mt-2 text-2xl font-semibold text-slate-950">
+                Your records
+              </h2>
+              <div className="mt-6 grid gap-4 sm:grid-cols-2">
+                {activity.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className="rounded-2xl border border-slate-200 p-4 transition hover:border-primary/30"
+                  >
+                    <p className="text-sm font-medium text-slate-600">
+                      {item.label}
+                    </p>
+                    <p className="mt-2 text-2xl font-semibold text-slate-950">
+                      {item.value}
+                    </p>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <Footer />
+    </>
+  );
+}
