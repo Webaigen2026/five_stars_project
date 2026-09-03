@@ -156,7 +156,8 @@ export default async function CheckoutPage({
 
             <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-600">
               Review your flight and pricing details before
-              continuing to payment.
+              continuing to payment. Seats are subject to
+              availability until payment is confirmed.
             </p>
 
             <div className="mt-6 flex flex-wrap items-center gap-3">

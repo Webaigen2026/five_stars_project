@@ -3,30 +3,38 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { BOOKING_STATUSES } from "../../../lib/admin-bookings";
-
 type BookingStatusFormProps = {
   bookingId: number;
   currentStatus: string;
+  allowedTransitions: string[];
 };
 
 export default function BookingStatusForm({
   bookingId,
   currentStatus,
+  allowedTransitions,
 }: BookingStatusFormProps) {
   const router = useRouter();
-  const [status, setStatus] = useState(currentStatus);
+  const [status, setStatus] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    setStatus(currentStatus);
-  }, [currentStatus]);
+    setStatus("");
+  }, [currentStatus, allowedTransitions]);
+
+  if (allowedTransitions.length === 0) {
+    return (
+      <p className="mt-6 text-sm text-slate-600">
+        No manual status changes available.
+      </p>
+    );
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (isSubmitting) {
+    if (isSubmitting || !status) {
       return;
     }
 
@@ -66,18 +74,19 @@ export default function BookingStatusForm({
           htmlFor="booking-status"
           className="mb-2 block text-sm font-medium text-slate-700"
         >
-          Status
+          Next status
         </label>
         <select
           id="booking-status"
           value={status}
+          required
           onChange={(event) => setStatus(event.target.value)}
           className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
         >
-          {!BOOKING_STATUSES.includes(
-            currentStatus as (typeof BOOKING_STATUSES)[number]
-          ) && <option value={currentStatus}>{currentStatus}</option>}
-          {BOOKING_STATUSES.map((value) => (
+          <option value="" disabled>
+            Select a new status
+          </option>
+          {allowedTransitions.map((value) => (
             <option key={value} value={value}>
               {value}
             </option>
@@ -87,7 +96,7 @@ export default function BookingStatusForm({
 
       <button
         type="submit"
-        disabled={isSubmitting}
+        disabled={isSubmitting || !status}
         className="rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-70"
       >
         {isSubmitting ? "Saving..." : "Update status"}

@@ -6,6 +6,11 @@ import {
   parsePositiveInt,
   toSafeBooking,
 } from "../../../../../lib/admin-bookings";
+import {
+  bookingErrorHttpStatus,
+  isBookingDomainError,
+} from "../../../../../lib/booking-errors";
+import { transitionBookingStatus } from "../../../../../lib/booking-transitions";
 import { db } from "../../../../../prisma/db";
 
 function jsonError(message: string, status: number) {
@@ -50,32 +55,27 @@ export async function PATCH(
 
     const status = parseBookingStatusUpdate(body);
 
-    await db.orm.public.Booking.where({ id }).update({ status });
-
-    const booking = await db.orm.public.Booking.select(
-      "id",
-      "bookingReference",
-      "userId",
-      "flightId",
-      "passengerCount",
-      "subtotal",
-      "taxesAndFees",
-      "total",
-      "status",
-      "createdAt",
-      "updatedAt"
-    )
-      .where({ id })
-      .first();
-
-    if (!booking) {
-      return jsonError("Booking not found.", 404);
-    }
+    const { booking } = await transitionBookingStatus({
+      bookingId: id,
+      toStatus: status,
+      source: "ADMIN",
+      actor: {
+        userId: user.id,
+        role: user.role,
+      },
+    });
 
     return Response.json({ booking: toSafeBooking(booking) });
   } catch (error) {
     if (error instanceof AdminBookingRequestError) {
       return jsonError(error.message, error.status);
+    }
+
+    if (isBookingDomainError(error)) {
+      return Response.json(
+        { error: error.message, code: error.code },
+        { status: bookingErrorHttpStatus(error) }
+      );
     }
 
     console.error("Failed to update booking:", error);

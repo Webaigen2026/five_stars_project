@@ -167,6 +167,7 @@ export async function POST(request: Request) {
       );
     }
 
+    // UX-only check. DRAFT creation does not reserve or decrement seats.
     if (flight.availableSeats < passengerCount) {
       throw new BookingRequestError(
         "Not enough seats are available for this flight.",
@@ -189,6 +190,7 @@ export async function POST(request: Request) {
         taxesAndFees,
         total,
         status: "DRAFT",
+        inventoryHeld: false,
         ...(currentUser ? { userId: currentUser.id } : {}),
       });
 

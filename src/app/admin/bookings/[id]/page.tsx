@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import BookingStatusForm from "../../../../components/admin/bookings/BookingStatusForm";
 import { parsePositiveInt } from "../../../../lib/admin-bookings";
 import { isAdmin, requireStaffOrAdmin } from "../../../../lib/authorization";
+import { getAllowedAdminBookingTransitions } from "../../../../lib/booking-lifecycle";
 import { db } from "../../../../prisma/db";
 
 function formatMoney(cents: number) {
@@ -89,6 +90,7 @@ export default async function AdminBookingDetailPage({
   });
 
   const customerInfo = customerDisplay(customer);
+  const allowedTransitions = getAllowedAdminBookingTransitions(booking.status);
   const route = flight
     ? `${flight.originCode} → ${flight.destinationCode}`
     : "Unknown route";
@@ -143,6 +145,7 @@ export default async function AdminBookingDetailPage({
           <BookingStatusForm
             bookingId={booking.id}
             currentStatus={booking.status}
+            allowedTransitions={allowedTransitions}
           />
         </section>
 

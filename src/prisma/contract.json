@@ -79,6 +79,13 @@
                   "kind": "scalar"
                 }
               },
+              "inventoryHeld": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
+                  "kind": "scalar"
+                }
+              },
               "passengerCount": {
                 "nullable": false,
                 "type": {
@@ -204,6 +211,9 @@
                 },
                 "id": {
                   "column": "id"
+                },
+                "inventoryHeld": {
+                  "column": "inventoryHeld"
                 },
                 "passengerCount": {
                   "column": "passengerCount"
@@ -1658,6 +1668,15 @@
                   "nativeType": "int4",
                   "nullable": false
                 },
+                "inventoryHeld": {
+                  "codecId": "pg/bool@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": false
+                  },
+                  "nativeType": "bool",
+                  "nullable": false
+                },
                 "passengerCount": {
                   "codecId": "pg/int4@1",
                   "nativeType": "int4",
@@ -2731,7 +2750,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "0f720876ab0cf413411354653bc62d1225281a0ae5c8612339c431a191fedcc1"
+    "storageHash": "5441e61b88c4fc4c6c7c69de6fb68ea47a39ed148a69fe4f7e6cf67aeb99d277"
   },
   "execution": {
     "executionHash": "2084e2b367703f8477c8d8028c34493f5a391fa74354bdd946afb9b755ecde72",

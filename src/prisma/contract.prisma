@@ -79,6 +79,11 @@ model Booking {
 
   status String @default("DRAFT")
 
+  // Authoritative seat-hold marker. Status alone never implies inventory ownership.
+  // false = this booking has not acquired seats through the lifecycle engine.
+  // true  = this booking currently owns passengerCount seats on the flight.
+  inventoryHeld Boolean @default(false)
+
   passengers Passenger[]
   payment    Payment?
 
