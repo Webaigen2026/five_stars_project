@@ -81,6 +81,7 @@ model Flight {
   status String @default("SCHEDULED")
 
   bookings Booking[]
+  bookingSegments BookingSegment[]
 
   createdAt TimestamptzString @default(now())
   updatedAt temporal.updatedAtString()
@@ -94,6 +95,7 @@ model Booking {
   user   User? @relation(fields: [userId], references: [id])
   userId Int?
 
+  // Compatibility primary flight (outbound for round trips). Prefer BookingSegment for reads.
   flight   Flight @relation(fields: [flightId], references: [id])
   flightId Int
 
@@ -108,14 +110,36 @@ model Booking {
 
   // Authoritative seat-hold marker. Status alone never implies inventory ownership.
   // false = this booking has not acquired seats through the lifecycle engine.
-  // true  = this booking currently owns passengerCount seats on the flight.
+  // true  = this booking currently owns passengerCount seats on each held flight leg.
   inventoryHeld Boolean @default(false)
 
   passengers Passenger[]
   payment    Payment?
+  segments   BookingSegment[]
 
   createdAt TimestamptzString @default(now())
   updatedAt temporal.updatedAtString()
+}
+
+model BookingSegment {
+  id Int @id @default(autoincrement())
+
+  booking   Booking @relation(fields: [bookingId], references: [id])
+  bookingId Int
+
+  flight   Flight @relation(fields: [flightId], references: [id])
+  flightId Int
+
+  // OUTBOUND | RETURN
+  segmentType String
+  sequence    Int
+
+  createdAt TimestamptzString @default(now())
+
+  @@unique([bookingId, sequence])
+  @@unique([bookingId, segmentType])
+  @@index([bookingId])
+  @@index([flightId])
 }
 
 model Passenger {

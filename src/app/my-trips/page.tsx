@@ -6,9 +6,13 @@ import Footer from "../../components/layout/Footer";
 import Header from "../../components/layout/Header";
 import { getCurrentUser } from "../../lib/auth";
 import {
+  isRoundTripLegs,
+  loadBookingLegsWithFlights,
+} from "../../lib/booking-segments";
+import {
+  formatDepartureDateShort,
   formatMoney,
   formatRoute,
-  formatDepartureDateShort,
   isUpcomingTrip,
 } from "../../lib/trip-formatting";
 import { db } from "../../prisma/db";
@@ -26,46 +30,40 @@ export default async function MyTripsPage() {
 
   const trips = await Promise.all(
     bookings.map(async (booking) => {
-      const flight = await db.orm.public.Flight.select(
-        "id",
-        "code",
-        "origin",
-        "originCode",
-        "destination",
-        "destinationCode",
-        "departureTime"
-      )
-        .where({
-          id: booking.flightId,
-        })
-        .first();
+      const legs = await loadBookingLegsWithFlights(booking);
+      const outbound = legs.find((leg) => leg.segmentType === "OUTBOUND") ?? legs[0];
+      const returnLeg = legs.find((leg) => leg.segmentType === "RETURN");
 
       return {
         booking,
-        flight,
+        legs,
+        outbound,
+        returnLeg,
+        isRoundTrip: isRoundTripLegs(legs),
       };
     })
   );
 
   trips.sort((left, right) => {
-    const leftDeparture = left.flight?.departureTime ?? left.booking.createdAt;
+    const leftDeparture =
+      left.outbound?.flight.departureTime ?? left.booking.createdAt;
     const rightDeparture =
-      right.flight?.departureTime ?? right.booking.createdAt;
+      right.outbound?.flight.departureTime ?? right.booking.createdAt;
 
     return new Date(rightDeparture).getTime() - new Date(leftDeparture).getTime();
   });
 
-  const upcoming = trips.filter(({ booking, flight }) =>
+  const upcoming = trips.filter(({ booking, outbound }) =>
     isUpcomingTrip({
       status: booking.status,
-      departureTime: flight?.departureTime,
+      departureTime: outbound?.flight.departureTime,
     })
   );
   const past = trips.filter(
-    ({ booking, flight }) =>
+    ({ booking, outbound }) =>
       !isUpcomingTrip({
         status: booking.status,
-        departureTime: flight?.departureTime,
+        departureTime: outbound?.flight.departureTime,
       })
   );
 
@@ -83,25 +81,49 @@ export default async function MyTripsPage() {
     return (
       <section className="space-y-5">
         <h2 className="text-2xl font-semibold text-slate-950">{title}</h2>
-        {items.map(({ booking, flight }) => (
+        {items.map(({ booking, outbound, returnLeg, isRoundTrip, legs }) => (
           <article
             key={booking.id}
             className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm"
           >
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="min-w-0">
-                {flight ? (
+                {outbound ? (
                   <>
-                    <h3 className="text-3xl font-semibold tracking-tight text-slate-950">
-                      {formatRoute(flight.originCode, flight.destinationCode)}
+                    {isRoundTrip ? (
+                      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+                        Round trip
+                      </p>
+                    ) : null}
+                    <h3 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">
+                      {isRoundTrip
+                        ? `${outbound.flight.originCode} ⇄ ${outbound.flight.destinationCode}`
+                        : formatRoute(
+                            outbound.flight.originCode,
+                            outbound.flight.destinationCode
+                          )}
                     </h3>
                     <p className="mt-2 break-words text-sm text-slate-600">
-                      {flight.origin} → {flight.destination}
+                      {outbound.flight.origin} → {outbound.flight.destination}
                     </p>
-                    <p className="mt-2 text-sm text-slate-600">
-                      {formatDepartureDateShort(flight)} ·{" "}
-                      {flight.code}
-                    </p>
+                    {isRoundTrip && returnLeg ? (
+                      <p className="mt-2 text-sm text-slate-600">
+                        Outbound {formatDepartureDateShort(outbound.flight)}
+                        <span className="mx-2 text-slate-300">·</span>
+                        Return {formatDepartureDateShort(returnLeg.flight)}
+                      </p>
+                    ) : (
+                      <p className="mt-2 text-sm text-slate-600">
+                        {formatDepartureDateShort(outbound.flight)} ·{" "}
+                        {outbound.flight.code}
+                      </p>
+                    )}
+                    {isRoundTrip ? (
+                      <p className="mt-1 text-sm text-slate-500">
+                        {legs.length} flights · {outbound.flight.code}
+                        {returnLeg ? ` / ${returnLeg.flight.code}` : ""}
+                      </p>
+                    ) : null}
                   </>
                 ) : (
                   <h3 className="text-2xl font-semibold text-slate-950">
@@ -200,3 +222,5 @@ export default async function MyTripsPage() {
     </>
   );
 }
+
+

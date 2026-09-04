@@ -204,12 +204,12 @@ export default function PassengersContent({
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    if (isRoundTrip) {
-      setError("Round-trip checkout is coming next.");
+    if (isSubmitting) {
       return;
     }
 
-    if (isSubmitting) {
+    if (isRoundTrip && (roundTripInvalid || !roundTripOutbound || !roundTripReturn)) {
+      setError("Selected round-trip flights could not be verified.");
       return;
     }
 
@@ -234,15 +234,24 @@ export default function PassengersContent({
     setIsSubmitting(true);
 
     try {
+      const body = isRoundTrip
+        ? {
+            tripType: "round-trip",
+            outboundFlightId: roundTripOutbound!.id,
+            returnFlightId: roundTripReturn!.id,
+            passengers,
+          }
+        : {
+            flightCode: flightId,
+            passengers,
+          };
+
       const response = await fetch("/api/bookings", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          flightCode: flightId,
-          passengers,
-        }),
+        body: JSON.stringify(body),
       });
 
       const payload = (await response.json().catch(() => null)) as
@@ -398,9 +407,8 @@ export default function PassengersContent({
               </div>
             )}
 
-            <p className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-              Round-trip checkout is coming next. Passenger details can be
-              prepared here, but a booking will not be created yet.
+            <p className="mt-5 rounded-2xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-slate-700">
+              Continue to create one StarJet booking that includes both flights.
             </p>
           </div>
         ) : null}
@@ -529,9 +537,7 @@ export default function PassengersContent({
                 </h2>
 
                 <p className="mt-1 text-sm text-slate-600">
-                  {isRoundTrip
-                    ? "Round-trip booking persistence is not available yet."
-                    : "Review the passenger details before continuing to checkout."}
+                  Review the passenger details before continuing to checkout.
                 </p>
 
                 {error ? (
@@ -543,14 +549,16 @@ export default function PassengersContent({
 
               <button
                 type="submit"
-                disabled={isSubmitting || isRoundTrip || roundTripInvalid}
+                disabled={
+                  isSubmitting ||
+                  (isRoundTrip &&
+                    (roundTripInvalid ||
+                      !roundTripOutbound ||
+                      !roundTripReturn))
+                }
                 className="rounded-xl bg-primary px-6 py-3 font-semibold text-white transition hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-70"
               >
-                {isRoundTrip
-                  ? "Round-trip checkout coming next"
-                  : isSubmitting
-                    ? "Creating booking..."
-                    : "Continue to Checkout"}
+                {isSubmitting ? "Creating booking..." : "Continue to Checkout"}
               </button>
             </div>
           </div>

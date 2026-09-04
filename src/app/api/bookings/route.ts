@@ -1,12 +1,16 @@
 import { randomInt } from "node:crypto";
 
 import { getCurrentUser } from "../../../lib/auth";
+import {
+  calculateBookingTotals,
+  validateRoundTripFlights,
+} from "../../../lib/booking-legs";
+import { parseTripType } from "../../../lib/flight-search";
 import { rejectUntrustedMutation } from "../../../lib/request-security";
 import { logServerError } from "../../../lib/sensitive-data";
 import { passportWriteFields } from "../../../lib/traveler-encryption";
 import { db } from "../../../prisma/db";
 
-const TAXES_AND_FEES_PER_PASSENGER = 6800;
 const MAX_PASSENGERS = 6;
 const BOOKING_REFERENCE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const DATE_ONLY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
@@ -43,11 +47,27 @@ function asTrimmedString(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+function parsePositiveInt(value: unknown) {
+  if (typeof value === "number" && Number.isInteger(value) && value > 0) {
+    return value;
+  }
+
+  if (typeof value === "string" && value.trim()) {
+    const parsed = Number.parseInt(value.trim(), 10);
+    if (Number.isInteger(parsed) && parsed > 0) {
+      return parsed;
+    }
+  }
+
+  return null;
+}
+
 function generateBookingReference() {
   let suffix = "";
 
   for (let index = 0; index < 6; index += 1) {
-    suffix += BOOKING_REFERENCE_ALPHABET[randomInt(BOOKING_REFERENCE_ALPHABET.length)];
+    suffix +=
+      BOOKING_REFERENCE_ALPHABET[randomInt(BOOKING_REFERENCE_ALPHABET.length)];
   }
 
   return `SJ-${suffix}`;
@@ -55,17 +75,11 @@ function generateBookingReference() {
 
 function parsePassengers(value: unknown): PassengerInput[] {
   if (!Array.isArray(value)) {
-    throw new BookingRequestError(
-      "At least 1 passenger is required.",
-      400
-    );
+    throw new BookingRequestError("At least 1 passenger is required.", 400);
   }
 
   if (value.length < 1) {
-    throw new BookingRequestError(
-      "At least 1 passenger is required.",
-      400
-    );
+    throw new BookingRequestError("At least 1 passenger is required.", 400);
   }
 
   if (value.length > MAX_PASSENGERS) {
@@ -77,10 +91,7 @@ function parsePassengers(value: unknown): PassengerInput[] {
 
   return value.map((passenger, index) => {
     if (!passenger || typeof passenger !== "object") {
-      throw new BookingRequestError(
-        `Passenger ${index + 1} is invalid.`,
-        400
-      );
+      throw new BookingRequestError(`Passenger ${index + 1} is invalid.`, 400);
     }
 
     const record = passenger as Record<string, unknown>;
@@ -131,6 +142,26 @@ async function createUniqueBookingReference() {
   );
 }
 
+async function createPassengerSnapshots(
+  tx: Parameters<Parameters<typeof db.transaction>[0]>[0],
+  bookingId: number,
+  passengers: PassengerInput[]
+) {
+  for (const passenger of passengers) {
+    await tx.orm.public.Passenger.create({
+      bookingId,
+      firstName: passenger.firstName,
+      lastName: passenger.lastName,
+      dateOfBirth: passenger.dateOfBirth,
+      gender: passenger.gender,
+      nationality: passenger.nationality,
+      ...passportWriteFields(passenger.passportNumber),
+      passportCountry: passenger.passportCountry,
+      passportExpiry: passenger.passportExpiry,
+    });
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const rejected = rejectUntrustedMutation(request);
@@ -152,14 +183,94 @@ export async function POST(request: Request) {
     }
 
     const payload = body as Record<string, unknown>;
+    const tripType = parseTripType(
+      typeof payload.tripType === "string" ? payload.tripType : undefined
+    );
+    const passengers = parsePassengers(payload.passengers);
+    const passengerCount = passengers.length;
+    const bookingReference = await createUniqueBookingReference();
+    const currentUser = await getCurrentUser();
+
+    if (tripType === "round-trip") {
+      const outboundFlightId = parsePositiveInt(payload.outboundFlightId);
+      const returnFlightId = parsePositiveInt(payload.returnFlightId);
+
+      if (outboundFlightId == null || returnFlightId == null) {
+        throw new BookingRequestError(
+          "Outbound and return flights are required.",
+          400
+        );
+      }
+
+      const [outbound, returnFlight] = await Promise.all([
+        db.orm.public.Flight.where({ id: outboundFlightId }).first(),
+        db.orm.public.Flight.where({ id: returnFlightId }).first(),
+      ]);
+
+      if (!outbound || !returnFlight) {
+        throw new BookingRequestError("Selected flight was not found.", 404);
+      }
+
+      const routeError = validateRoundTripFlights({
+        outbound,
+        returnFlight,
+        passengerCount,
+      });
+
+      if (routeError) {
+        throw new BookingRequestError(routeError, 400);
+      }
+
+      const { subtotal, taxesAndFees, total } = calculateBookingTotals({
+        unitPricesCents: [outbound.price, returnFlight.price],
+        passengerCount,
+      });
+
+      const booking = await db.transaction(async (tx) => {
+        const createdBooking = await tx.orm.public.Booking.create({
+          bookingReference,
+          flightId: outbound.id,
+          passengerCount,
+          subtotal,
+          taxesAndFees,
+          total,
+          status: "DRAFT",
+          inventoryHeld: false,
+          ...(currentUser ? { userId: currentUser.id } : {}),
+        });
+
+        await tx.orm.public.BookingSegment.create({
+          bookingId: createdBooking.id,
+          flightId: outbound.id,
+          segmentType: "OUTBOUND",
+          sequence: 1,
+        });
+
+        await tx.orm.public.BookingSegment.create({
+          bookingId: createdBooking.id,
+          flightId: returnFlight.id,
+          segmentType: "RETURN",
+          sequence: 2,
+        });
+
+        await createPassengerSnapshots(tx, createdBooking.id, passengers);
+
+        return createdBooking;
+      });
+
+      return Response.json(
+        {
+          bookingReference: booking.bookingReference,
+        },
+        { status: 201 }
+      );
+    }
+
     const flightCode = asTrimmedString(payload.flightCode);
 
     if (!flightCode) {
       throw new BookingRequestError("A flight code is required.", 400);
     }
-
-    const passengers = parsePassengers(payload.passengers);
-    const passengerCount = passengers.length;
 
     const flight = await db.orm.public.Flight.where({
       code: flightCode,
@@ -184,11 +295,10 @@ export async function POST(request: Request) {
       );
     }
 
-    const subtotal = flight.price * passengerCount;
-    const taxesAndFees = TAXES_AND_FEES_PER_PASSENGER * passengerCount;
-    const total = subtotal + taxesAndFees;
-    const bookingReference = await createUniqueBookingReference();
-    const currentUser = await getCurrentUser();
+    const { subtotal, taxesAndFees, total } = calculateBookingTotals({
+      unitPricesCents: [flight.price],
+      passengerCount,
+    });
 
     const booking = await db.transaction(async (tx) => {
       const createdBooking = await tx.orm.public.Booking.create({
@@ -203,19 +313,14 @@ export async function POST(request: Request) {
         ...(currentUser ? { userId: currentUser.id } : {}),
       });
 
-      for (const passenger of passengers) {
-        await tx.orm.public.Passenger.create({
-          bookingId: createdBooking.id,
-          firstName: passenger.firstName,
-          lastName: passenger.lastName,
-          dateOfBirth: passenger.dateOfBirth,
-          gender: passenger.gender,
-          nationality: passenger.nationality,
-          ...passportWriteFields(passenger.passportNumber),
-          passportCountry: passenger.passportCountry,
-          passportExpiry: passenger.passportExpiry,
-        });
-      }
+      await tx.orm.public.BookingSegment.create({
+        bookingId: createdBooking.id,
+        flightId: flight.id,
+        segmentType: "OUTBOUND",
+        sequence: 1,
+      });
+
+      await createPassengerSnapshots(tx, createdBooking.id, passengers);
 
       return createdBooking;
     });

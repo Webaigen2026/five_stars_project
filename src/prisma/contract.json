@@ -8,6 +8,10 @@
       "model": "Booking",
       "namespace": "public"
     },
+    "bookingSegment": {
+      "model": "BookingSegment",
+      "namespace": "public"
+    },
     "cargoRequest": {
       "model": "CargoRequest",
       "namespace": "public"
@@ -186,6 +190,21 @@
                   "namespace": "public"
                 }
               },
+              "segments": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "bookingId"
+                  ]
+                },
+                "to": {
+                  "model": "BookingSegment",
+                  "namespace": "public"
+                }
+              },
               "user": {
                 "cardinality": "N:1",
                 "on": {
@@ -243,6 +262,108 @@
               },
               "namespaceId": "public",
               "table": "booking"
+            }
+          },
+          "BookingSegment": {
+            "fields": {
+              "bookingId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "flightId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "segmentType": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "sequence": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "booking": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "bookingId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Booking",
+                  "namespace": "public"
+                }
+              },
+              "flight": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "flightId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Flight",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "bookingId": {
+                  "column": "bookingId"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "flightId": {
+                  "column": "flightId"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "segmentType": {
+                  "column": "segmentType"
+                },
+                "sequence": {
+                  "column": "sequence"
+                }
+              },
+              "namespaceId": "public",
+              "table": "bookingSegment"
             }
           },
           "CargoRequest": {
@@ -986,6 +1107,21 @@
               }
             },
             "relations": {
+              "bookingSegments": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "flightId"
+                  ]
+                },
+                "to": {
+                  "model": "BookingSegment",
+                  "namespace": "public"
+                }
+              },
               "bookings": {
                 "cardinality": "1:N",
                 "on": {
@@ -1964,6 +2100,119 @@
                 {
                   "columns": [
                     "bookingReference"
+                  ]
+                }
+              ]
+            },
+            "bookingSegment": {
+              "columns": {
+                "bookingId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "flightId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "segmentType": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "sequence": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "bookingId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "bookingSegment"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "booking"
+                  }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "flightId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "bookingSegment"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "flight"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "bookingId"
+                  ],
+                  "name": "bookingSegment_bookingId_idx_17848f4a",
+                  "prefix": "bookingSegment_bookingId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "flightId"
+                  ],
+                  "name": "bookingSegment_flightId_idx_7ef5148f",
+                  "prefix": "bookingSegment_flightId_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "bookingId",
+                    "sequence"
+                  ]
+                },
+                {
+                  "columns": [
+                    "bookingId",
+                    "segmentType"
                   ]
                 }
               ]
@@ -3056,7 +3305,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "6dfc160b65a0d57147136863e04f56ecb48b66f2561ca78044e6341f8ec5a7e0"
+    "storageHash": "cc04b79da5ffb326d5b6534122078e918178839edd0676559d94cd1d55d40457"
   },
   "execution": {
     "executionHash": "5934c9e328907467103b5c9bb27ca268a842ff4ead094eaf453a14e7eed8b2ee",

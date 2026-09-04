@@ -11,17 +11,14 @@ import {
   canReviewCheckoutBooking,
   getCheckoutPaymentAction,
 } from "../../lib/checkout";
-import { isStripeConfigured } from "../../lib/payments";
 import {
-  formatArrivalDate,
-  formatArrivalTime,
-  formatDepartureDate,
-  formatDepartureTime,
-  formatDuration,
-  formatMoney,
-  formatRoute,
-} from "../../lib/trip-formatting";
+  isRoundTripLegs,
+  loadBookingLegsWithFlights,
+} from "../../lib/booking-segments";
+import { isStripeConfigured } from "../../lib/payments";
+import { formatMoney } from "../../lib/trip-formatting";
 import { db } from "../../prisma/db";
+import BookingLegSummary from "../../components/booking/BookingLegSummary";
 
 type SearchParams = Promise<{
   booking?: string;
@@ -123,22 +120,8 @@ export default async function CheckoutPage({
     );
   }
 
-  const [flight, passengers] = await Promise.all([
-    db.orm.public.Flight.select(
-      "id",
-      "code",
-      "airline",
-      "aircraft",
-      "origin",
-      "originCode",
-      "destination",
-      "destinationCode",
-      "departureTime",
-      "arrivalTime",
-      "durationMinutes"
-    )
-      .where({ id: booking.flightId })
-      .first(),
+  const [legs, passengers] = await Promise.all([
+    loadBookingLegsWithFlights(booking),
     db.orm.public.Passenger.select("id", "firstName", "lastName", "nationality")
       .where({ bookingId: booking.id })
       .all(),
@@ -160,6 +143,7 @@ export default async function CheckoutPage({
   });
   const tripHref = `/my-trips/${encodeURIComponent(booking.bookingReference)}`;
   const itineraryHref = `${tripHref}/itinerary`;
+  const isRoundTrip = isRoundTripLegs(legs);
 
   return (
     <>
@@ -202,63 +186,15 @@ export default async function CheckoutPage({
             <div className="space-y-6">
               <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
                 <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">
-                  Flight itinerary
+                  {isRoundTrip ? "Round-trip itinerary" : "Flight itinerary"}
                 </p>
 
-                {flight ? (
-                  <>
-                    <div className="mt-3 flex flex-wrap items-start justify-between gap-4">
-                      <div>
-                        <h2 className="text-2xl font-semibold text-slate-950">
-                          {formatRoute(flight.originCode, flight.destinationCode)}
-                        </h2>
-                        <p className="mt-2 break-words text-sm text-slate-600">
-                          {flight.origin} → {flight.destination}
-                        </p>
-                        <p className="mt-2 text-sm text-slate-600">
-                          {flight.airline}
-                          {flight.aircraft ? ` · ${flight.aircraft}` : ""}
-                        </p>
-                      </div>
-                      <div className="rounded-full bg-sky-50 px-4 py-2 text-sm font-semibold text-primary">
-                        {flight.code}
-                      </div>
-                    </div>
-
-                    <div className="mt-8 grid gap-6 sm:grid-cols-[1fr_auto_1fr] sm:items-center">
-                      <div>
-                        <p className="text-3xl font-semibold text-slate-950">
-                          {formatDepartureTime(flight)}
-                        </p>
-                        <p className="mt-2 text-sm font-semibold text-slate-900">
-                          {flight.origin} ({flight.originCode})
-                        </p>
-                        <p className="mt-1 text-sm text-slate-600">
-                          {formatDepartureDate(flight)}
-                        </p>
-                      </div>
-
-                      <div className="min-w-0 text-left sm:min-w-40 sm:text-center">
-                        <p className="text-xs font-medium uppercase tracking-wider text-slate-400">
-                          {formatDuration(flight.durationMinutes)}
-                        </p>
-                        <div className="my-2 h-px bg-slate-300" />
-                        <p className="text-xs text-slate-500">Nonstop</p>
-                      </div>
-
-                      <div className="sm:text-right">
-                        <p className="text-3xl font-semibold text-slate-950">
-                          {formatArrivalTime(flight)}
-                        </p>
-                        <p className="mt-2 text-sm font-semibold text-slate-900">
-                          {flight.destination} ({flight.destinationCode})
-                        </p>
-                        <p className="mt-1 text-sm text-slate-600">
-                          {formatArrivalDate(flight)}
-                        </p>
-                      </div>
-                    </div>
-                  </>
+                {legs.length > 0 ? (
+                  <div className="mt-5 space-y-5">
+                    {legs.map((leg) => (
+                      <BookingLegSummary key={`${leg.segmentType}-${leg.flightId}`} leg={leg} />
+                    ))}
+                  </div>
                 ) : (
                   <>
                     <h2 className="mt-3 text-2xl font-semibold text-slate-950">

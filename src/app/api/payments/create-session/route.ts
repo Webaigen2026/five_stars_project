@@ -1,4 +1,5 @@
 import { getCurrentUser } from "../../../../lib/auth";
+import { loadBookingLegsWithFlights } from "../../../../lib/booking-segments";
 import {
   PAYMENT_CURRENCY,
   PAYMENT_PROVIDER,
@@ -65,18 +66,21 @@ export async function POST(request: Request) {
       throw new PaymentError("This booking is not eligible for payment.", 409);
     }
 
-    const flight = await db.orm.public.Flight.select(
-      "id",
-      "code",
-      "originCode",
-      "destinationCode"
-    )
-      .where({ id: booking.flightId })
-      .first();
+    const legs = await loadBookingLegsWithFlights(booking);
+    const outbound =
+      legs.find((leg) => leg.segmentType === "OUTBOUND") ?? legs[0];
+    const returnLeg = legs.find((leg) => leg.segmentType === "RETURN");
 
-    if (!flight) {
+    if (!outbound) {
       throw new PaymentError("Flight not found.", 404);
     }
+
+    const productName = returnLeg
+      ? `StarJet Round Trip ${outbound.flight.code}/${returnLeg.flight.code}`
+      : `StarJet Flight ${outbound.flight.code}`;
+    const productDescription = returnLeg
+      ? `${outbound.flight.originCode} ⇄ ${outbound.flight.destinationCode}`
+      : `${outbound.flight.originCode} → ${outbound.flight.destinationCode}`;
 
     const existingPayment = await db.orm.public.Payment.where({
       bookingId: booking.id,
@@ -105,8 +109,8 @@ export async function POST(request: Request) {
             currency: PAYMENT_CURRENCY.toLowerCase(),
             unit_amount: booking.total,
             product_data: {
-              name: `StarJet Flight ${flight.code}`,
-              description: `${flight.originCode} → ${flight.destinationCode}`,
+              name: productName,
+              description: productDescription,
             },
           },
         },

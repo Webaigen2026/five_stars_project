@@ -3,17 +3,22 @@ import { notFound } from "next/navigation";
 
 import BookingStatusForm from "../../../../components/admin/bookings/BookingStatusForm";
 import { parsePositiveInt } from "../../../../lib/admin-bookings";
+import { FALLBACK_AIRPORT_TIME_ZONE } from "../../../../lib/airport-timezones";
 import { isAdmin, requireStaffOrAdmin } from "../../../../lib/authorization";
-import { maskPassportNumber } from "../../../../lib/sensitive-data";
 import { getAllowedAdminBookingTransitions } from "../../../../lib/booking-lifecycle";
+import {
+  isRoundTripLegs,
+  loadBookingLegsWithFlights,
+} from "../../../../lib/booking-segments";
+import { maskPassportNumber } from "../../../../lib/sensitive-data";
 import { getDecryptedPassportNumber } from "../../../../lib/traveler-encryption";
 import {
   formatArrivalDateTime,
   formatDepartureDateTime,
   formatMoney,
+  formatRoute,
   formatTripDateTime,
 } from "../../../../lib/trip-formatting";
-import { FALLBACK_AIRPORT_TIME_ZONE } from "../../../../lib/airport-timezones";
 import { db } from "../../../../prisma/db";
 
 function customerDisplay(user: {
@@ -59,25 +64,13 @@ export default async function AdminBookingDetailPage({
     notFound();
   }
 
-  const [customer, flight, passengers, payment] = await Promise.all([
+  const [customer, legs, passengers, payment] = await Promise.all([
     booking.userId
       ? db.orm.public.User.select("id", "email", "firstName", "lastName")
           .where({ id: booking.userId })
           .first()
       : Promise.resolve(null),
-    db.orm.public.Flight.select(
-      "id",
-      "code",
-      "airline",
-      "origin",
-      "originCode",
-      "destination",
-      "destinationCode",
-      "departureTime",
-      "arrivalTime"
-    )
-      .where({ id: booking.flightId })
-      .first(),
+    loadBookingLegsWithFlights(booking),
     db.orm.public.Passenger.where({ bookingId: booking.id }).all(),
     db.orm.public.Payment.where({ bookingId: booking.id }).first(),
   ]);
@@ -89,8 +82,12 @@ export default async function AdminBookingDetailPage({
 
   const customerInfo = customerDisplay(customer);
   const allowedTransitions = getAllowedAdminBookingTransitions(booking.status);
-  const route = flight
-    ? `${flight.originCode} → ${flight.destinationCode}`
+  const isRoundTrip = isRoundTripLegs(legs);
+  const outbound = legs.find((leg) => leg.segmentType === "OUTBOUND") ?? legs[0];
+  const route = outbound
+    ? isRoundTrip
+      ? `${outbound.flight.originCode} ⇄ ${outbound.flight.destinationCode}`
+      : formatRoute(outbound.flight.originCode, outbound.flight.destinationCode)
     : "Unknown route";
 
   return (
@@ -165,39 +162,36 @@ export default async function AdminBookingDetailPage({
 
         <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
           <h2 className="text-xl font-semibold text-slate-950">Flight</h2>
-          {flight ? (
-            <dl className="mt-5 space-y-3 text-sm">
-              <div className="flex justify-between gap-4">
-                <dt className="text-slate-500">Code</dt>
-                <dd className="font-semibold text-slate-950">{flight.code}</dd>
+          {legs.length > 0 ? (
+            <div className="mt-5 space-y-5">
+              <div className="flex justify-between gap-4 text-sm">
+                <dt className="text-slate-500">Trip</dt>
+                <dd className="font-semibold text-slate-950">{route}</dd>
               </div>
-              <div className="flex justify-between gap-4">
-                <dt className="text-slate-500">Airline</dt>
-                <dd className="text-slate-950">{flight.airline}</dd>
-              </div>
-              <div className="flex justify-between gap-4">
-                <dt className="text-slate-500">Route</dt>
-                <dd className="text-slate-950">{route}</dd>
-              </div>
-              <div>
-                <dt className="text-slate-500">Cities</dt>
-                <dd className="mt-1 text-slate-950">
-                  {flight.origin} → {flight.destination}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-slate-500">Departure</dt>
-                <dd className="mt-1 text-slate-950">
-                  {formatDepartureDateTime(flight)}
-                </dd>
-              </div>
-              <div>
-                <dt className="text-slate-500">Arrival</dt>
-                <dd className="mt-1 text-slate-950">
-                  {formatArrivalDateTime(flight)}
-                </dd>
-              </div>
-            </dl>
+              {legs.map((leg) => (
+                <div
+                  key={`${leg.segmentType}-${leg.flightId}`}
+                  className="rounded-2xl border border-slate-200 px-4 py-3 text-sm"
+                >
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+                    {leg.segmentType === "RETURN" ? "Return" : "Outbound"}
+                  </p>
+                  <p className="mt-2 font-semibold text-slate-950">
+                    {leg.flight.code} ·{" "}
+                    {formatRoute(leg.flight.originCode, leg.flight.destinationCode)}
+                  </p>
+                  <p className="mt-1 text-slate-600">
+                    {leg.flight.origin} → {leg.flight.destination}
+                  </p>
+                  <p className="mt-1 text-slate-600">
+                    Departs {formatDepartureDateTime(leg.flight)}
+                  </p>
+                  <p className="mt-1 text-slate-600">
+                    Arrives {formatArrivalDateTime(leg.flight)}
+                  </p>
+                </div>
+              ))}
+            </div>
           ) : (
             <p className="mt-4 text-sm text-slate-600">
               Flight details are unavailable.

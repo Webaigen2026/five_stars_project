@@ -1,25 +1,24 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import BookingLegSummary from "../../../../components/booking/BookingLegSummary";
 import BookingStatusBadge from "../../../../components/booking/BookingStatusBadge";
 import CopyBookingReferenceButton from "../../../../components/booking/CopyBookingReferenceButton";
 import PrintItineraryButton from "../../../../components/booking/PrintItineraryButton";
 import Footer from "../../../../components/layout/Footer";
 import Header from "../../../../components/layout/Header";
+import { FALLBACK_AIRPORT_TIME_ZONE } from "../../../../lib/airport-timezones";
 import { requireUser } from "../../../../lib/authorization";
+import {
+  isRoundTripLegs,
+  loadBookingLegsWithFlights,
+} from "../../../../lib/booking-segments";
 import { getBookingStatusPresentation } from "../../../../lib/booking-status";
 import {
-  formatArrivalDate,
-  formatArrivalTime,
-  formatDepartureDate,
-  formatDepartureTime,
-  formatDuration,
   formatMoney,
   formatRoute,
   formatTripDateTime,
-  isOvernightFlight,
 } from "../../../../lib/trip-formatting";
-import { FALLBACK_AIRPORT_TIME_ZONE } from "../../../../lib/airport-timezones";
 import { db } from "../../../../prisma/db";
 
 export default async function ItineraryPage({
@@ -43,22 +42,8 @@ export default async function ItineraryPage({
     notFound();
   }
 
-  const [flight, passengers] = await Promise.all([
-    db.orm.public.Flight.select(
-      "id",
-      "code",
-      "airline",
-      "aircraft",
-      "origin",
-      "originCode",
-      "destination",
-      "destinationCode",
-      "departureTime",
-      "arrivalTime",
-      "durationMinutes"
-    )
-      .where({ id: booking.flightId })
-      .first(),
+  const [legs, passengers] = await Promise.all([
+    loadBookingLegsWithFlights(booking),
     db.orm.public.Passenger.select("id", "firstName", "lastName", "nationality")
       .where({ bookingId: booking.id })
       .all(),
@@ -71,7 +56,8 @@ export default async function ItineraryPage({
   );
   const tripHref = `/my-trips/${encodeURIComponent(booking.bookingReference)}`;
   const sortedPassengers = [...passengers].sort((left, right) => left.id - right.id);
-  const arrivalNextDay = flight != null && isOvernightFlight(flight);
+  const isRoundTrip = isRoundTripLegs(legs);
+  const outbound = legs.find((leg) => leg.segmentType === "OUTBOUND") ?? legs[0];
 
   return (
     <>
@@ -150,7 +136,7 @@ export default async function ItineraryPage({
               </dl>
             </section>
 
-            {!flight ? (
+            {legs.length === 0 ? (
               <section className="print-itinerary-card mt-6 border-b border-slate-200 pb-6">
                 <h2 className="text-lg font-semibold text-slate-950">
                   Flight details unavailable
@@ -166,55 +152,31 @@ export default async function ItineraryPage({
             ) : (
               <section className="print-itinerary-card mt-6 border-b border-slate-200 pb-6">
                 <h2 className="text-lg font-semibold text-slate-950">
-                  Flight details
+                  {isRoundTrip ? "Flight details" : "Flight details"}
                 </h2>
-                <p className="mt-2 text-2xl font-semibold text-slate-950">
-                  {formatRoute(flight.originCode, flight.destinationCode)}
-                </p>
-                <p className="mt-1 text-sm text-slate-600">
-                  {flight.origin} → {flight.destination}
-                </p>
-                <p className="mt-2 text-sm text-slate-600">
-                  {flight.airline} · {flight.code}
-                  {flight.aircraft ? ` · ${flight.aircraft}` : ""}
-                </p>
-
-                <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-5">
-                  <div>
-                    <p className="text-sm font-semibold text-slate-950">
-                      {flight.origin} ({flight.originCode})
+                {outbound ? (
+                  <>
+                    <p className="mt-2 text-2xl font-semibold text-slate-950">
+                      {isRoundTrip
+                        ? `${outbound.flight.originCode} ⇄ ${outbound.flight.destinationCode}`
+                        : formatRoute(
+                            outbound.flight.originCode,
+                            outbound.flight.destinationCode
+                          )}
                     </p>
                     <p className="mt-1 text-sm text-slate-600">
-                      {formatDepartureDate(flight)}
+                      {outbound.flight.origin} → {outbound.flight.destination}
                     </p>
-                    <p className="mt-1 text-xl font-semibold text-slate-950">
-                      {formatDepartureTime(flight)}
-                    </p>
-                  </div>
+                  </>
+                ) : null}
 
-                  <div className="my-4 border-l border-slate-300 pl-4">
-                    <p className="text-xs font-medium uppercase tracking-wider text-slate-400">
-                      {formatDuration(flight.durationMinutes)}
-                    </p>
-                    <p className="mt-1 text-sm text-slate-500">Nonstop</p>
-                  </div>
-
-                  <div>
-                    <p className="text-sm font-semibold text-slate-950">
-                      {flight.destination} ({flight.destinationCode})
-                    </p>
-                    <p className="mt-1 text-sm text-slate-600">
-                      {formatArrivalDate(flight)}
-                      {arrivalNextDay ? (
-                        <span className="ml-2 font-medium text-amber-700">
-                          Arrives next day
-                        </span>
-                      ) : null}
-                    </p>
-                    <p className="mt-1 text-xl font-semibold text-slate-950">
-                      {formatArrivalTime(flight)}
-                    </p>
-                  </div>
+                <div className="mt-6 space-y-5">
+                  {legs.map((leg) => (
+                    <BookingLegSummary
+                      key={`${leg.segmentType}-${leg.flightId}`}
+                      leg={leg}
+                    />
+                  ))}
                 </div>
 
                 <p className="mt-5 text-sm text-slate-600">

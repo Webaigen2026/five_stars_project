@@ -9,6 +9,7 @@ import {
   doesTransitionReleaseInventory,
   isPaymentAuthoritativeStatus,
 } from "./booking-lifecycle";
+import { loadInventoryFlightIds } from "./booking-segments";
 
 export type BookingTransitionSource = "ADMIN" | "SYSTEM" | "PAYMENT";
 
@@ -299,12 +300,22 @@ export async function transitionBookingStatus(input: {
     const held = claimed.inventoryHeld === true;
 
     if (acquireCandidate && !held) {
-      await acquireInventory(tx, claimed.flightId, claimed.passengerCount);
+      const flightIds = await loadInventoryFlightIds(tx, claimed);
+
+      for (const flightId of flightIds) {
+        await acquireInventory(tx, flightId, claimed.passengerCount);
+      }
+
       claimed = await setInventoryHeld(tx, bookingId, false, true);
     }
 
     if (releaseCandidate && held) {
-      await releaseInventory(tx, claimed.flightId, claimed.passengerCount);
+      const flightIds = await loadInventoryFlightIds(tx, claimed);
+
+      for (const flightId of flightIds) {
+        await releaseInventory(tx, flightId, claimed.passengerCount);
+      }
+
       claimed = await setInventoryHeld(tx, bookingId, true, false);
     } else if (consumeHold && held) {
       // COMPLETED consumes an active hold without restoring seats.

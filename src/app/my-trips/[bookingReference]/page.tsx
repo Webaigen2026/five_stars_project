@@ -1,23 +1,22 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import BookingLegSummary from "../../../components/booking/BookingLegSummary";
 import BookingProgress from "../../../components/booking/BookingProgress";
 import BookingStatusBadge from "../../../components/booking/BookingStatusBadge";
 import CopyBookingReferenceButton from "../../../components/booking/CopyBookingReferenceButton";
 import Footer from "../../../components/layout/Footer";
 import Header from "../../../components/layout/Header";
 import { requireUser } from "../../../lib/authorization";
+import {
+  isRoundTripLegs,
+  loadBookingLegsWithFlights,
+} from "../../../lib/booking-segments";
 import { getBookingStatusPresentation } from "../../../lib/booking-status";
 import {
-  formatArrivalDate,
-  formatArrivalTime,
-  formatDepartureDate,
   formatDepartureDateShort,
-  formatDepartureTime,
-  formatDuration,
   formatMoney,
   formatRoute,
-  isOvernightFlight,
 } from "../../../lib/trip-formatting";
 import { db } from "../../../prisma/db";
 
@@ -42,21 +41,8 @@ export default async function TripDetailPage({
     notFound();
   }
 
-  const [flight, passengers] = await Promise.all([
-    db.orm.public.Flight.select(
-      "id",
-      "code",
-      "airline",
-      "origin",
-      "originCode",
-      "destination",
-      "destinationCode",
-      "departureTime",
-      "arrivalTime",
-      "durationMinutes"
-    )
-      .where({ id: booking.flightId })
-      .first(),
+  const [legs, passengers] = await Promise.all([
+    loadBookingLegsWithFlights(booking),
     db.orm.public.Passenger.select("id", "firstName", "lastName", "nationality")
       .where({ bookingId: booking.id })
       .all(),
@@ -67,7 +53,10 @@ export default async function TripDetailPage({
   const tripHref = `/my-trips/${encodeURIComponent(booking.bookingReference)}`;
   const itineraryHref = `${tripHref}/itinerary`;
   const checkoutHref = `/checkout?booking=${encodeURIComponent(booking.bookingReference)}`;
-  const arrivalNextDay = flight != null && isOvernightFlight(flight);
+  const outbound = legs.find((leg) => leg.segmentType === "OUTBOUND") ?? legs[0];
+  const returnLeg = legs.find((leg) => leg.segmentType === "RETURN");
+  const isRoundTrip = isRoundTripLegs(legs);
+  const heroFlight = outbound?.flight;
 
   return (
     <>
@@ -80,37 +69,55 @@ export default async function TripDetailPage({
               My Trips
             </p>
 
-            {flight ? (
+            {heroFlight ? (
               <>
-                <div className="mt-6 grid gap-4 sm:grid-cols-[1fr_auto_1fr] sm:items-end">
+                {isRoundTrip ? (
+                  <p className="mt-4 text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+                    Round trip
+                  </p>
+                ) : null}
+                <div className="mt-4 grid gap-4 sm:grid-cols-[1fr_auto_1fr] sm:items-end">
                   <div>
                     <p className="text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
-                      {flight.originCode}
+                      {heroFlight.originCode}
                     </p>
                     <p className="mt-2 break-words text-base text-slate-600">
-                      {flight.origin}
+                      {heroFlight.origin}
                     </p>
                   </div>
                   <div className="hidden pb-2 text-center sm:block">
-                    <p className="text-2xl font-semibold text-slate-300">→</p>
+                    <p className="text-2xl font-semibold text-slate-300">
+                      {isRoundTrip ? "⇄" : "→"}
+                    </p>
                     <p className="mt-1 text-sm text-slate-500">
-                      {formatRoute(flight.originCode, flight.destinationCode)}
+                      {formatRoute(
+                        heroFlight.originCode,
+                        heroFlight.destinationCode
+                      )}
                     </p>
                   </div>
                   <div className="sm:text-right">
                     <p className="text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
-                      {flight.destinationCode}
+                      {heroFlight.destinationCode}
                     </p>
                     <p className="mt-2 break-words text-base text-slate-600">
-                      {flight.destination}
+                      {heroFlight.destination}
                     </p>
                   </div>
                 </div>
 
                 <div className="mt-6 flex flex-wrap items-center gap-3 text-sm text-slate-600">
-                  <p>{formatDepartureDateShort(flight)}</p>
+                  <p>
+                    Outbound {formatDepartureDateShort(heroFlight)}
+                    {returnLeg
+                      ? ` · Return ${formatDepartureDateShort(returnLeg.flight)}`
+                      : ""}
+                  </p>
                   <span aria-hidden="true">·</span>
-                  <p className="font-semibold text-slate-950">{flight.code}</p>
+                  <p className="font-semibold text-slate-950">
+                    {heroFlight.code}
+                    {returnLeg ? ` / ${returnLeg.flight.code}` : ""}
+                  </p>
                   <BookingStatusBadge status={booking.status} />
                 </div>
               </>
@@ -146,7 +153,7 @@ export default async function TripDetailPage({
             </Link>
           </p>
 
-          {!flight ? (
+          {legs.length === 0 ? (
             <div className="rounded-3xl border border-slate-200 bg-white p-10 text-center shadow-sm">
               <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">
                 {booking.bookingReference}
@@ -182,51 +189,19 @@ export default async function TripDetailPage({
                         Itinerary
                       </p>
                       <h2 className="mt-2 text-2xl font-semibold text-slate-950">
-                        {formatRoute(flight.originCode, flight.destinationCode)}
+                        {isRoundTrip ? "Round-trip flights" : "Flight"}
                       </h2>
-                      <p className="mt-2 text-sm text-slate-600">
-                        {flight.airline} · {flight.code}
-                      </p>
                     </div>
                     <BookingStatusBadge status={booking.status} />
                   </div>
 
-                  <div className="mt-8 rounded-2xl border border-slate-200 bg-slate-50 p-5">
-                    <div>
-                      <p className="text-sm font-semibold text-slate-950">
-                        {flight.origin} ({flight.originCode})
-                      </p>
-                      <p className="mt-1 text-sm text-slate-600">
-                        {formatDepartureDate(flight)}
-                      </p>
-                      <p className="mt-1 text-2xl font-semibold text-slate-950">
-                        {formatDepartureTime(flight)}
-                      </p>
-                    </div>
-
-                    <div className="my-5 border-l border-slate-300 pl-4">
-                      <p className="text-xs font-medium uppercase tracking-wider text-slate-400">
-                        {formatDuration(flight.durationMinutes)}
-                      </p>
-                      <p className="mt-1 text-sm text-slate-500">Nonstop</p>
-                    </div>
-
-                    <div>
-                      <p className="text-sm font-semibold text-slate-950">
-                        {flight.destination} ({flight.destinationCode})
-                      </p>
-                      <p className="mt-1 text-sm text-slate-600">
-                        {formatArrivalDate(flight)}
-                        {arrivalNextDay ? (
-                          <span className="ml-2 font-medium text-amber-700">
-                            Arrives next day
-                          </span>
-                        ) : null}
-                      </p>
-                      <p className="mt-1 text-2xl font-semibold text-slate-950">
-                        {formatArrivalTime(flight)}
-                      </p>
-                    </div>
+                  <div className="mt-6 space-y-5">
+                    {legs.map((leg) => (
+                      <BookingLegSummary
+                        key={`${leg.segmentType}-${leg.flightId}`}
+                        leg={leg}
+                      />
+                    ))}
                   </div>
                 </section>
 
@@ -248,8 +223,8 @@ export default async function TripDetailPage({
                           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
                             Passenger {index + 1}
                           </p>
-                          <p className="mt-1 font-medium text-slate-950">
-                            {passenger.firstName} {passenger.lastName}
+                          <p className="mt-1 font-semibold text-slate-950">
+                            {`${passenger.firstName} ${passenger.lastName}`}
                           </p>
                           {passenger.nationality ? (
                             <p className="mt-1 text-sm text-slate-600">
@@ -261,70 +236,72 @@ export default async function TripDetailPage({
                     </ol>
                   )}
                 </section>
-              </div>
 
-              <aside className="space-y-6">
                 <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-                  <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">
-                    Status
-                  </p>
-                  <h2 className="mt-2 text-2xl font-semibold text-slate-950">
-                    {status.label}
+                  <h2 className="text-xl font-semibold text-slate-950">
+                    Booking status
                   </h2>
-                  <div className="mt-4">
+                  <p className="mt-2 text-sm text-slate-600">{status.description}</p>
+                  <div className="mt-6">
                     <BookingProgress status={booking.status} />
                   </div>
                 </section>
+              </div>
 
+              <aside className="space-y-6">
                 <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
                   <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">
                     Price summary
                   </p>
                   <dl className="mt-5 space-y-3 text-sm">
                     <div className="flex justify-between gap-4">
-                      <dt className="text-slate-600">Subtotal</dt>
+                      <dt className="text-slate-500">Subtotal</dt>
                       <dd className="font-medium text-slate-950">
                         {formatMoney(booking.subtotal)}
                       </dd>
                     </div>
                     <div className="flex justify-between gap-4">
-                      <dt className="text-slate-600">Taxes & fees</dt>
+                      <dt className="text-slate-500">Taxes & fees</dt>
                       <dd className="font-medium text-slate-950">
                         {formatMoney(booking.taxesAndFees)}
                       </dd>
                     </div>
-                    <div className="flex items-end justify-between gap-4 border-t border-slate-200 pt-3">
+                    <div className="flex justify-between gap-4 border-t border-slate-200 pt-3">
                       <dt className="font-semibold text-slate-950">Total</dt>
                       <dd className="text-2xl font-semibold text-slate-950">
                         {formatMoney(booking.total)}
                       </dd>
                     </div>
                   </dl>
-                  <p className="mt-2 text-right text-xs text-slate-500">USD</p>
                 </section>
 
-                <div className="flex flex-col gap-3">
-                  <Link
-                    href={itineraryHref}
-                    className="inline-flex items-center justify-center rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
-                  >
-                    View itinerary
-                  </Link>
-                  {status.paymentAvailable ? (
+                <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                  <h2 className="text-lg font-semibold text-slate-950">
+                    Actions
+                  </h2>
+                  <div className="mt-4 flex flex-col gap-3">
+                    {status.paymentAvailable ? (
+                      <Link
+                        href={checkoutHref}
+                        className="inline-flex justify-center rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-primary-hover"
+                      >
+                        Continue to checkout
+                      </Link>
+                    ) : null}
                     <Link
-                      href={checkoutHref}
-                      className="inline-flex items-center justify-center rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                      href={itineraryHref}
+                      className="inline-flex justify-center rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-800 transition hover:bg-slate-50"
                     >
-                      Continue to checkout
+                      View itinerary
                     </Link>
-                  ) : null}
-                  <Link
-                    href="/flights"
-                    className="inline-flex items-center justify-center rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
-                  >
-                    Book another flight
-                  </Link>
-                </div>
+                    <Link
+                      href="/flights"
+                      className="inline-flex justify-center rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-800 transition hover:bg-slate-50"
+                    >
+                      Book another flight
+                    </Link>
+                  </div>
+                </section>
               </aside>
             </div>
           )}
