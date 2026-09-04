@@ -31,7 +31,7 @@ export default function CopyBookingReferenceButton({
       aria-label={
         copied
           ? `Booking reference ${bookingReference} copied`
-          : `Copy booking reference ${bookingReference}`
+          : `Copy booking reference`
       }
     >
       {copied ? "Copied" : "Copy"}

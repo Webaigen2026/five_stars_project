@@ -430,7 +430,7 @@ export default function PassengersContent({
       }
 
       router.push(
-        `/checkout?booking=${encodeURIComponent(payload.bookingReference)}`
+        `/booking/confirmation/${encodeURIComponent(payload.bookingReference)}`
       );
     } catch {
       setError("Unable to create booking. Please try again.");
