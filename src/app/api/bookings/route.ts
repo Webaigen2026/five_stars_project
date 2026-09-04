@@ -1,6 +1,8 @@
 import { randomInt } from "node:crypto";
 
 import { getCurrentUser } from "../../../lib/auth";
+import { rejectUntrustedMutation } from "../../../lib/request-security";
+import { logServerError } from "../../../lib/sensitive-data";
 import { db } from "../../../prisma/db";
 
 const TAXES_AND_FEES_PER_PASSENGER = 6800;
@@ -130,6 +132,12 @@ async function createUniqueBookingReference() {
 
 export async function POST(request: Request) {
   try {
+    const rejected = rejectUntrustedMutation(request);
+
+    if (rejected) {
+      return rejected;
+    }
+
     let body: unknown;
 
     try {
@@ -222,7 +230,7 @@ export async function POST(request: Request) {
       return jsonError(error.message, error.status);
     }
 
-    console.error("Failed to create booking:", error);
+    logServerError("Failed to create booking.", error);
     return jsonError("Unable to create booking.", 500);
   }
 }

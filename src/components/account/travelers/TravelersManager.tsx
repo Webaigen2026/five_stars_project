@@ -4,8 +4,8 @@ import { useState } from "react";
 
 import DeleteTravelerButton from "./DeleteTravelerButton";
 import TravelerForm from "./TravelerForm";
+import { maskPassportNumber } from "../../../lib/sensitive-data";
 import {
-  maskPassportNumber,
   travelerDisplayName,
   type SafeTraveler,
 } from "../../../lib/traveler-shared";

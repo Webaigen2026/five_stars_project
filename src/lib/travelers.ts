@@ -46,17 +46,40 @@ async function unsetOtherPrimaries(
   }
 }
 
+const TRAVELER_SELECT = [
+  "id",
+  "label",
+  "firstName",
+  "lastName",
+  "dateOfBirth",
+  "gender",
+  "nationality",
+  "passportNumber",
+  "passportCountry",
+  "passportExpiry",
+  "isPrimary",
+] as const;
+
 export async function listTravelersForUser(userId: number) {
-  const travelers = await db.orm.public.TravelerProfile.where({ userId }).all();
+  const travelers = await db.orm.public.TravelerProfile.select(
+    ...TRAVELER_SELECT
+  )
+    .where({ userId })
+    .all();
   return sortTravelers(travelers).map(toSafeTraveler);
 }
 
 export async function getOwnedTraveler(userId: number, travelerId: number) {
-  const traveler = await db.orm.public.TravelerProfile.where({
-    id: travelerId,
-  }).first();
+  const traveler = await db.orm.public.TravelerProfile.select(
+    ...TRAVELER_SELECT
+  )
+    .where({
+      id: travelerId,
+      userId,
+    })
+    .first();
 
-  if (!traveler || traveler.userId !== userId) {
+  if (!traveler) {
     return null;
   }
 

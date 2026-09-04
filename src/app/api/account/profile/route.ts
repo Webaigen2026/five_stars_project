@@ -4,6 +4,8 @@ import {
   parseProfileUpdate,
   toSafeAccountUser,
 } from "../../../../lib/account";
+import { rejectUntrustedMutation } from "../../../../lib/request-security";
+import { logServerError } from "../../../../lib/sensitive-data";
 import { db } from "../../../../prisma/db";
 
 function jsonError(message: string, status: number) {
@@ -12,6 +14,12 @@ function jsonError(message: string, status: number) {
 
 export async function PATCH(request: Request) {
   try {
+    const rejected = rejectUntrustedMutation(request);
+
+    if (rejected) {
+      return rejected;
+    }
+
     const currentUser = await getCurrentUser();
 
     if (!currentUser) {
@@ -55,7 +63,7 @@ export async function PATCH(request: Request) {
       return jsonError(error.message, error.status);
     }
 
-    console.error("Failed to update profile:", error);
+    logServerError("Failed to update profile.", error);
     return jsonError("Unable to update profile.", 500);
   }
 }

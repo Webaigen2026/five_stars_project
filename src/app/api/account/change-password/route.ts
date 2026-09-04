@@ -5,6 +5,8 @@ import {
   parsePasswordChange,
 } from "../../../../lib/account";
 import { getCurrentSession } from "../../../../lib/auth";
+import { rejectUntrustedMutation } from "../../../../lib/request-security";
+import { logServerError } from "../../../../lib/sensitive-data";
 import { db } from "../../../../prisma/db";
 
 const BCRYPT_ROUNDS = 12;
@@ -15,6 +17,12 @@ function jsonError(message: string, status: number) {
 
 export async function POST(request: Request) {
   try {
+    const rejected = rejectUntrustedMutation(request);
+
+    if (rejected) {
+      return rejected;
+    }
+
     const currentSession = await getCurrentSession();
 
     if (!currentSession) {
@@ -79,7 +87,7 @@ export async function POST(request: Request) {
       return jsonError(error.message, error.status);
     }
 
-    console.error("Failed to change password:", error);
+    logServerError("Failed to change password.", error);
     return jsonError("Unable to change password.", 500);
   }
 }

@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { isAdmin, requireStaffOrAdmin } from "../../../lib/authorization";
+import { maskPassportNumber } from "../../../lib/sensitive-data";
 import { db } from "../../../prisma/db";
 
 export default async function AdminPassengersPage() {
@@ -8,7 +9,16 @@ export default async function AdminPassengersPage() {
   const canEdit = isAdmin(user.role);
 
   const [passengers, bookings, flights] = await Promise.all([
-    db.orm.public.Passenger.all(),
+    db.orm.public.Passenger.select(
+      "id",
+      "bookingId",
+      "firstName",
+      "lastName",
+      "nationality",
+      "passportNumber",
+      "passportCountry",
+      "passportExpiry"
+    ).all(),
     db.orm.public.Booking.select("id", "bookingReference", "flightId").all(),
     db.orm.public.Flight.select("id", "code").all(),
   ]);
@@ -36,6 +46,7 @@ export default async function AdminPassengersPage() {
         bookingReference: booking?.bookingReference ?? "Unknown",
         flightCode: flight?.code ?? "Unknown",
         nationality: passenger.nationality,
+        passportMasked: maskPassportNumber(passenger.passportNumber),
         passportCountry: passenger.passportCountry,
         passportExpiry: passenger.passportExpiry,
       };
@@ -52,8 +63,7 @@ export default async function AdminPassengersPage() {
       </h1>
 
       <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-600">
-        Review travelers across bookings. Passport numbers are only shown on
-        the booking detail page.
+        Review travelers across bookings. Passport numbers are masked.
       </p>
 
       {rows.length === 0 ? (
@@ -69,6 +79,7 @@ export default async function AdminPassengersPage() {
                 <th className="px-5 py-4">Booking</th>
                 <th className="px-5 py-4">Flight</th>
                 <th className="px-5 py-4">Nationality</th>
+                <th className="px-5 py-4">Passport</th>
                 <th className="px-5 py-4">Passport country</th>
                 <th className="px-5 py-4">Passport expiry</th>
                 <th className="px-5 py-4">Actions</th>
@@ -93,6 +104,9 @@ export default async function AdminPassengersPage() {
                   </td>
                   <td className="px-5 py-4 text-slate-700">{row.flightCode}</td>
                   <td className="px-5 py-4 text-slate-700">{row.nationality}</td>
+                  <td className="px-5 py-4 font-mono text-slate-950">
+                    {row.passportMasked}
+                  </td>
                   <td className="px-5 py-4 text-slate-700">
                     {row.passportCountry}
                   </td>

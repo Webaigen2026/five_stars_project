@@ -1,4 +1,9 @@
 import { getCurrentUser } from "../../../../lib/auth";
+import { logServerError } from "../../../../lib/sensitive-data";
+import {
+  rejectUntrustedMutation,
+  sensitiveJson,
+} from "../../../../lib/request-security";
 import {
   TravelerError,
   deleteOwnedTraveler,
@@ -7,8 +12,10 @@ import {
   updateOwnedTraveler,
 } from "../../../../lib/travelers";
 
+export const dynamic = "force-dynamic";
+
 function jsonError(message: string, status: number) {
-  return Response.json({ error: message }, { status });
+  return sensitiveJson({ error: message }, { status });
 }
 
 export async function PATCH(
@@ -16,6 +23,12 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const rejected = rejectUntrustedMutation(request);
+
+    if (rejected) {
+      return rejected;
+    }
+
     const currentUser = await getCurrentUser();
 
     if (!currentUser) {
@@ -40,23 +53,28 @@ export async function PATCH(
     const input = parseTravelerInput(body);
     const traveler = await updateOwnedTraveler(currentUser.id, id, input);
 
-    return Response.json({ traveler });
+    return sensitiveJson({ traveler });
   } catch (error) {
     if (error instanceof TravelerError) {
       return jsonError(error.message, error.status);
     }
 
-    console.error("Failed to update traveler.");
-    console.error(error);
+    logServerError("Failed to update traveler.", error);
     return jsonError("Unable to update traveler.", 500);
   }
 }
 
 export async function DELETE(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const rejected = rejectUntrustedMutation(request);
+
+    if (rejected) {
+      return rejected;
+    }
+
     const currentUser = await getCurrentUser();
 
     if (!currentUser) {
@@ -72,14 +90,13 @@ export async function DELETE(
 
     await deleteOwnedTraveler(currentUser.id, id);
 
-    return Response.json({ success: true });
+    return sensitiveJson({ success: true });
   } catch (error) {
     if (error instanceof TravelerError) {
       return jsonError(error.message, error.status);
     }
 
-    console.error("Failed to delete traveler.");
-    console.error(error);
+    logServerError("Failed to delete traveler.", error);
     return jsonError("Unable to delete traveler.", 500);
   }
 }

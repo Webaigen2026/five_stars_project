@@ -8,6 +8,8 @@ import {
   parsePassengerWriteInput,
   toSafePassenger,
 } from "../../../../../lib/admin-passengers";
+import { rejectUntrustedMutation } from "../../../../../lib/request-security";
+import { logServerError } from "../../../../../lib/sensitive-data";
 import { db } from "../../../../../prisma/db";
 
 function jsonError(message: string, status: number) {
@@ -19,6 +21,12 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const rejected = rejectUntrustedMutation(request);
+
+    if (rejected) {
+      return rejected;
+    }
+
     const user = await getCurrentUser();
 
     if (!user) {
@@ -81,7 +89,7 @@ export async function PATCH(
       return jsonError(error.message, error.status);
     }
 
-    console.error("Failed to update passenger:", error);
+    logServerError("Failed to update passenger.", error);
     return jsonError("Unable to update passenger.", 500);
   }
 }

@@ -1,3 +1,5 @@
+export { maskPassportNumber } from "./sensitive-data";
+
 export const TRAVELER_GENDERS = ["MALE", "FEMALE", "OTHER"] as const;
 
 export type TravelerGender = (typeof TRAVELER_GENDERS)[number];
@@ -27,8 +29,6 @@ export type SafeTraveler = {
   passportCountry: string;
   passportExpiry: string;
   isPrimary: boolean;
-  createdAt: string;
-  updatedAt: string;
 };
 
 export class TravelerError extends Error {
@@ -74,16 +74,6 @@ export function parsePositiveInt(value: string) {
   return parsed;
 }
 
-export function maskPassportNumber(value: string) {
-  const trimmed = value.trim();
-
-  if (trimmed.length <= 4) {
-    return "••••";
-  }
-
-  return `•••• ${trimmed.slice(-4)}`;
-}
-
 export function travelerDisplayName(traveler: {
   label: string | null;
   firstName: string;
@@ -112,8 +102,6 @@ export function toSafeTraveler(traveler: SafeTraveler): SafeTraveler {
     passportCountry: traveler.passportCountry,
     passportExpiry: traveler.passportExpiry,
     isPrimary: traveler.isPrimary,
-    createdAt: traveler.createdAt,
-    updatedAt: traveler.updatedAt,
   };
 }
 
