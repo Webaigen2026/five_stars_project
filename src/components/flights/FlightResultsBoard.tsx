@@ -66,18 +66,36 @@ const selectClassName =
 const labelClassName =
   "block text-xs font-semibold uppercase tracking-wide text-slate-500";
 
+function CloseIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 20 20"
+      className="h-4 w-4"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+    >
+      <path d="M5 5l10 10M15 5 5 15" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 function FilterControls({
   filters,
   onChange,
   onReset,
   maxCatalogPriceDollars,
   idPrefix,
+  variant = "bar",
 }: {
   filters: FlightResultsFilterState;
   onChange: (next: FlightResultsFilterState) => void;
   onReset: () => void;
   maxCatalogPriceDollars: number;
   idPrefix: string;
+  /** bar = desktop inline grid; drawer = stacked single column (no Reset). */
+  variant?: "bar" | "drawer";
 }) {
   const [priceDraft, setPriceDraft] = useState(
     filters.maxPriceDollars == null ? "" : String(filters.maxPriceDollars)
@@ -89,8 +107,13 @@ function FilterControls({
     );
   }, [filters.maxPriceDollars]);
 
+  const layoutClassName =
+    variant === "drawer"
+      ? "grid gap-5"
+      : "grid gap-4 sm:grid-cols-2 lg:grid-cols-[1.1fr_1fr_1fr_1.2fr_auto] lg:items-end";
+
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-[1.1fr_1fr_1fr_1.2fr_auto] lg:items-end">
+    <div className={layoutClassName}>
       <div>
         <label className={labelClassName} htmlFor={`${idPrefix}-departure`}>
           Departure
@@ -186,16 +209,18 @@ function FilterControls({
         </select>
       </div>
 
-      <div className="flex items-end">
-        <button
-          type="button"
-          onClick={onReset}
-          disabled={isDefaultFlightResultsFilters(filters)}
-          className="inline-flex w-full justify-center rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-800 transition hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          Reset
-        </button>
-      </div>
+      {variant === "bar" ? (
+        <div className="flex items-end">
+          <button
+            type="button"
+            onClick={onReset}
+            disabled={isDefaultFlightResultsFilters(filters)}
+            className="inline-flex w-full justify-center rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-800 transition hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            Reset
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -211,11 +236,12 @@ function FlightResultsFiltersBar({
   onReset: () => void;
   maxCatalogPriceDollars: number;
 }) {
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const filtersButtonRef = useRef<HTMLButtonElement>(null);
   const titleId = useId();
   const desktopId = useId();
-  const mobileId = useId();
+  const drawerId = useId();
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -223,20 +249,45 @@ function FlightResultsFiltersBar({
       return;
     }
 
-    if (mobileOpen && !dialog.open) {
+    if (drawerOpen && !dialog.open) {
       dialog.showModal();
-    } else if (!mobileOpen && dialog.open) {
+    } else if (!drawerOpen && dialog.open) {
       dialog.close();
     }
-  }, [mobileOpen]);
+  }, [drawerOpen]);
+
+  useEffect(() => {
+    if (!drawerOpen) {
+      return;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [drawerOpen]);
+
+  function openDrawer() {
+    setDrawerOpen(true);
+  }
+
+  function closeDrawer() {
+    setDrawerOpen(false);
+    window.setTimeout(() => {
+      filtersButtonRef.current?.focus();
+    }, 0);
+  }
 
   return (
     <div className="mb-8">
-      <div className="hidden rounded-3xl border border-slate-200 bg-white p-5 shadow-sm lg:block">
+      <div className="hidden rounded-3xl border border-slate-200 bg-white p-5 shadow-sm min-[900px]:block">
         <p className="text-sm font-semibold text-slate-950">Filters</p>
         <div className="mt-4">
           <FilterControls
             idPrefix={desktopId}
+            variant="bar"
             filters={filters}
             onChange={onChange}
             onReset={onReset}
@@ -245,23 +296,24 @@ function FlightResultsFiltersBar({
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3 lg:hidden">
+      <div className="flex flex-wrap items-center gap-3 min-[900px]:hidden">
         <button
+          ref={filtersButtonRef}
           type="button"
           className="inline-flex rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-900 shadow-sm transition hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
-          onClick={() => setMobileOpen(true)}
+          onClick={openDrawer}
           aria-haspopup="dialog"
-          aria-expanded={mobileOpen}
+          aria-expanded={drawerOpen}
         >
           Filters
         </button>
 
         <div className="min-w-0 flex-1">
-          <label className={labelClassName} htmlFor={`${mobileId}-sort-inline`}>
+          <label className={labelClassName} htmlFor={`${drawerId}-sort-inline`}>
             Sort by
           </label>
           <select
-            id={`${mobileId}-sort-inline`}
+            id={`${drawerId}-sort-inline`}
             className={selectClassName}
             value={filters.sort}
             onChange={(event) =>
@@ -282,31 +334,46 @@ function FlightResultsFiltersBar({
 
       <dialog
         ref={dialogRef}
-        className="m-auto w-[min(100%,24rem)] rounded-3xl border border-slate-200 bg-white p-0 shadow-xl backdrop:bg-slate-950/40"
+        role="dialog"
+        aria-modal="true"
         aria-labelledby={titleId}
-        onClose={() => setMobileOpen(false)}
+        className="fixed inset-0 m-0 max-h-none w-full max-w-none border-0 bg-transparent p-0 open:flex open:items-end open:justify-center sm:open:items-stretch sm:open:justify-end [&::backdrop]:bg-slate-950/40"
+        onClose={closeDrawer}
         onCancel={(event) => {
           event.preventDefault();
-          setMobileOpen(false);
+          closeDrawer();
+        }}
+        onClick={(event) => {
+          if (event.target === dialogRef.current) {
+            closeDrawer();
+          }
         }}
       >
-        <div className="p-5">
-          <div className="flex items-start justify-between gap-3">
-            <h2 id={titleId} className="text-lg font-semibold text-slate-950">
+        <div
+          className="flex max-h-[90dvh] w-full max-w-full flex-col overflow-hidden rounded-t-3xl border border-slate-200 bg-white shadow-xl sm:h-full sm:max-h-none sm:w-[min(100%,26rem)] sm:rounded-none sm:rounded-l-3xl sm:border-y-0 sm:border-r-0 sm:shadow-[-16px_0_40px_rgba(15,23,42,0.12)]"
+          onClick={(event) => event.stopPropagation()}
+        >
+          <div className="flex shrink-0 items-center justify-between gap-3 border-b border-slate-200 px-5 py-4">
+            <h2
+              id={titleId}
+              className="text-lg font-semibold tracking-tight text-slate-950"
+            >
               Filters
             </h2>
             <button
               type="button"
-              className="rounded-lg px-2 py-1 text-sm font-semibold text-slate-600 transition hover:text-slate-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
-              onClick={() => setMobileOpen(false)}
+              onClick={closeDrawer}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+              aria-label="Close filters"
             >
-              Close
+              <CloseIcon />
             </button>
           </div>
 
-          <div className="mt-4">
+          <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
             <FilterControls
-              idPrefix={`${mobileId}-panel`}
+              idPrefix={`${drawerId}-panel`}
+              variant="drawer"
               filters={filters}
               onChange={onChange}
               onReset={onReset}
@@ -314,13 +381,23 @@ function FlightResultsFiltersBar({
             />
           </div>
 
-          <button
-            type="button"
-            className="mt-5 inline-flex w-full justify-center rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-white transition hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
-            onClick={() => setMobileOpen(false)}
-          >
-            Show results
-          </button>
+          <div className="shrink-0 space-y-3 border-t border-slate-200 bg-white px-5 py-4">
+            <button
+              type="button"
+              onClick={onReset}
+              disabled={isDefaultFlightResultsFilters(filters)}
+              className="inline-flex w-full justify-center rounded-xl border border-slate-300 px-4 py-2.5 text-sm font-semibold text-slate-800 transition hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Reset filters
+            </button>
+            <button
+              type="button"
+              className="inline-flex w-full justify-center rounded-xl bg-primary px-4 py-3 text-sm font-semibold text-white transition hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+              onClick={closeDrawer}
+            >
+              Show results
+            </button>
+          </div>
         </div>
       </dialog>
     </div>
