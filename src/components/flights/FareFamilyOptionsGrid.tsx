@@ -22,7 +22,7 @@ export default function FareFamilyOptionsGrid({
   const options: FareOptionCardModel[] = listFareFamilyOptions(basePriceCents);
 
   return (
-    <div className="grid gap-6 lg:grid-cols-3 lg:items-stretch">
+    <div className="grid gap-4 lg:grid-cols-3 lg:items-stretch lg:gap-5">
       {options.map((option) => (
         <FareOptionCard
           key={option.family}
