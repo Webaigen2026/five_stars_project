@@ -89,6 +89,10 @@ describe("flight search validation", () => {
       validateFlightSearch({ ...validSearch, passengers: "0" }),
       "At least 1 passenger is required."
     );
+    assert.equal(
+      validateFlightSearch({ ...validSearch, passengers: "10" }),
+      "A search can include at most 9 travelers."
+    );
   });
 
   it("builds a friendly empty state and modify-search link", () => {

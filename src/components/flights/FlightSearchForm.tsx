@@ -10,7 +10,13 @@ import {
   type TripType,
   validateFlightSearch,
 } from "../../lib/flight-search";
+import {
+  compositionFromPassengerCount,
+  totalPassengers,
+  type PassengerComposition,
+} from "../../lib/passenger-composition";
 import AirportSelect from "./AirportSelect";
+import PassengerPicker from "./PassengerPicker";
 
 type FlightSearchFormProps = {
   initialTripType?: string;
@@ -51,7 +57,9 @@ export default function FlightSearchForm({
   const [to, setTo] = useState(asInitialAirport(initialTo));
   const [departure, setDeparture] = useState(initialDeparture ?? "");
   const [returnDate, setReturnDate] = useState(initialReturnDate ?? "");
-  const [passengers, setPassengers] = useState(initialPassengers ?? "1");
+  const [composition, setComposition] = useState<PassengerComposition>(() =>
+    compositionFromPassengerCount(initialPassengers)
+  );
   const [error, setError] = useState<string | null>(null);
 
   function selectTripType(next: TripType) {
@@ -72,9 +80,15 @@ export default function FlightSearchForm({
     }
   }
 
+  function handleCompositionChange(next: PassengerComposition) {
+    setComposition(next);
+    setError(null);
+  }
+
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
+    const passengers = String(totalPassengers(composition));
     const values = {
       tripType,
       from,
@@ -205,29 +219,11 @@ export default function FlightSearchForm({
           </div>
         ) : null}
 
-        <div>
-          <label
-            htmlFor="passengers"
-            className="mb-2 block text-sm font-medium text-slate-700"
-          >
-            Passengers
-          </label>
-
-          <select
-            id="passengers"
-            name="passengers"
-            value={passengers}
-            onChange={(event) => setPassengers(event.target.value)}
-            className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-          >
-            <option value="1">1 Passenger</option>
-            <option value="2">2 Passengers</option>
-            <option value="3">3 Passengers</option>
-            <option value="4">4 Passengers</option>
-            <option value="5">5 Passengers</option>
-            <option value="6">6 Passengers</option>
-          </select>
-        </div>
+        <PassengerPicker
+          value={composition}
+          onChange={handleCompositionChange}
+          describedBy={error ? "flight-search-error" : undefined}
+        />
 
         <div className="flex items-end md:col-span-2 lg:col-span-1 xl:col-span-1">
           <button

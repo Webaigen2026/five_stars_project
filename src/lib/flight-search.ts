@@ -119,6 +119,10 @@ export function validateFlightSearch(input: FlightSearchValues) {
     return "At least 1 passenger is required.";
   }
 
+  if (passengers > 9) {
+    return "A search can include at most 9 travelers.";
+  }
+
   return null;
 }
 
