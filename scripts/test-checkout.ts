@@ -293,7 +293,7 @@ async function main() {
     );
     ok(
       "owner DRAFT shows ready-for-payment message",
-      draftPage.html.includes("Your booking is ready for payment.")
+      draftPage.html.includes("Booking created. Payment has not been completed.")
     );
     ok(
       "owner DRAFT shows seat availability notice",

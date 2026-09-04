@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import BookingStatusBadge from "../../components/booking/BookingStatusBadge";
 import CheckoutPaymentPanel from "../../components/booking/CheckoutPaymentPanel";
+import CopyBookingReferenceButton from "../../components/booking/CopyBookingReferenceButton";
 import Footer from "../../components/layout/Footer";
 import Header from "../../components/layout/Header";
 import { getCurrentUser } from "../../lib/auth";
@@ -11,6 +12,13 @@ import {
   getCheckoutPaymentAction,
 } from "../../lib/checkout";
 import { isStripeConfigured } from "../../lib/payments";
+import {
+  formatDuration,
+  formatMoney,
+  formatRoute,
+  formatTripDate,
+  formatTripTime,
+} from "../../lib/trip-formatting";
 import { db } from "../../prisma/db";
 
 type SearchParams = Promise<{
@@ -20,34 +28,6 @@ type SearchParams = Promise<{
 type Props = {
   searchParams: SearchParams;
 };
-
-function formatTime(value: string) {
-  return new Intl.DateTimeFormat("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  }).format(new Date(value));
-}
-
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(new Date(value));
-}
-
-function formatDuration(minutes: number) {
-  const hours = Math.floor(minutes / 60);
-  const remainingMinutes = minutes % 60;
-
-  return `${hours}h ${remainingMinutes}m`;
-}
-
-function formatMoney(cents: number) {
-  return `$${(cents / 100).toFixed(2)}`;
-}
 
 function CheckoutError({
   title,
@@ -195,12 +175,17 @@ export default async function CheckoutPage({
             </h1>
 
             <div className="mt-6 flex flex-wrap items-center gap-3">
-              <p className="text-sm text-slate-600">
-                Booking{" "}
-                <span className="font-semibold text-slate-950">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+                  Booking reference
+                </p>
+                <p className="mt-1 break-all text-lg font-semibold text-slate-950">
                   {booking.bookingReference}
-                </span>
-              </p>
+                </p>
+              </div>
+              <CopyBookingReferenceButton
+                bookingReference={booking.bookingReference}
+              />
               <BookingStatusBadge status={booking.status} />
             </div>
 
@@ -223,9 +208,11 @@ export default async function CheckoutPage({
                     <div className="mt-3 flex flex-wrap items-start justify-between gap-4">
                       <div>
                         <h2 className="text-2xl font-semibold text-slate-950">
-                          {flight.origin} ({flight.originCode}) →{" "}
-                          {flight.destination} ({flight.destinationCode})
+                          {formatRoute(flight.originCode, flight.destinationCode)}
                         </h2>
+                        <p className="mt-2 break-words text-sm text-slate-600">
+                          {flight.origin} → {flight.destination}
+                        </p>
                         <p className="mt-2 text-sm text-slate-600">
                           {flight.airline}
                           {flight.aircraft ? ` · ${flight.aircraft}` : ""}
@@ -239,13 +226,13 @@ export default async function CheckoutPage({
                     <div className="mt-8 grid gap-6 sm:grid-cols-[1fr_auto_1fr] sm:items-center">
                       <div>
                         <p className="text-3xl font-semibold text-slate-950">
-                          {formatTime(flight.departureTime)}
+                          {formatTripTime(flight.departureTime)}
                         </p>
                         <p className="mt-2 text-sm font-semibold text-slate-900">
                           {flight.origin} ({flight.originCode})
                         </p>
                         <p className="mt-1 text-sm text-slate-600">
-                          {formatDate(flight.departureTime)}
+                          {formatTripDate(flight.departureTime)}
                         </p>
                       </div>
 
@@ -259,13 +246,13 @@ export default async function CheckoutPage({
 
                       <div className="sm:text-right">
                         <p className="text-3xl font-semibold text-slate-950">
-                          {formatTime(flight.arrivalTime)}
+                          {formatTripTime(flight.arrivalTime)}
                         </p>
                         <p className="mt-2 text-sm font-semibold text-slate-900">
                           {flight.destination} ({flight.destinationCode})
                         </p>
                         <p className="mt-1 text-sm text-slate-600">
-                          {formatDate(flight.arrivalTime)}
+                          {formatTripDate(flight.arrivalTime)}
                         </p>
                       </div>
                     </div>

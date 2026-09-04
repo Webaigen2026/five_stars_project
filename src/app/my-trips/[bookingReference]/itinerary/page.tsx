@@ -2,47 +2,22 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import BookingStatusBadge from "../../../../components/booking/BookingStatusBadge";
+import CopyBookingReferenceButton from "../../../../components/booking/CopyBookingReferenceButton";
 import PrintItineraryButton from "../../../../components/booking/PrintItineraryButton";
 import Footer from "../../../../components/layout/Footer";
 import Header from "../../../../components/layout/Header";
 import { requireUser } from "../../../../lib/authorization";
 import { getBookingStatusPresentation } from "../../../../lib/booking-status";
+import {
+  formatDuration,
+  formatMoney,
+  formatRoute,
+  formatTripDate,
+  formatTripDateTime,
+  formatTripTime,
+  isSameCalendarDay,
+} from "../../../../lib/trip-formatting";
 import { db } from "../../../../prisma/db";
-
-function formatMoney(cents: number) {
-  return `$${(cents / 100).toFixed(2)}`;
-}
-
-function formatDate(value: string) {
-  return new Intl.DateTimeFormat("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-  }).format(new Date(value));
-}
-
-function formatTime(value: string) {
-  return new Intl.DateTimeFormat("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  }).format(new Date(value));
-}
-
-function formatDateTime(value: string) {
-  return new Intl.DateTimeFormat("en-US", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(value));
-}
-
-function formatDuration(minutes: number) {
-  const hours = Math.floor(minutes / 60);
-  const remainingMinutes = minutes % 60;
-
-  return `${hours}h ${remainingMinutes}m`;
-}
 
 export default async function ItineraryPage({
   params,
@@ -87,12 +62,12 @@ export default async function ItineraryPage({
   ]);
 
   const status = getBookingStatusPresentation(booking.status);
-  const viewedAt = formatDateTime(new Date().toISOString());
+  const viewedAt = formatTripDateTime(new Date().toISOString());
   const tripHref = `/my-trips/${encodeURIComponent(booking.bookingReference)}`;
-  const sortedPassengers = [...passengers].sort((left, right) => {
-    const last = left.lastName.localeCompare(right.lastName);
-    return last !== 0 ? last : left.firstName.localeCompare(right.firstName);
-  });
+  const sortedPassengers = [...passengers].sort((left, right) => left.id - right.id);
+  const arrivalNextDay =
+    flight != null &&
+    !isSameCalendarDay(flight.departureTime, flight.arrivalTime);
 
   return (
     <>
@@ -106,13 +81,13 @@ export default async function ItineraryPage({
             <div className="flex flex-wrap gap-4">
               <Link
                 href={tripHref}
-                className="text-sm font-semibold text-primary transition hover:text-primary-hover"
+                className="text-sm font-semibold text-primary transition hover:text-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
               >
                 ← Back to trip
               </Link>
               <Link
                 href="/my-trips"
-                className="text-sm font-semibold text-primary transition hover:text-primary-hover"
+                className="text-sm font-semibold text-primary transition hover:text-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
               >
                 Back to My Trips
               </Link>
@@ -146,14 +121,19 @@ export default async function ItineraryPage({
               <dl className="mt-4 grid gap-4 text-sm sm:grid-cols-3">
                 <div>
                   <dt className="text-slate-500">Booking reference</dt>
-                  <dd className="mt-1 font-semibold text-slate-950">
-                    {booking.bookingReference}
+                  <dd className="mt-1 flex flex-wrap items-center gap-2 font-semibold text-slate-950">
+                    <span className="break-all">{booking.bookingReference}</span>
+                    <span className="print-hide">
+                      <CopyBookingReferenceButton
+                        bookingReference={booking.bookingReference}
+                      />
+                    </span>
                   </dd>
                 </div>
                 <div>
                   <dt className="text-slate-500">Booking created</dt>
                   <dd className="mt-1 text-slate-950">
-                    {formatDateTime(booking.createdAt)}
+                    {formatTripDateTime(booking.createdAt)}
                   </dd>
                 </div>
                 <div>
@@ -182,6 +162,9 @@ export default async function ItineraryPage({
                   Flight details
                 </h2>
                 <p className="mt-2 text-2xl font-semibold text-slate-950">
+                  {formatRoute(flight.originCode, flight.destinationCode)}
+                </p>
+                <p className="mt-1 text-sm text-slate-600">
                   {flight.origin} → {flight.destination}
                 </p>
                 <p className="mt-2 text-sm text-slate-600">
@@ -189,40 +172,50 @@ export default async function ItineraryPage({
                   {flight.aircraft ? ` · ${flight.aircraft}` : ""}
                 </p>
 
-                <dl className="mt-5 grid gap-4 text-sm sm:grid-cols-2">
+                <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-5">
                   <div>
-                    <dt className="text-slate-500">Departure</dt>
-                    <dd className="mt-1 font-medium text-slate-950">
-                      {formatDate(flight.departureTime)} ·{" "}
-                      {formatTime(flight.departureTime)}
-                    </dd>
-                    <dd className="mt-1 text-slate-700">
+                    <p className="text-sm font-semibold text-slate-950">
                       {flight.origin} ({flight.originCode})
-                    </dd>
+                    </p>
+                    <p className="mt-1 text-sm text-slate-600">
+                      {formatTripDate(flight.departureTime)}
+                    </p>
+                    <p className="mt-1 text-xl font-semibold text-slate-950">
+                      {formatTripTime(flight.departureTime)}
+                    </p>
                   </div>
-                  <div>
-                    <dt className="text-slate-500">Arrival</dt>
-                    <dd className="mt-1 font-medium text-slate-950">
-                      {formatDate(flight.arrivalTime)} ·{" "}
-                      {formatTime(flight.arrivalTime)}
-                    </dd>
-                    <dd className="mt-1 text-slate-700">
-                      {flight.destination} ({flight.destinationCode})
-                    </dd>
-                  </div>
-                  <div>
-                    <dt className="text-slate-500">Duration</dt>
-                    <dd className="mt-1 text-slate-950">
+
+                  <div className="my-4 border-l border-slate-300 pl-4">
+                    <p className="text-xs font-medium uppercase tracking-wider text-slate-400">
                       {formatDuration(flight.durationMinutes)}
-                    </dd>
+                    </p>
+                    <p className="mt-1 text-sm text-slate-500">Nonstop</p>
                   </div>
+
                   <div>
-                    <dt className="text-slate-500">Passengers</dt>
-                    <dd className="mt-1 text-slate-950">
-                      {booking.passengerCount}
-                    </dd>
+                    <p className="text-sm font-semibold text-slate-950">
+                      {flight.destination} ({flight.destinationCode})
+                    </p>
+                    <p className="mt-1 text-sm text-slate-600">
+                      {formatTripDate(flight.arrivalTime)}
+                      {arrivalNextDay ? (
+                        <span className="ml-2 font-medium text-amber-700">
+                          Arrives next day
+                        </span>
+                      ) : null}
+                    </p>
+                    <p className="mt-1 text-xl font-semibold text-slate-950">
+                      {formatTripTime(flight.arrivalTime)}
+                    </p>
                   </div>
-                </dl>
+                </div>
+
+                <p className="mt-5 text-sm text-slate-600">
+                  Passengers{" "}
+                  <span className="font-semibold text-slate-950">
+                    {booking.passengerCount}
+                  </span>
+                </p>
               </section>
             )}
 
@@ -235,13 +228,16 @@ export default async function ItineraryPage({
                   No passenger names are available for this booking.
                 </p>
               ) : (
-                <ul className="mt-4 space-y-2">
-                  {sortedPassengers.map((passenger) => (
+                <ol className="mt-4 space-y-2">
+                  {sortedPassengers.map((passenger, index) => (
                     <li
                       key={passenger.id}
                       className="rounded-xl border border-slate-200 px-4 py-3"
                     >
-                      <p className="font-medium text-slate-950">
+                      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+                        Passenger {index + 1}
+                      </p>
+                      <p className="mt-1 font-medium text-slate-950">
                         {passenger.firstName} {passenger.lastName}
                       </p>
                       {passenger.nationality ? (
@@ -251,7 +247,7 @@ export default async function ItineraryPage({
                       ) : null}
                     </li>
                   ))}
-                </ul>
+                </ol>
               )}
             </section>
 

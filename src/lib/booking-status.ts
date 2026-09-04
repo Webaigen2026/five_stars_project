@@ -34,22 +34,21 @@ const STATUS_PRESENTATION: Record<
 > = {
   DRAFT: {
     label: "Draft",
-    description: "Your booking is ready for payment.",
-    confirmationSummary: "Booking created — payment not completed.",
+    description: "Booking created. Payment has not been completed.",
+    confirmationSummary: "Booking created. Payment has not been completed.",
     paymentAvailable: true,
     kind: "active",
   },
   PENDING_PAYMENT: {
     label: "Pending payment",
-    description:
-      "Your payment has been started and is awaiting confirmation.",
-    confirmationSummary: "Payment confirmation pending.",
+    description: "Payment confirmation is pending.",
+    confirmationSummary: "Payment confirmation is pending.",
     paymentAvailable: true,
     kind: "active",
   },
   PAID: {
     label: "Paid",
-    description: "Payment has been received.",
+    description: "Payment received.",
     confirmationSummary: "Payment received.",
     paymentAvailable: false,
     kind: "active",
@@ -57,28 +56,28 @@ const STATUS_PRESENTATION: Record<
   CONFIRMED: {
     label: "Confirmed",
     description: "Your booking is confirmed.",
-    confirmationSummary: "Booking confirmed.",
+    confirmationSummary: "Your booking is confirmed.",
     paymentAvailable: false,
     kind: "active",
   },
   TICKETED: {
     label: "Ticketed",
     description: "Your ticket has been issued.",
-    confirmationSummary: "Ticket issued.",
+    confirmationSummary: "Your ticket has been issued.",
     paymentAvailable: false,
     kind: "active",
   },
   COMPLETED: {
     label: "Completed",
     description: "This trip is complete.",
-    confirmationSummary: "This trip has been completed.",
+    confirmationSummary: "This trip is complete.",
     paymentAvailable: false,
     kind: "complete",
   },
   CANCELLED: {
     label: "Cancelled",
     description: "This booking has been cancelled.",
-    confirmationSummary: "Booking cancelled.",
+    confirmationSummary: "This booking has been cancelled.",
     paymentAvailable: false,
     kind: "cancelled",
   },
@@ -92,7 +91,7 @@ const STATUS_PRESENTATION: Record<
   FAILED: {
     label: "Failed",
     description: "Payment was not completed.",
-    confirmationSummary: "This booking could not be completed.",
+    confirmationSummary: "Payment was not completed.",
     paymentAvailable: false,
     kind: "failed",
   },
@@ -140,5 +139,134 @@ export function getBookingStatusBadgeClass(status: string) {
       return "bg-sky-50 text-primary";
     default:
       return "bg-slate-100 text-slate-700";
+  }
+}
+
+export const BOOKING_PROGRESS_STAGES = [
+  "Created",
+  "Payment",
+  "Confirmed",
+  "Ticketed",
+  "Completed",
+] as const;
+
+export type BookingProgressStage = (typeof BOOKING_PROGRESS_STAGES)[number];
+
+export type BookingProgressStepState = "complete" | "current" | "upcoming";
+
+export type BookingProgressStep = {
+  label: BookingProgressStage;
+  state: BookingProgressStepState;
+};
+
+export type BookingProgressPresentation = {
+  mode: "progress" | "cancelled" | "refunded" | "failed" | "unknown";
+  label: string;
+  description: string;
+  steps: BookingProgressStep[];
+};
+
+function buildProgressSteps(currentIndex: number): BookingProgressStep[] {
+  return BOOKING_PROGRESS_STAGES.map((label, index) => {
+    if (index < currentIndex) {
+      return { label, state: "complete" };
+    }
+
+    if (index === currentIndex) {
+      return { label, state: "current" };
+    }
+
+    return { label, state: "upcoming" };
+  });
+}
+
+/**
+ * Presentation-only progress mapping. Does not change lifecycle values.
+ */
+export function getBookingProgressPresentation(
+  status: string
+): BookingProgressPresentation {
+  const presentation = getBookingStatusPresentation(status);
+
+  switch (status) {
+    case "DRAFT":
+      return {
+        mode: "progress",
+        label: presentation.label,
+        description: presentation.description,
+        steps: buildProgressSteps(0),
+      };
+    case "PENDING_PAYMENT":
+      return {
+        mode: "progress",
+        label: presentation.label,
+        description: presentation.description,
+        steps: buildProgressSteps(1),
+      };
+    case "PAID":
+      return {
+        mode: "progress",
+        label: presentation.label,
+        description: presentation.description,
+        steps: [
+          { label: "Created", state: "complete" },
+          { label: "Payment", state: "complete" },
+          { label: "Confirmed", state: "upcoming" },
+          { label: "Ticketed", state: "upcoming" },
+          { label: "Completed", state: "upcoming" },
+        ],
+      };
+    case "CONFIRMED":
+      return {
+        mode: "progress",
+        label: presentation.label,
+        description: presentation.description,
+        steps: buildProgressSteps(2),
+      };
+    case "TICKETED":
+      return {
+        mode: "progress",
+        label: presentation.label,
+        description: presentation.description,
+        steps: buildProgressSteps(3),
+      };
+    case "COMPLETED":
+      return {
+        mode: "progress",
+        label: presentation.label,
+        description: presentation.description,
+        steps: BOOKING_PROGRESS_STAGES.map((label) => ({
+          label,
+          state: "complete" as const,
+        })),
+      };
+    case "CANCELLED":
+      return {
+        mode: "cancelled",
+        label: presentation.label,
+        description: presentation.description,
+        steps: [],
+      };
+    case "REFUNDED":
+      return {
+        mode: "refunded",
+        label: presentation.label,
+        description: presentation.description,
+        steps: [],
+      };
+    case "FAILED":
+      return {
+        mode: "failed",
+        label: presentation.label,
+        description: presentation.description,
+        steps: [],
+      };
+    default:
+      return {
+        mode: "unknown",
+        label: presentation.label,
+        description: presentation.description,
+        steps: [],
+      };
   }
 }

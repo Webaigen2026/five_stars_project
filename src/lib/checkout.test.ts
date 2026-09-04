@@ -89,15 +89,15 @@ describe("checkout status copy", () => {
   it("uses customer-facing status descriptions", () => {
     assert.equal(
       getBookingStatusPresentation("DRAFT").description,
-      "Your booking is ready for payment."
+      "Booking created. Payment has not been completed."
     );
     assert.equal(
       getBookingStatusPresentation("PENDING_PAYMENT").description,
-      "Your payment has been started and is awaiting confirmation."
+      "Payment confirmation is pending."
     );
     assert.equal(
       getBookingStatusPresentation("PAID").description,
-      "Payment has been received."
+      "Payment received."
     );
     assert.equal(
       getBookingStatusPresentation("FAILED").description,
