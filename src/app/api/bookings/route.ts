@@ -3,6 +3,7 @@ import { randomInt } from "node:crypto";
 import { getCurrentUser } from "../../../lib/auth";
 import { rejectUntrustedMutation } from "../../../lib/request-security";
 import { logServerError } from "../../../lib/sensitive-data";
+import { passportWriteFields } from "../../../lib/traveler-encryption";
 import { db } from "../../../prisma/db";
 
 const TAXES_AND_FEES_PER_PASSENGER = 6800;
@@ -210,7 +211,7 @@ export async function POST(request: Request) {
           dateOfBirth: passenger.dateOfBirth,
           gender: passenger.gender,
           nationality: passenger.nationality,
-          passportNumber: passenger.passportNumber,
+          ...passportWriteFields(passenger.passportNumber),
           passportCountry: passenger.passportCountry,
           passportExpiry: passenger.passportExpiry,
         });

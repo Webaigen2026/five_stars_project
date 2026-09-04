@@ -1,5 +1,6 @@
 const SENSITIVE_OBJECT_KEYS = new Set([
   "passportNumber",
+  "passportNumberEncrypted",
   "passportExpiry",
   "dateOfBirth",
   "password",

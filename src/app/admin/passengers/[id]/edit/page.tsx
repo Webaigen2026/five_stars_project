@@ -30,6 +30,7 @@ export default async function EditPassengerPage({
     "gender",
     "nationality",
     "passportNumber",
+    "passportNumberEncrypted",
     "passportCountry",
     "passportExpiry",
     "createdAt",

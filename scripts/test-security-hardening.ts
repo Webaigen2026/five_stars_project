@@ -11,6 +11,7 @@ import bcrypt from "bcryptjs";
 import { createUserSession, SESSION_COOKIE_NAME } from "../src/lib/auth";
 import { isTrustedMutationOrigin } from "../src/lib/request-security";
 import { maskPassportNumber } from "../src/lib/sensitive-data";
+import { ensureTestEncryptionKey } from "../src/lib/traveler-encryption";
 import {
   createTraveler,
   getOwnedTraveler,
@@ -78,6 +79,8 @@ async function cleanup() {
 }
 
 async function main() {
+  ensureTestEncryptionKey();
+
   console.log("\nPassport masking");
   ok("masks a full synthetic passport", maskPassportNumber("AB1234567") === "•••• 4567");
   ok("does not expose short values", maskPassportNumber("12") === "••••");

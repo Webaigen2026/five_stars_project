@@ -6,6 +6,7 @@ import { parsePositiveInt } from "../../../../lib/admin-bookings";
 import { isAdmin, requireStaffOrAdmin } from "../../../../lib/authorization";
 import { maskPassportNumber } from "../../../../lib/sensitive-data";
 import { getAllowedAdminBookingTransitions } from "../../../../lib/booking-lifecycle";
+import { getDecryptedPassportNumber } from "../../../../lib/traveler-encryption";
 import { db } from "../../../../prisma/db";
 
 function formatMoney(cents: number) {
@@ -307,7 +308,9 @@ export default async function AdminBookingDetailPage({
                       {passenger.nationality}
                     </td>
                     <td className="py-3 pr-4 font-mono text-slate-950">
-                      {maskPassportNumber(passenger.passportNumber)}
+                      {maskPassportNumber(
+                        getDecryptedPassportNumber(passenger)
+                      )}
                     </td>
                     <td className="py-3 pr-4 text-slate-700">
                       {passenger.passportCountry}

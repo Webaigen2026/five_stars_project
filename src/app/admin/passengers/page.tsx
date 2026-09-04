@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { isAdmin, requireStaffOrAdmin } from "../../../lib/authorization";
 import { maskPassportNumber } from "../../../lib/sensitive-data";
+import { getDecryptedPassportNumber } from "../../../lib/traveler-encryption";
 import { db } from "../../../prisma/db";
 
 export default async function AdminPassengersPage() {
@@ -16,6 +17,7 @@ export default async function AdminPassengersPage() {
       "lastName",
       "nationality",
       "passportNumber",
+      "passportNumberEncrypted",
       "passportCountry",
       "passportExpiry"
     ).all(),
@@ -46,7 +48,9 @@ export default async function AdminPassengersPage() {
         bookingReference: booking?.bookingReference ?? "Unknown",
         flightCode: flight?.code ?? "Unknown",
         nationality: passenger.nationality,
-        passportMasked: maskPassportNumber(passenger.passportNumber),
+        passportMasked: maskPassportNumber(
+          getDecryptedPassportNumber(passenger)
+        ),
         passportCountry: passenger.passportCountry,
         passportExpiry: passenger.passportExpiry,
       };

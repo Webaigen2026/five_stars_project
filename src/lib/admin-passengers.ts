@@ -1,4 +1,5 @@
 import { AdminBookingRequestError } from "./admin-bookings";
+import { getDecryptedPassportNumber } from "./traveler-encryption";
 
 const DATE_ONLY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -36,7 +37,9 @@ function asTrimmedString(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
 }
 
-export function toSafePassenger(passenger: SafePassenger): SafePassenger {
+export function toSafePassenger(
+  passenger: SafePassenger & { passportNumberEncrypted?: string | null }
+): SafePassenger {
   return {
     id: passenger.id,
     bookingId: passenger.bookingId,
@@ -45,7 +48,7 @@ export function toSafePassenger(passenger: SafePassenger): SafePassenger {
     dateOfBirth: passenger.dateOfBirth,
     gender: passenger.gender,
     nationality: passenger.nationality,
-    passportNumber: passenger.passportNumber,
+    passportNumber: getDecryptedPassportNumber(passenger),
     passportCountry: passenger.passportCountry,
     passportExpiry: passenger.passportExpiry,
     createdAt: passenger.createdAt,

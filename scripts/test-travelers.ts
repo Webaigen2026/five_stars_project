@@ -10,6 +10,7 @@ import { randomInt } from "node:crypto";
 
 import bcrypt from "bcryptjs";
 
+import { ensureTestEncryptionKey } from "../src/lib/traveler-encryption";
 import {
   createTraveler,
   deleteOwnedTraveler,
@@ -278,6 +279,8 @@ async function runUnauthenticatedApiCheck() {
 }
 
 async function main() {
+  ensureTestEncryptionKey();
+
   try {
     await runOwnershipAndPrimary();
     await runSnapshotInvariant();

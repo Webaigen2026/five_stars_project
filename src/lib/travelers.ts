@@ -1,9 +1,14 @@
 import { db } from "../prisma/db";
 
 import {
+  getDecryptedPassportNumber,
+  passportWriteFields,
+} from "./traveler-encryption";
+import {
   sortTravelers,
   toSafeTraveler,
   TravelerError,
+  type SafeTraveler,
   type TravelerInput,
 } from "./traveler-shared";
 
@@ -55,10 +60,40 @@ const TRAVELER_SELECT = [
   "gender",
   "nationality",
   "passportNumber",
+  "passportNumberEncrypted",
   "passportCountry",
   "passportExpiry",
   "isPrimary",
 ] as const;
+
+function toDecryptedTraveler(traveler: {
+  id: number;
+  label: string | null;
+  firstName: string;
+  lastName: string;
+  dateOfBirth: string;
+  gender: string;
+  nationality: string;
+  passportNumber: string;
+  passportNumberEncrypted?: string | null;
+  passportCountry: string;
+  passportExpiry: string;
+  isPrimary: boolean;
+}): SafeTraveler {
+  return toSafeTraveler({
+    id: traveler.id,
+    label: traveler.label,
+    firstName: traveler.firstName,
+    lastName: traveler.lastName,
+    dateOfBirth: traveler.dateOfBirth,
+    gender: traveler.gender,
+    nationality: traveler.nationality,
+    passportNumber: getDecryptedPassportNumber(traveler),
+    passportCountry: traveler.passportCountry,
+    passportExpiry: traveler.passportExpiry,
+    isPrimary: traveler.isPrimary,
+  });
+}
 
 export async function listTravelersForUser(userId: number) {
   const travelers = await db.orm.public.TravelerProfile.select(
@@ -66,7 +101,7 @@ export async function listTravelersForUser(userId: number) {
   )
     .where({ userId })
     .all();
-  return sortTravelers(travelers).map(toSafeTraveler);
+  return sortTravelers(travelers).map(toDecryptedTraveler);
 }
 
 export async function getOwnedTraveler(userId: number, travelerId: number) {
@@ -83,7 +118,7 @@ export async function getOwnedTraveler(userId: number, travelerId: number) {
     return null;
   }
 
-  return toSafeTraveler(traveler);
+  return toDecryptedTraveler(traveler);
 }
 
 export async function createTraveler(userId: number, input: TravelerInput) {
@@ -100,13 +135,13 @@ export async function createTraveler(userId: number, input: TravelerInput) {
       dateOfBirth: input.dateOfBirth,
       gender: input.gender,
       nationality: input.nationality,
-      passportNumber: input.passportNumber,
+      ...passportWriteFields(input.passportNumber),
       passportCountry: input.passportCountry,
       passportExpiry: input.passportExpiry,
       isPrimary: input.isPrimary,
     });
 
-    return toSafeTraveler(created);
+    return toDecryptedTraveler(created);
   });
 }
 
@@ -133,21 +168,25 @@ export async function updateOwnedTraveler(
       dateOfBirth: input.dateOfBirth,
       gender: input.gender,
       nationality: input.nationality,
-      passportNumber: input.passportNumber,
+      ...passportWriteFields(input.passportNumber),
       passportCountry: input.passportCountry,
       passportExpiry: input.passportExpiry,
       isPrimary: input.isPrimary,
     });
 
-    const updated = await tx.orm.public.TravelerProfile.where({
-      id: travelerId,
-    }).first();
+    const updated = await tx.orm.public.TravelerProfile.select(
+      ...TRAVELER_SELECT
+    )
+      .where({
+        id: travelerId,
+      })
+      .first();
 
     if (!updated) {
       throw new TravelerError("Traveler not found.", 404);
     }
 
-    return toSafeTraveler(updated);
+    return toDecryptedTraveler(updated);
   });
 }
 

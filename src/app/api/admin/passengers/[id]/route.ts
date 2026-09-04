@@ -10,6 +10,7 @@ import {
 } from "../../../../../lib/admin-passengers";
 import { rejectUntrustedMutation } from "../../../../../lib/request-security";
 import { logServerError } from "../../../../../lib/sensitive-data";
+import { passportWriteFields } from "../../../../../lib/traveler-encryption";
 import { db } from "../../../../../prisma/db";
 
 function jsonError(message: string, status: number) {
@@ -60,7 +61,10 @@ export async function PATCH(
 
     const input = parsePassengerWriteInput(body);
 
-    await db.orm.public.Passenger.where({ id }).update(input);
+    await db.orm.public.Passenger.where({ id }).update({
+      ...input,
+      ...passportWriteFields(input.passportNumber),
+    });
 
     const passenger = await db.orm.public.Passenger.select(
       "id",
@@ -71,6 +75,7 @@ export async function PATCH(
       "gender",
       "nationality",
       "passportNumber",
+      "passportNumberEncrypted",
       "passportCountry",
       "passportExpiry",
       "createdAt",
