@@ -8,6 +8,11 @@ import {
   parsePassengerWriteInput,
   toSafePassenger,
 } from "../../../../../lib/admin-passengers";
+import {
+  calendarDateInTimeZone,
+  getAirportTimeZone,
+} from "../../../../../lib/airport-timezones";
+import { validatePassengerAgeForType } from "../../../../../lib/passenger-age";
 import { rejectUntrustedMutation } from "../../../../../lib/request-security";
 import { logServerError } from "../../../../../lib/sensitive-data";
 import { passportWriteFields } from "../../../../../lib/traveler-encryption";
@@ -61,9 +66,51 @@ export async function PATCH(
 
     const input = parsePassengerWriteInput(body);
 
+    const booking = await db.orm.public.Booking.where({
+      id: existing.bookingId,
+    }).first();
+
+    if (!booking) {
+      throw new AdminBookingRequestError("Booking not found.", 404);
+    }
+
+    const outboundSegment = await db.orm.public.BookingSegment.where({
+      bookingId: booking.id,
+      segmentType: "OUTBOUND",
+    }).first();
+
+    const outboundFlightId = outboundSegment?.flightId ?? booking.flightId;
+    const outboundFlight = await db.orm.public.Flight.where({
+      id: outboundFlightId,
+    }).first();
+
+    if (!outboundFlight) {
+      throw new AdminBookingRequestError("Outbound flight not found.", 404);
+    }
+
+    const departureDate = calendarDateInTimeZone(
+      outboundFlight.departureTime,
+      getAirportTimeZone(outboundFlight.originCode)
+    );
+
+    const ageCheck = validatePassengerAgeForType({
+      dateOfBirth: input.dateOfBirth,
+      departureDate,
+      passengerType: existing.passengerType,
+    });
+
+    if (!ageCheck.valid) {
+      throw new AdminBookingRequestError(
+        ageCheck.message ?? "Date of birth does not match passenger type.",
+        400
+      );
+    }
+
+    const { passportNumber, ...identityFields } = input;
+
     await db.orm.public.Passenger.where({ id }).update({
-      ...input,
-      ...passportWriteFields(input.passportNumber),
+      ...identityFields,
+      ...passportWriteFields(passportNumber),
     });
 
     const passenger = await db.orm.public.Passenger.select(

@@ -1,3 +1,14 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
+import {
+  passengerTypeFromCategoryKey,
+  type PassengerCategoryKey,
+  type PassengerType,
+} from "../../lib/passenger-composition";
+import { validatePassengerAgeForType } from "../../lib/passenger-age";
+
 export type PassengerFormValues = {
   firstName: string;
   lastName: string;
@@ -26,6 +37,11 @@ type PassengerFormProps = {
   showSaveCheckbox?: boolean;
   categoryLabel?: string;
   categoryDescription?: string;
+  categoryKey?: PassengerCategoryKey;
+  passengerType?: PassengerType;
+  departureDate?: string | null;
+  dateOfBirthError?: string | null;
+  onDateOfBirthChange?: (value: string, error: string | null) => void;
 };
 
 export default function PassengerForm({
@@ -34,8 +50,50 @@ export default function PassengerForm({
   showSaveCheckbox = false,
   categoryLabel,
   categoryDescription,
+  categoryKey,
+  passengerType,
+  departureDate,
+  dateOfBirthError,
+  onDateOfBirthChange,
 }: PassengerFormProps) {
   const passengerNumber = index + 1;
+  const resolvedType =
+    passengerType ??
+    (categoryKey ? passengerTypeFromCategoryKey(categoryKey) : undefined);
+
+  const [dateOfBirth, setDateOfBirth] = useState(defaults.dateOfBirth);
+
+  useEffect(() => {
+    setDateOfBirth(defaults.dateOfBirth);
+    if (defaults.dateOfBirth) {
+      onDateOfBirthChange?.(defaults.dateOfBirth, validateDob(defaults.dateOfBirth));
+    } else {
+      onDateOfBirthChange?.("", null);
+    }
+    // Only re-validate when autofill defaults change for this remounted slot.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional: defaults-driven autofill
+  }, [defaults.dateOfBirth]);
+
+  function validateDob(value: string) {
+    if (!value || !departureDate || !resolvedType) {
+      return null;
+    }
+
+    const result = validatePassengerAgeForType({
+      dateOfBirth: value,
+      departureDate,
+      passengerType: resolvedType,
+    });
+
+    return result.valid ? null : (result.message ?? "Invalid date of birth.");
+  }
+
+  function handleDobChange(value: string) {
+    setDateOfBirth(value);
+    onDateOfBirthChange?.(value, validateDob(value));
+  }
+
+  const shownError = dateOfBirthError ?? null;
 
   return (
     <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -112,9 +170,29 @@ export default function PassengerForm({
             name={`passengers.${index}.dateOfBirth`}
             type="date"
             required
-            defaultValue={defaults.dateOfBirth}
-            className="w-full rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+            value={dateOfBirth}
+            onChange={(event) => handleDobChange(event.target.value)}
+            aria-invalid={shownError ? true : undefined}
+            aria-describedby={
+              shownError ? `dateOfBirth-error-${index}` : undefined
+            }
+            className={[
+              "w-full rounded-xl border bg-white px-4 py-3 outline-none transition focus:ring-2",
+              shownError
+                ? "border-red-400 focus:border-red-500 focus:ring-red-200"
+                : "border-slate-300 focus:border-primary focus:ring-primary/20",
+            ].join(" ")}
           />
+
+          {shownError ? (
+            <p
+              id={`dateOfBirth-error-${index}`}
+              role="alert"
+              className="mt-2 text-sm font-medium text-red-600"
+            >
+              {shownError}
+            </p>
+          ) : null}
         </div>
 
         <div>

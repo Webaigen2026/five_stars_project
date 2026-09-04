@@ -10,10 +10,12 @@ import PassengerForm, {
 } from "./PassengerForm";
 import type { TripType } from "../../lib/flight-search";
 import {
+  passengerTypeFromCategoryKey,
   resolvePassengerDetailsModel,
   type PassengerCompositionParamInput,
   type TravelerCategorySlot,
 } from "../../lib/passenger-composition";
+import { validatePassengerAgeForType } from "../../lib/passenger-age";
 import {
   travelerDisplayName,
   type SafeTraveler,
@@ -55,6 +57,8 @@ type PassengersContentProps = {
   roundTripOutbound?: RoundTripFlightSummary | null;
   roundTripReturn?: RoundTripFlightSummary | null;
   roundTripInvalid?: boolean;
+  /** Origin-local YYYY-MM-DD for the outbound flight departure. */
+  outboundDepartureDate?: string | null;
   /** Server-normalized slots from /passengers search params (preferred). */
   initialTravelerSlots?: TravelerCategorySlot[];
   initialPassengerCount?: number;
@@ -96,6 +100,7 @@ export default function PassengersContent({
   roundTripOutbound = null,
   roundTripReturn = null,
   roundTripInvalid = false,
+  outboundDepartureDate = null,
   initialTravelerSlots,
   initialCompositionSummary,
   initialCompositionParams,
@@ -107,6 +112,7 @@ export default function PassengersContent({
   const [travelers, setTravelers] = useState<SafeTraveler[] | null>(null);
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [selections, setSelections] = useState<string[]>([]);
+  const [dobErrors, setDobErrors] = useState<Array<string | null>>([]);
 
   const isRoundTrip = tripType === "round-trip";
   const flightId = searchParams.get("flight") ?? "";
@@ -197,7 +203,50 @@ export default function PassengersContent({
         (_, index) => current[index] ?? ""
       );
     });
+    setDobErrors((current) => {
+      if (current.length === passengerCount) {
+        return current;
+      }
+
+      return Array.from(
+        { length: passengerCount },
+        (_, index) => current[index] ?? null
+      );
+    });
   }, [passengerCount]);
+
+  function setDobErrorAt(index: number, message: string | null) {
+    setDobErrors((current) => {
+      const next = Array.from(
+        { length: passengerCount },
+        (_, i) => current[i] ?? null
+      );
+      next[index] = message;
+      return next;
+    });
+  }
+
+  function validateDobForSlot(
+    index: number,
+    dateOfBirth: string
+  ): string | null {
+    if (!dateOfBirth || !outboundDepartureDate) {
+      return null;
+    }
+
+    const slot = travelerSlots[index];
+    if (!slot) {
+      return null;
+    }
+
+    const result = validatePassengerAgeForType({
+      dateOfBirth,
+      departureDate: outboundDepartureDate,
+      passengerType: passengerTypeFromCategoryKey(slot.key),
+    });
+
+    return result.valid ? null : (result.message ?? "Invalid date of birth.");
+  }
 
   const primaryTraveler = useMemo(
     () => travelers?.find((traveler) => traveler.isPrimary) ?? null,
@@ -267,6 +316,24 @@ export default function PassengersContent({
 
       return passenger;
     });
+
+    const nextDobErrors = passengers.map((passenger, index) =>
+      validateDobForSlot(index, passenger.dateOfBirth)
+    );
+    setDobErrors(nextDobErrors);
+
+    const firstAgeError = nextDobErrors.find((message) => Boolean(message));
+    if (firstAgeError) {
+      setError(firstAgeError);
+      return;
+    }
+
+    if (!outboundDepartureDate) {
+      setError(
+        "Outbound departure date is required to validate traveler ages."
+      );
+      return;
+    }
 
     const saveFlags = Array.from({ length: passengerCount }, (_, index) => {
       return formData.get(`passengers.${index}.saveTraveler`) === "on";
@@ -582,6 +649,13 @@ export default function PassengersContent({
                   defaults={defaultsForIndex(index)}
                   categoryLabel={slot.label}
                   categoryDescription={slot.description}
+                  categoryKey={slot.key}
+                  passengerType={passengerTypeFromCategoryKey(slot.key)}
+                  departureDate={outboundDepartureDate}
+                  dateOfBirthError={dobErrors[index] ?? null}
+                  onDateOfBirthChange={(_value, message) =>
+                    setDobErrorAt(index, message)
+                  }
                   showSaveCheckbox={
                     isSignedIn &&
                     (selection === SELECTION_OTHER || selection === "")

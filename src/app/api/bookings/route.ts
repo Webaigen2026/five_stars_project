@@ -2,10 +2,15 @@ import { randomInt } from "node:crypto";
 
 import { getCurrentUser } from "../../../lib/auth";
 import {
+  calendarDateInTimeZone,
+  getAirportTimeZone,
+} from "../../../lib/airport-timezones";
+import {
   calculateBookingTotals,
   validateRoundTripFlights,
 } from "../../../lib/booking-legs";
 import { parseTripType } from "../../../lib/flight-search";
+import { validatePassengerAgeForType } from "../../../lib/passenger-age";
 import { MAX_TRAVELERS, resolvePassengerTypesForBooking } from "../../../lib/passenger-composition";
 import { rejectUntrustedMutation } from "../../../lib/request-security";
 import { logServerError } from "../../../lib/sensitive-data";
@@ -179,6 +184,31 @@ async function createUniqueBookingReference() {
   );
 }
 
+function assertPassengersMatchOutboundAge(
+  passengers: PassengerInput[],
+  outbound: { departureTime: string; originCode: string }
+) {
+  const departureDate = calendarDateInTimeZone(
+    outbound.departureTime,
+    getAirportTimeZone(outbound.originCode)
+  );
+
+  for (const [index, passenger] of passengers.entries()) {
+    const result = validatePassengerAgeForType({
+      dateOfBirth: passenger.dateOfBirth,
+      departureDate,
+      passengerType: passenger.passengerType,
+    });
+
+    if (!result.valid) {
+      throw new BookingRequestError(
+        `Passenger ${index + 1}: ${result.message ?? "Age does not match traveler category."}`,
+        400
+      );
+    }
+  }
+}
+
 async function createPassengerSnapshots(
   tx: Parameters<Parameters<typeof db.transaction>[0]>[0],
   bookingId: number,
@@ -264,6 +294,8 @@ export async function POST(request: Request) {
         throw new BookingRequestError(routeError, 400);
       }
 
+      assertPassengersMatchOutboundAge(passengers, outbound);
+
       const { subtotal, taxesAndFees, total } = calculateBookingTotals({
         unitPricesCents: [outbound.price, returnFlight.price],
         passengerCount,
@@ -337,6 +369,8 @@ export async function POST(request: Request) {
         400
       );
     }
+
+    assertPassengersMatchOutboundAge(passengers, flight);
 
     const { subtotal, taxesAndFees, total } = calculateBookingTotals({
       unitPricesCents: [flight.price],

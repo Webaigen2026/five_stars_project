@@ -6,6 +6,10 @@ import PassengersContent, {
 import Footer from "../../components/layout/Footer";
 import Header from "../../components/layout/Header";
 import {
+  calendarDateInTimeZone,
+  getAirportTimeZone,
+} from "../../lib/airport-timezones";
+import {
   isValidRoundTripPair,
   parsePositiveIntParam,
   parseTripType,
@@ -67,6 +71,16 @@ function toSummary(flight: {
   };
 }
 
+function outboundCalendarDate(flight: {
+  departureTime: string;
+  originCode: string;
+}) {
+  return calendarDateInTimeZone(
+    flight.departureTime,
+    getAirportTimeZone(flight.originCode)
+  );
+}
+
 export default async function PassengersPage({
   searchParams,
 }: {
@@ -86,6 +100,7 @@ export default async function PassengersPage({
   let roundTripOutbound: RoundTripFlightSummary | null = null;
   let roundTripReturn: RoundTripFlightSummary | null = null;
   let roundTripInvalid = false;
+  let outboundDepartureDate: string | null = null;
 
   if (tripType === "round-trip") {
     const outboundId = parsePositiveIntParam(params.outboundFlightId);
@@ -105,7 +120,16 @@ export default async function PassengersPage({
       } else if (outbound && returnFlight) {
         roundTripOutbound = toSummary(outbound);
         roundTripReturn = toSummary(returnFlight);
+        outboundDepartureDate = outboundCalendarDate(outbound);
       }
+    }
+  } else if (params.flight) {
+    const flight = await db.orm.public.Flight.where({
+      code: params.flight.trim(),
+    }).first();
+
+    if (flight) {
+      outboundDepartureDate = outboundCalendarDate(flight);
     }
   }
 
@@ -120,6 +144,7 @@ export default async function PassengersPage({
             roundTripOutbound={roundTripOutbound}
             roundTripReturn={roundTripReturn}
             roundTripInvalid={roundTripInvalid}
+            outboundDepartureDate={outboundDepartureDate}
             initialTravelerSlots={detailsModel.slots}
             initialPassengerCount={detailsModel.passengerCount}
             initialCompositionSummary={detailsModel.summary}
