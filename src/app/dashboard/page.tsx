@@ -27,23 +27,23 @@ export default async function DashboardPage() {
               Account
             </p>
 
-            <h1 className="mt-3 text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
+            <h1 className="mt-3 break-words text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
               Welcome, {welcomeName}
             </h1>
 
             <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-600">
-              Manage your StarJet trips, cargo requests, and charter
-              requests from one place.
+              Manage your StarJet trips, saved travelers, cargo requests, and
+              charter requests from one place.
             </p>
           </div>
         </section>
 
         <section className="mx-auto max-w-7xl px-6 py-12">
           <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
               <Link
                 href="/my-trips"
-                className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-primary/30"
+                className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
               >
                 <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">
                   Travel
@@ -57,8 +57,24 @@ export default async function DashboardPage() {
               </Link>
 
               <Link
+                href="/account/travelers"
+                className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+              >
+                <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">
+                  Travel
+                </p>
+                <h2 className="mt-2 text-2xl font-semibold text-slate-950">
+                  Saved Travelers
+                </h2>
+                <p className="mt-2 text-sm text-slate-600">
+                  Manage traveler profiles and reuse details for faster
+                  bookings.
+                </p>
+              </Link>
+
+              <Link
                 href="/my-cargo"
-                className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-primary/30"
+                className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
               >
                 <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">
                   Shipping
@@ -73,7 +89,7 @@ export default async function DashboardPage() {
 
               <Link
                 href="/my-charter"
-                className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-primary/30"
+                className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
               >
                 <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">
                   Private
@@ -88,7 +104,7 @@ export default async function DashboardPage() {
 
               <Link
                 href="/my-messages"
-                className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-primary/30"
+                className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
               >
                 <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">
                   Support
@@ -103,7 +119,7 @@ export default async function DashboardPage() {
 
               <Link
                 href="/account"
-                className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-primary/30"
+                className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
               >
                 <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">
                   Account
@@ -125,7 +141,7 @@ export default async function DashboardPage() {
               <dl className="mt-5 space-y-4 text-sm">
                 <div>
                   <dt className="text-slate-500">Email</dt>
-                  <dd className="mt-1 font-medium text-slate-950">
+                  <dd className="mt-1 min-w-0 break-all font-medium text-slate-950">
                     {user.email}
                   </dd>
                 </div>

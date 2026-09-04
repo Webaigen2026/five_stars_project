@@ -10,12 +10,14 @@ const inputClassName =
 
 type TravelerFormProps = {
   traveler?: SafeTraveler | null;
+  defaultPrimary?: boolean;
   onCancel?: () => void;
   onSaved?: () => void;
 };
 
 export default function TravelerForm({
   traveler,
+  defaultPrimary = false,
   onCancel,
   onSaved,
 }: TravelerFormProps) {
@@ -222,15 +224,21 @@ export default function TravelerForm({
         </div>
       </div>
 
-      <label className="flex items-center gap-3 text-sm text-slate-700">
-        <input
-          type="checkbox"
-          name="isPrimary"
-          defaultChecked={traveler?.isPrimary ?? false}
-          className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary/20"
-        />
-        This is me / Primary traveler
-      </label>
+      <div>
+        <label className="flex items-center gap-3 text-sm text-slate-700">
+          <input
+            type="checkbox"
+            name="isPrimary"
+            defaultChecked={traveler?.isPrimary ?? defaultPrimary}
+            className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary/20"
+          />
+          This is me / Primary traveler
+        </label>
+        <p className="mt-2 text-sm text-slate-500">
+          Your primary traveler is used for the &quot;Myself&quot; option during
+          booking.
+        </p>
+      </div>
 
       {error && <p className="text-sm font-medium text-red-600">{error}</p>}
 

@@ -58,9 +58,9 @@ export default function DeleteTravelerButton({
         type="button"
         onClick={() => void handleDelete()}
         disabled={isDeleting}
-        className="text-sm font-semibold text-rose-700 transition hover:text-rose-800 disabled:cursor-not-allowed disabled:opacity-70"
+        className="text-sm font-semibold text-rose-700 transition hover:text-rose-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-70"
       >
-        {isDeleting ? "Deleting..." : "Delete"}
+        {isDeleting ? "Deleting traveler..." : "Delete traveler"}
       </button>
       {error && <p className="mt-1 text-sm font-medium text-red-600">{error}</p>}
     </div>

@@ -24,13 +24,17 @@ export default async function AccountTravelersPage() {
               Saved travelers
             </h1>
             <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-600">
-              Keep traveler details on file so you do not have to retype them
-              for every booking.
+              Keep traveler details on file so you don&apos;t have to retype
+              them for every booking.
+            </p>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
+              Your primary traveler is used for the &quot;Myself&quot; option
+              during booking.
             </p>
             <p className="mt-6">
               <Link
                 href="/account"
-                className="text-sm font-semibold text-primary transition hover:text-primary-hover"
+                className="text-sm font-semibold text-primary transition hover:text-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
               >
                 ← Back to account
               </Link>

@@ -96,11 +96,11 @@ export default async function AccountPage() {
               Account
             </p>
             <h1 className="mt-3 text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
-              Profile & security
+              Your account
             </h1>
             <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-600">
-              Update your personal details and password. Email and role cannot
-              be changed here.
+              Manage your profile, saved travelers, password, and account
+              status in one place.
             </p>
           </div>
         </section>
@@ -109,15 +109,17 @@ export default async function AccountPage() {
           <div className="grid gap-6 lg:grid-cols-2">
             <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
               <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">
-                Profile information
+                Personal profile
               </p>
               <h2 className="mt-2 text-2xl font-semibold text-slate-950">
                 Your details
               </h2>
               <dl className="mt-5 space-y-3 text-sm">
-                <div className="flex justify-between gap-4">
-                  <dt className="text-slate-500">Email</dt>
-                  <dd className="font-medium text-slate-950">{user.email}</dd>
+                <div className="flex items-start justify-between gap-4">
+                  <dt className="shrink-0 text-slate-500">Email</dt>
+                  <dd className="min-w-0 break-all text-right font-medium text-slate-950">
+                    {user.email}
+                  </dd>
                 </div>
                 <div className="flex justify-between gap-4">
                   <dt className="text-slate-500">Role</dt>
@@ -125,11 +127,14 @@ export default async function AccountPage() {
                 </div>
                 <div className="flex justify-between gap-4">
                   <dt className="text-slate-500">Created</dt>
-                  <dd className="text-slate-950">
+                  <dd className="text-right text-slate-950">
                     {formatDateTime(user.createdAt)}
                   </dd>
                 </div>
               </dl>
+              <p className="mt-4 text-sm text-slate-600">
+                Email and role cannot be changed here.
+              </p>
               <ProfileForm
                 firstName={user.firstName ?? ""}
                 lastName={user.lastName ?? ""}
@@ -138,10 +143,34 @@ export default async function AccountPage() {
 
             <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
               <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">
+                Saved travelers
+              </p>
+              <h2 className="mt-2 text-2xl font-semibold text-slate-950">
+                Saved Travelers
+              </h2>
+              <p className="mt-3 text-sm leading-6 text-slate-600">
+                Manage traveler profiles, passport details, and reusable
+                booking information.
+              </p>
+              <p className="mt-4 text-sm font-medium text-slate-950">
+                {travelers.total === 1
+                  ? "1 traveler on file"
+                  : `${travelers.total} travelers on file`}
+              </p>
+              <Link
+                href="/account/travelers"
+                className="mt-6 inline-flex rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+              >
+                Manage saved travelers
+              </Link>
+            </div>
+
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
+              <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">
                 Security
               </p>
               <h2 className="mt-2 text-2xl font-semibold text-slate-950">
-                Change password
+                Password
               </h2>
               <p className="mt-2 text-sm text-slate-600">
                 Other signed-in devices will be signed out after a successful
@@ -152,9 +181,9 @@ export default async function AccountPage() {
 
             <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
               <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">
-                Email verification
+                Account status
               </p>
-              <h2 className="mt-2 text-2xl font-semibold text-slate-950">
+              <h2 className="mt-2 break-all text-2xl font-semibold text-slate-950">
                 {user.email}
               </h2>
               <p className="mt-3 text-sm font-medium text-slate-950">
@@ -165,7 +194,7 @@ export default async function AccountPage() {
               )}
             </div>
 
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:col-span-2 md:p-8 lg:col-span-2">
               <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">
                 Account activity
               </p>
@@ -177,7 +206,7 @@ export default async function AccountPage() {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className="rounded-2xl border border-slate-200 p-4 transition hover:border-primary/30"
+                    className="rounded-2xl border border-slate-200 p-4 transition hover:border-primary/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
                   >
                     <p className="text-sm font-medium text-slate-600">
                       {item.label}
