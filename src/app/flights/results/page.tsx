@@ -6,6 +6,7 @@ import Header from "../../../components/layout/Header";
 import { formatAirportRoute } from "../../../data/airports";
 import {
   buildModifySearchHref,
+  buildOneWayPassengersHref,
   buildRoundTripPassengersHref,
   buildRoundTripResultsHref,
   filterFlightsForLeg,
@@ -15,6 +16,11 @@ import {
   parsePositiveIntParam,
   parseTripType,
 } from "../../../lib/flight-search";
+import {
+  formatCompositionSummary,
+  parsePassengerComposition,
+  totalPassengers,
+} from "../../../lib/passenger-composition";
 import {
   formatDepartureDateShort,
   formatDepartureTime,
@@ -29,12 +35,36 @@ type SearchParams = Promise<{
   departure?: string;
   returnDate?: string;
   passengers?: string;
+  adults?: string;
+  seniors?: string;
+  children?: string;
+  infants?: string;
   outboundFlightId?: string;
 }>;
 
 type Props = {
   searchParams: SearchParams;
 };
+
+function PassengerSummary({
+  passengers,
+  summary,
+}: {
+  passengers: number;
+  summary: string;
+}) {
+  return (
+    <span className="block sm:inline">
+      Passengers:{" "}
+      <strong className="font-medium text-slate-900">{passengers}</strong>
+      {summary ? (
+        <span className="mt-1 block text-slate-600 sm:mt-0 sm:ml-2 sm:inline">
+          {summary}
+        </span>
+      ) : null}
+    </span>
+  );
+}
 
 export default async function FlightResultsPage({ searchParams }: Props) {
   const params = await searchParams;
@@ -44,7 +74,23 @@ export default async function FlightResultsPage({ searchParams }: Props) {
   const to = params.to ?? "";
   const departure = params.departure ?? "";
   const returnDate = params.returnDate ?? "";
-  const passengers = params.passengers ?? "1";
+  const composition = parsePassengerComposition({
+    passengers: params.passengers,
+    adults: params.adults,
+    seniors: params.seniors,
+    children: params.children,
+    infants: params.infants,
+  });
+  const passengers = String(totalPassengers(composition));
+  const compositionSummary = formatCompositionSummary(composition);
+  const compositionFields = {
+    passengers,
+    adults: String(composition.adults),
+    seniors: String(composition.seniors),
+    children: String(composition.children),
+    infants: String(composition.infantsInSeat),
+    composition,
+  };
   const requestedOutboundId = parsePositiveIntParam(params.outboundFlightId);
 
   const allFlights = await db.orm.public.Flight.all();
@@ -55,7 +101,7 @@ export default async function FlightResultsPage({ searchParams }: Props) {
     to,
     departure,
     returnDate,
-    passengers,
+    ...compositionFields,
   });
 
   if (tripType === "one-way") {
@@ -92,12 +138,10 @@ export default async function FlightResultsPage({ searchParams }: Props) {
                   </span>
                 ) : null}
 
-                <span>
-                  Passengers:{" "}
-                  <strong className="font-medium text-slate-900">
-                    {passengers}
-                  </strong>
-                </span>
+                <PassengerSummary
+                  passengers={totalPassengers(composition)}
+                  summary={compositionSummary}
+                />
               </div>
 
               <Link
@@ -127,7 +171,10 @@ export default async function FlightResultsPage({ searchParams }: Props) {
                   <FlightResultCard
                     key={flight.id}
                     flight={flight}
-                    selectHref={`/passengers?flight=${encodeURIComponent(flight.code)}&passengers=${encodeURIComponent(passengers)}`}
+                    selectHref={buildOneWayPassengersHref({
+                      flightCode: flight.code,
+                      ...compositionFields,
+                    })}
                   />
                 ))}
               </div>
@@ -184,7 +231,7 @@ export default async function FlightResultsPage({ searchParams }: Props) {
     to,
     departure,
     returnDate,
-    passengers,
+    ...compositionFields,
   });
 
   return (
@@ -219,12 +266,10 @@ export default async function FlightResultsPage({ searchParams }: Props) {
                   </strong>
                 </span>
               ) : null}
-              <span>
-                Passengers:{" "}
-                <strong className="font-medium text-slate-900">
-                  {passengers}
-                </strong>
-              </span>
+              <PassengerSummary
+                passengers={totalPassengers(composition)}
+                summary={compositionSummary}
+              />
             </div>
 
             <Link
@@ -268,8 +313,8 @@ export default async function FlightResultsPage({ searchParams }: Props) {
                         to,
                         departure,
                         returnDate,
-                        passengers,
                         outboundFlightId: flight.id,
+                        ...compositionFields,
                       })}
                     />
                   ))}
@@ -344,7 +389,7 @@ export default async function FlightResultsPage({ searchParams }: Props) {
                         selectHref={buildRoundTripPassengersHref({
                           outboundFlightId: selectedOutbound.id,
                           returnFlightId: flight.id,
-                          passengers,
+                          ...compositionFields,
                         })}
                       />
                     ))}

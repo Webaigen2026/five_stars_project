@@ -6,12 +6,13 @@ import {
   validateRoundTripFlights,
 } from "../../../lib/booking-legs";
 import { parseTripType } from "../../../lib/flight-search";
+import { MAX_TRAVELERS, resolvePassengerTypesForBooking } from "../../../lib/passenger-composition";
 import { rejectUntrustedMutation } from "../../../lib/request-security";
 import { logServerError } from "../../../lib/sensitive-data";
 import { passportWriteFields } from "../../../lib/traveler-encryption";
 import { db } from "../../../prisma/db";
 
-const MAX_PASSENGERS = 6;
+const MAX_PASSENGERS = MAX_TRAVELERS;
 const BOOKING_REFERENCE_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const DATE_ONLY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -28,7 +29,9 @@ const PASSENGER_FIELDS = [
 
 type PassengerField = (typeof PASSENGER_FIELDS)[number];
 
-type PassengerInput = Record<PassengerField, string>;
+type PassengerInput = Record<PassengerField, string> & {
+  passengerType: string;
+};
 
 class BookingRequestError extends Error {
   constructor(
@@ -73,7 +76,15 @@ function generateBookingReference() {
   return `SJ-${suffix}`;
 }
 
-function parsePassengers(value: unknown): PassengerInput[] {
+function parsePassengers(
+  value: unknown,
+  compositionInput: {
+    adults?: unknown;
+    seniors?: unknown;
+    children?: unknown;
+    infants?: unknown;
+  }
+): PassengerInput[] {
   if (!Array.isArray(value)) {
     throw new BookingRequestError("At least 1 passenger is required.", 400);
   }
@@ -84,10 +95,34 @@ function parsePassengers(value: unknown): PassengerInput[] {
 
   if (value.length > MAX_PASSENGERS) {
     throw new BookingRequestError(
-      "A booking can include at most 6 passengers.",
+      `A booking can include at most ${MAX_PASSENGERS} passengers.`,
       400
     );
   }
+
+  const authoritativeTypes = resolvePassengerTypesForBooking({
+    passengerCount: value.length,
+    adults:
+      typeof compositionInput.adults === "string" ||
+      typeof compositionInput.adults === "number"
+        ? compositionInput.adults
+        : null,
+    seniors:
+      typeof compositionInput.seniors === "string" ||
+      typeof compositionInput.seniors === "number"
+        ? compositionInput.seniors
+        : null,
+    children:
+      typeof compositionInput.children === "string" ||
+      typeof compositionInput.children === "number"
+        ? compositionInput.children
+        : null,
+    infants:
+      typeof compositionInput.infants === "string" ||
+      typeof compositionInput.infants === "number"
+        ? compositionInput.infants
+        : null,
+  });
 
   return value.map((passenger, index) => {
     if (!passenger || typeof passenger !== "object") {
@@ -120,6 +155,8 @@ function parsePassengers(value: unknown): PassengerInput[] {
       parsed[field] = fieldValue;
     }
 
+    // Ignore any client-supplied passengerType; derive from trusted composition.
+    parsed.passengerType = authoritativeTypes[index] ?? "ADULT";
     return parsed;
   });
 }
@@ -155,6 +192,7 @@ async function createPassengerSnapshots(
       dateOfBirth: passenger.dateOfBirth,
       gender: passenger.gender,
       nationality: passenger.nationality,
+      passengerType: passenger.passengerType,
       ...passportWriteFields(passenger.passportNumber),
       passportCountry: passenger.passportCountry,
       passportExpiry: passenger.passportExpiry,
@@ -186,7 +224,12 @@ export async function POST(request: Request) {
     const tripType = parseTripType(
       typeof payload.tripType === "string" ? payload.tripType : undefined
     );
-    const passengers = parsePassengers(payload.passengers);
+    const passengers = parsePassengers(payload.passengers, {
+      adults: payload.adults,
+      seniors: payload.seniors,
+      children: payload.children,
+      infants: payload.infants,
+    });
     const passengerCount = passengers.length;
     const bookingReference = await createUniqueBookingReference();
     const currentUser = await getCurrentUser();

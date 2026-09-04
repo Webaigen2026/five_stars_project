@@ -157,6 +157,10 @@ model Passenger {
   gender      String
   nationality String
 
+  // Booking-context traveler category. Legacy rows default to ADULT.
+  // ADULT | SENIOR | CHILD | INFANT_IN_SEAT
+  passengerType String @default("ADULT")
+
   // AES-256-GCM ciphertext. The only stored passport number field.
   passportNumberEncrypted String?
   passportCountry String

@@ -9,6 +9,10 @@ type SearchParams = Promise<{
   departure?: string;
   returnDate?: string;
   passengers?: string;
+  adults?: string;
+  seniors?: string;
+  children?: string;
+  infants?: string;
 }>;
 
 export default async function FlightsPage({
@@ -47,6 +51,10 @@ export default async function FlightsPage({
             initialDeparture={params.departure}
             initialReturnDate={params.returnDate}
             initialPassengers={params.passengers}
+            initialAdults={params.adults}
+            initialSeniors={params.seniors}
+            initialChildren={params.children}
+            initialInfants={params.infants}
           />
         </section>
       </main>

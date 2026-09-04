@@ -11,7 +11,7 @@ import {
   validateFlightSearch,
 } from "../../lib/flight-search";
 import {
-  compositionFromPassengerCount,
+  parsePassengerComposition,
   totalPassengers,
   type PassengerComposition,
 } from "../../lib/passenger-composition";
@@ -25,6 +25,10 @@ type FlightSearchFormProps = {
   initialDeparture?: string;
   initialReturnDate?: string;
   initialPassengers?: string;
+  initialAdults?: string;
+  initialSeniors?: string;
+  initialChildren?: string;
+  initialInfants?: string;
 };
 
 function asInitialAirport(value?: string) {
@@ -47,6 +51,10 @@ export default function FlightSearchForm({
   initialDeparture,
   initialReturnDate,
   initialPassengers,
+  initialAdults,
+  initialSeniors,
+  initialChildren,
+  initialInfants,
 }: FlightSearchFormProps) {
   const router = useRouter();
 
@@ -58,7 +66,13 @@ export default function FlightSearchForm({
   const [departure, setDeparture] = useState(initialDeparture ?? "");
   const [returnDate, setReturnDate] = useState(initialReturnDate ?? "");
   const [composition, setComposition] = useState<PassengerComposition>(() =>
-    compositionFromPassengerCount(initialPassengers)
+    parsePassengerComposition({
+      passengers: initialPassengers,
+      adults: initialAdults,
+      seniors: initialSeniors,
+      children: initialChildren,
+      infants: initialInfants,
+    })
   );
   const [error, setError] = useState<string | null>(null);
 
@@ -96,6 +110,7 @@ export default function FlightSearchForm({
       departure,
       returnDate: tripType === "round-trip" ? returnDate : "",
       passengers,
+      composition,
     };
     const validationError = validateFlightSearch(values);
 

@@ -10,6 +10,11 @@ import PassengerForm, {
 } from "./PassengerForm";
 import type { TripType } from "../../lib/flight-search";
 import {
+  resolvePassengerDetailsModel,
+  type PassengerCompositionParamInput,
+  type TravelerCategorySlot,
+} from "../../lib/passenger-composition";
+import {
   travelerDisplayName,
   type SafeTraveler,
 } from "../../lib/traveler-shared";
@@ -50,6 +55,11 @@ type PassengersContentProps = {
   roundTripOutbound?: RoundTripFlightSummary | null;
   roundTripReturn?: RoundTripFlightSummary | null;
   roundTripInvalid?: boolean;
+  /** Server-normalized slots from /passengers search params (preferred). */
+  initialTravelerSlots?: TravelerCategorySlot[];
+  initialPassengerCount?: number;
+  initialCompositionSummary?: string;
+  initialCompositionParams?: PassengerCompositionParamInput;
 };
 
 function travelerToPassengerValues(traveler: SafeTraveler): PassengerFormValues {
@@ -86,6 +96,9 @@ export default function PassengersContent({
   roundTripOutbound = null,
   roundTripReturn = null,
   roundTripInvalid = false,
+  initialTravelerSlots,
+  initialCompositionSummary,
+  initialCompositionParams,
 }: PassengersContentProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -97,14 +110,43 @@ export default function PassengersContent({
 
   const isRoundTrip = tripType === "round-trip";
   const flightId = searchParams.get("flight") ?? "";
-  const passengerParam = searchParams.get("passengers") ?? "1";
+  const detailsModel = useMemo(() => {
+    return resolvePassengerDetailsModel({
+      passengers:
+        searchParams.get("passengers") ??
+        initialCompositionParams?.passengers ??
+        null,
+      adults:
+        searchParams.get("adults") ?? initialCompositionParams?.adults ?? null,
+      seniors:
+        searchParams.get("seniors") ??
+        initialCompositionParams?.seniors ??
+        null,
+      children:
+        searchParams.get("children") ??
+        initialCompositionParams?.children ??
+        null,
+      infants:
+        searchParams.get("infants") ??
+        initialCompositionParams?.infants ??
+        null,
+    });
+  }, [searchParams, initialCompositionParams]);
 
-  const parsedPassengerCount = Number.parseInt(passengerParam, 10);
-
-  const passengerCount =
-    Number.isNaN(parsedPassengerCount) || parsedPassengerCount < 1
-      ? 1
-      : Math.min(parsedPassengerCount, 6);
+  // Prefer server-expanded slots when provided; otherwise derive from URL params.
+  // Header count always equals rendered form count — never a separate legacy cap.
+  const travelerSlots =
+    initialTravelerSlots &&
+    initialTravelerSlots.length === detailsModel.passengerCount
+      ? initialTravelerSlots
+      : detailsModel.slots;
+  const passengerCount = travelerSlots.length;
+  const compositionSummary =
+    initialCompositionSummary &&
+    travelerSlots.length === detailsModel.passengerCount
+      ? initialCompositionSummary
+      : detailsModel.summary;
+  const composition = detailsModel.composition;
 
   useEffect(() => {
     let cancelled = false;
@@ -234,16 +276,25 @@ export default function PassengersContent({
     setIsSubmitting(true);
 
     try {
+      const compositionPayload = {
+        adults: String(composition.adults),
+        seniors: String(composition.seniors),
+        children: String(composition.children),
+        infants: String(composition.infantsInSeat),
+      };
+
       const body = isRoundTrip
         ? {
             tripType: "round-trip",
             outboundFlightId: roundTripOutbound!.id,
             returnFlightId: roundTripReturn!.id,
             passengers,
+            ...compositionPayload,
           }
         : {
             flightCode: flightId,
             passengers,
+            ...compositionPayload,
           };
 
       const response = await fetch("/api/bookings", {
@@ -342,6 +393,9 @@ export default function PassengersContent({
               <span className="font-semibold text-slate-950">
                 {passengerCount}
               </span>
+              {compositionSummary ? (
+                <span className="text-slate-600"> · {compositionSummary}</span>
+              ) : null}
             </div>
           </div>
         </div>
@@ -426,7 +480,7 @@ export default function PassengersContent({
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {Array.from({ length: passengerCount }).map((_, index) => {
+          {travelerSlots.map((slot, index) => {
             const selection = selections[index] ?? "";
             const travelerId = selectionToTravelerId(
               selection,
@@ -437,11 +491,17 @@ export default function PassengersContent({
               selection === SELECTION_MYSELF && !primaryTraveler;
 
             return (
-              <div key={index} className="space-y-3">
+              <div key={`${slot.key}-${index}`} className="space-y-3">
                 {showTravelerControls && (
                   <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
                     <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">
                       Passenger {index + 1}
+                    </p>
+                    <p className="mt-2 text-lg font-semibold text-slate-950">
+                      {slot.label}
+                    </p>
+                    <p className="mt-1 text-sm text-slate-500">
+                      {slot.description}
                     </p>
                     <label
                       htmlFor={`traveler-select-${index}`}
@@ -517,9 +577,11 @@ export default function PassengersContent({
                 )}
 
                 <PassengerForm
-                  key={`${index}-${selection}`}
+                  key={`${index}-${selection}-${slot.key}`}
                   index={index}
                   defaults={defaultsForIndex(index)}
+                  categoryLabel={slot.label}
+                  categoryDescription={slot.description}
                   showSaveCheckbox={
                     isSignedIn &&
                     (selection === SELECTION_OTHER || selection === "")

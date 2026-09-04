@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { isAdmin, requireStaffOrAdmin } from "../../../lib/authorization";
+import { formatPassengerTypeLabel } from "../../../lib/passenger-composition";
 import { maskPassportNumber } from "../../../lib/sensitive-data";
 import { getDecryptedPassportNumber } from "../../../lib/traveler-encryption";
 import { db } from "../../../prisma/db";
@@ -16,6 +17,7 @@ export default async function AdminPassengersPage() {
       "firstName",
       "lastName",
       "nationality",
+      "passengerType",
       "passportNumberEncrypted",
       "passportCountry",
       "passportExpiry"
@@ -46,6 +48,7 @@ export default async function AdminPassengersPage() {
         bookingId: passenger.bookingId,
         bookingReference: booking?.bookingReference ?? "Unknown",
         flightCode: flight?.code ?? "Unknown",
+        passengerTypeLabel: formatPassengerTypeLabel(passenger.passengerType),
         nationality: passenger.nationality,
         passportMasked: maskPassportNumber(
           getDecryptedPassportNumber(passenger)
@@ -79,6 +82,7 @@ export default async function AdminPassengersPage() {
             <thead className="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-500">
               <tr>
                 <th className="px-5 py-4">Passenger</th>
+                <th className="px-5 py-4">Type</th>
                 <th className="px-5 py-4">Booking</th>
                 <th className="px-5 py-4">Flight</th>
                 <th className="px-5 py-4">Nationality</th>
@@ -96,6 +100,9 @@ export default async function AdminPassengersPage() {
                 >
                   <td className="px-5 py-4 font-medium text-slate-950">
                     {row.fullName}
+                  </td>
+                  <td className="px-5 py-4 text-slate-700">
+                    {row.passengerTypeLabel}
                   </td>
                   <td className="px-5 py-4">
                     <Link

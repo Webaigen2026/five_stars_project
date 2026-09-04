@@ -2,7 +2,7 @@ import FlightSearchForm from "../../components/flights/FlightSearchForm";
 
 export default function HeroSection() {
   return (
-    <section className="relative overflow-hidden bg-slate-950 text-white">
+    <section className="relative overflow-hidden bg-slate-950 text-white h-[130vh]">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(14,165,233,0.18),transparent_35%)]" />
 
       <div className="relative mx-auto max-w-7xl px-6 py-20 sm:py-24 lg:py-28">

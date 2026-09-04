@@ -10,6 +10,7 @@ import {
   isRoundTripLegs,
   loadBookingLegsWithFlights,
 } from "../../../../lib/booking-segments";
+import { formatPassengerTypeLabel } from "../../../../lib/passenger-composition";
 import { maskPassportNumber } from "../../../../lib/sensitive-data";
 import { getDecryptedPassportNumber } from "../../../../lib/traveler-encryption";
 import {
@@ -284,6 +285,7 @@ export default async function AdminBookingDetailPage({
               <thead className="border-b border-slate-200 text-xs font-semibold uppercase tracking-wider text-slate-500">
                 <tr>
                   <th className="py-3 pr-4">Name</th>
+                  <th className="py-3 pr-4">Type</th>
                   <th className="py-3 pr-4">Date of birth</th>
                   <th className="py-3 pr-4">Gender</th>
                   <th className="py-3 pr-4">Nationality</th>
@@ -301,6 +303,9 @@ export default async function AdminBookingDetailPage({
                   >
                     <td className="py-3 pr-4 font-medium text-slate-950">
                       {passenger.firstName} {passenger.lastName}
+                    </td>
+                    <td className="py-3 pr-4 text-slate-700">
+                      {formatPassengerTypeLabel(passenger.passengerType)}
                     </td>
                     <td className="py-3 pr-4 text-slate-700">
                       {passenger.dateOfBirth}

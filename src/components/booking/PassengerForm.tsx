@@ -24,12 +24,16 @@ type PassengerFormProps = {
   index: number;
   defaults?: PassengerFormValues;
   showSaveCheckbox?: boolean;
+  categoryLabel?: string;
+  categoryDescription?: string;
 };
 
 export default function PassengerForm({
   index,
   defaults = EMPTY_PASSENGER_VALUES,
   showSaveCheckbox = false,
+  categoryLabel,
+  categoryDescription,
 }: PassengerFormProps) {
   const passengerNumber = index + 1;
 
@@ -40,9 +44,20 @@ export default function PassengerForm({
           Passenger {passengerNumber}
         </p>
 
-        <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
-          Passenger information
-        </h2>
+        {categoryLabel ? (
+          <>
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
+              {categoryLabel}
+            </h2>
+            {categoryDescription ? (
+              <p className="mt-1 text-sm text-slate-600">{categoryDescription}</p>
+            ) : null}
+          </>
+        ) : (
+          <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">
+            Passenger information
+          </h2>
+        )}
       </div>
 
       <div className="grid gap-5 md:grid-cols-2">

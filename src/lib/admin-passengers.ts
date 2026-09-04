@@ -26,6 +26,7 @@ export type SafePassenger = {
   dateOfBirth: string;
   gender: string;
   nationality: string;
+  passengerType: string;
   passportNumber: string;
   passportCountry: string;
   passportExpiry: string;
@@ -40,6 +41,7 @@ function asTrimmedString(value: unknown) {
 export function toSafePassenger(
   passenger: Omit<SafePassenger, "passportNumber"> & {
     passportNumberEncrypted?: string | null;
+    passengerType?: string | null;
   }
 ): SafePassenger {
   return {
@@ -50,6 +52,7 @@ export function toSafePassenger(
     dateOfBirth: passenger.dateOfBirth,
     gender: passenger.gender,
     nationality: passenger.nationality,
+    passengerType: passenger.passengerType ?? "ADULT",
     passportNumber: getDecryptedPassportNumber(passenger),
     passportCountry: passenger.passportCountry,
     passportExpiry: passenger.passportExpiry,

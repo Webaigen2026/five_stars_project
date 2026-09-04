@@ -13,6 +13,7 @@ import {
   loadBookingLegsWithFlights,
 } from "../../../lib/booking-segments";
 import { getBookingStatusPresentation } from "../../../lib/booking-status";
+import { formatPassengerTypeLabel } from "../../../lib/passenger-composition";
 import {
   formatDepartureDateShort,
   formatMoney,
@@ -43,7 +44,13 @@ export default async function TripDetailPage({
 
   const [legs, passengers] = await Promise.all([
     loadBookingLegsWithFlights(booking),
-    db.orm.public.Passenger.select("id", "firstName", "lastName", "nationality")
+    db.orm.public.Passenger.select(
+      "id",
+      "firstName",
+      "lastName",
+      "nationality",
+      "passengerType"
+    )
       .where({ bookingId: booking.id })
       .all(),
   ]);
@@ -225,6 +232,9 @@ export default async function TripDetailPage({
                           </p>
                           <p className="mt-1 font-semibold text-slate-950">
                             {`${passenger.firstName} ${passenger.lastName}`}
+                          </p>
+                          <p className="mt-1 text-sm font-medium text-slate-700">
+                            {formatPassengerTypeLabel(passenger.passengerType)}
                           </p>
                           {passenger.nationality ? (
                             <p className="mt-1 text-sm text-slate-600">

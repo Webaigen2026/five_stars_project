@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import EditPassengerForm from "../../../../../components/admin/passengers/EditPassengerForm";
 import { parsePositiveInt } from "../../../../../lib/admin-bookings";
+import { formatPassengerTypeLabel } from "../../../../../lib/passenger-composition";
 import { toSafePassenger } from "../../../../../lib/admin-passengers";
 import { requireAdmin } from "../../../../../lib/authorization";
 import { db } from "../../../../../prisma/db";
@@ -29,6 +30,7 @@ export default async function EditPassengerPage({
     "dateOfBirth",
     "gender",
     "nationality",
+    "passengerType",
     "passportNumberEncrypted",
     "passportCountry",
     "passportExpiry",
@@ -62,7 +64,11 @@ export default async function EditPassengerPage({
       <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-600">
         Update identity and travel-document fields for{" "}
         {passenger.firstName} {passenger.lastName}
-        {booking ? ` on ${booking.bookingReference}` : ""}.
+        {booking ? ` on ${booking.bookingReference}` : ""}. Booking category:{" "}
+        <span className="font-semibold text-slate-900">
+          {formatPassengerTypeLabel(passenger.passengerType)}
+        </span>
+        .
       </p>
 
       <p className="mt-4">

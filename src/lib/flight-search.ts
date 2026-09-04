@@ -4,6 +4,14 @@ import {
   normalizeAirportCode,
 } from "../data/airports";
 import { calendarDateInTimeZone, getAirportTimeZone } from "./airport-timezones";
+import {
+  appendPassengerCompositionParams,
+  normalizePassengerComposition,
+  serializePassengerComposition,
+  totalPassengers,
+  type PassengerComposition,
+  type PassengerCompositionParamInput,
+} from "./passenger-composition";
 
 export type TripType = "one-way" | "round-trip";
 
@@ -14,6 +22,12 @@ export type FlightSearchValues = {
   departure: string;
   returnDate?: string;
   passengers: string;
+  adults?: string;
+  seniors?: string;
+  children?: string;
+  infants?: string;
+  /** Preferred when building from the picker; overrides category string fields. */
+  composition?: PassengerComposition;
 };
 
 export type FlightSearchLegFilter = {
@@ -126,14 +140,42 @@ export function validateFlightSearch(input: FlightSearchValues) {
   return null;
 }
 
+function resolveSearchComposition(input: {
+  passengers?: string;
+  adults?: string;
+  seniors?: string;
+  children?: string;
+  infants?: string;
+  composition?: PassengerComposition;
+}): PassengerComposition {
+  if (input.composition) {
+    return normalizePassengerComposition({
+      passengers: totalPassengers(input.composition),
+      adults: input.composition.adults,
+      seniors: input.composition.seniors,
+      children: input.composition.children,
+      infants: input.composition.infantsInSeat,
+    });
+  }
+
+  return normalizePassengerComposition({
+    passengers: input.passengers,
+    adults: input.adults,
+    seniors: input.seniors,
+    children: input.children,
+    infants: input.infants,
+  });
+}
+
 export function buildFlightSearchParams(input: FlightSearchValues) {
   const tripType = parseTripType(input.tripType);
   const params = new URLSearchParams();
+  const composition = resolveSearchComposition(input);
 
   params.set("from", normalizeAirportCode(input.from));
   params.set("to", normalizeAirportCode(input.to));
   params.set("departure", input.departure.trim());
-  params.set("passengers", String(Number.parseInt(input.passengers, 10) || 1));
+  appendPassengerCompositionParams(params, composition);
 
   // Keep one-way URLs backward compatible (no tripType param).
   if (tripType === "round-trip") {
@@ -183,9 +225,15 @@ export function buildModifySearchHref(input: {
   departure?: string;
   returnDate?: string;
   passengers?: string;
+  adults?: string;
+  seniors?: string;
+  children?: string;
+  infants?: string;
+  composition?: PassengerComposition;
 }) {
   const params = new URLSearchParams();
   const tripType = parseTripType(input.tripType);
+  const composition = resolveSearchComposition(input);
 
   if (input.from) {
     params.set("from", input.from);
@@ -199,7 +247,7 @@ export function buildModifySearchHref(input: {
     params.set("departure", input.departure);
   }
 
-  params.set("passengers", input.passengers || "1");
+  appendPassengerCompositionParams(params, composition);
 
   if (tripType === "round-trip") {
     params.set("tripType", "round-trip");
@@ -217,6 +265,11 @@ export function buildRoundTripResultsHref(input: {
   departure: string;
   returnDate: string;
   passengers: string;
+  adults?: string;
+  seniors?: string;
+  children?: string;
+  infants?: string;
+  composition?: PassengerComposition;
   outboundFlightId?: number | null;
 }) {
   const params = buildFlightSearchParams({
@@ -226,6 +279,11 @@ export function buildRoundTripResultsHref(input: {
     departure: input.departure,
     returnDate: input.returnDate,
     passengers: input.passengers,
+    adults: input.adults,
+    seniors: input.seniors,
+    children: input.children,
+    infants: input.infants,
+    composition: input.composition,
   });
 
   if (input.outboundFlightId != null) {
@@ -239,13 +297,41 @@ export function buildRoundTripPassengersHref(input: {
   outboundFlightId: number;
   returnFlightId: number;
   passengers: string;
+  adults?: string;
+  seniors?: string;
+  children?: string;
+  infants?: string;
+  composition?: PassengerComposition;
 }) {
   const params = new URLSearchParams();
+  const composition = resolveSearchComposition(input);
   params.set("tripType", "round-trip");
   params.set("outboundFlightId", String(input.outboundFlightId));
   params.set("returnFlightId", String(input.returnFlightId));
-  params.set("passengers", input.passengers || "1");
+  appendPassengerCompositionParams(params, composition);
   return `/passengers?${params.toString()}`;
+}
+
+export function buildOneWayPassengersHref(input: {
+  flightCode: string;
+  passengers: string;
+  adults?: string;
+  seniors?: string;
+  children?: string;
+  infants?: string;
+  composition?: PassengerComposition;
+}) {
+  const params = new URLSearchParams();
+  const composition = resolveSearchComposition(input);
+  params.set("flight", input.flightCode);
+  appendPassengerCompositionParams(params, composition);
+  return `/passengers?${params.toString()}`;
+}
+
+export function compositionParamsFromSearch(
+  input: PassengerCompositionParamInput
+) {
+  return serializePassengerComposition(normalizePassengerComposition(input));
 }
 
 /**

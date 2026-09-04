@@ -10,12 +10,17 @@ import {
   parsePositiveIntParam,
   parseTripType,
 } from "../../lib/flight-search";
+import { resolvePassengerDetailsModel } from "../../lib/passenger-composition";
 import { db } from "../../prisma/db";
 
 type SearchParams = Promise<{
   tripType?: string;
   flight?: string;
   passengers?: string;
+  adults?: string;
+  seniors?: string;
+  children?: string;
+  infants?: string;
   outboundFlightId?: string;
   returnFlightId?: string;
 }>;
@@ -69,6 +74,14 @@ export default async function PassengersPage({
 }) {
   const params = await searchParams;
   const tripType = parseTripType(params.tripType);
+  const compositionParams = {
+    passengers: params.passengers,
+    adults: params.adults,
+    seniors: params.seniors,
+    children: params.children,
+    infants: params.infants,
+  };
+  const detailsModel = resolvePassengerDetailsModel(compositionParams);
 
   let roundTripOutbound: RoundTripFlightSummary | null = null;
   let roundTripReturn: RoundTripFlightSummary | null = null;
@@ -77,7 +90,7 @@ export default async function PassengersPage({
   if (tripType === "round-trip") {
     const outboundId = parsePositiveIntParam(params.outboundFlightId);
     const returnId = parsePositiveIntParam(params.returnFlightId);
-    const passengers = params.passengers ?? "1";
+    const passengers = String(detailsModel.passengerCount);
 
     if (outboundId == null || returnId == null) {
       roundTripInvalid = true;
@@ -107,6 +120,10 @@ export default async function PassengersPage({
             roundTripOutbound={roundTripOutbound}
             roundTripReturn={roundTripReturn}
             roundTripInvalid={roundTripInvalid}
+            initialTravelerSlots={detailsModel.slots}
+            initialPassengerCount={detailsModel.passengerCount}
+            initialCompositionSummary={detailsModel.summary}
+            initialCompositionParams={compositionParams}
           />
         </Suspense>
       </main>

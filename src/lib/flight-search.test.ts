@@ -4,6 +4,7 @@ import { describe, it } from "node:test";
 import {
   buildFlightSearchParams,
   buildModifySearchHref,
+  buildOneWayPassengersHref,
   buildRoundTripPassengersHref,
   buildRoundTripResultsHref,
   filterFlightsForLeg,
@@ -16,8 +17,20 @@ import {
   validateFlightSearch,
   type SearchableFlight,
 } from "./flight-search";
+import {
+  parsePassengerComposition,
+  serializePassengerComposition,
+} from "./passenger-composition";
 
-function flight(overrides: Partial<SearchableFlight> & Pick<SearchableFlight, "id" | "code" | "originCode" | "destinationCode" | "departureTime">): SearchableFlight {
+const COMPOSITION_SUFFIX = "adults=1&seniors=0&children=0&infants=0";
+
+function flight(
+  overrides: Partial<SearchableFlight> &
+    Pick<
+      SearchableFlight,
+      "id" | "code" | "originCode" | "destinationCode" | "departureTime"
+    >
+): SearchableFlight {
   return {
     origin: overrides.origin ?? overrides.originCode,
     destination: overrides.destination ?? overrides.destinationCode,
@@ -44,11 +57,15 @@ describe("flight search validation", () => {
     assert.equal(params.get("to"), "PAP");
     assert.equal(params.get("departure"), "2026-09-06");
     assert.equal(params.get("passengers"), "1");
+    assert.equal(params.get("adults"), "1");
+    assert.equal(params.get("seniors"), "0");
+    assert.equal(params.get("children"), "0");
+    assert.equal(params.get("infants"), "0");
     assert.equal(params.get("tripType"), null);
     assert.equal(params.get("returnDate"), null);
     assert.equal(
       `/flights/results?${params.toString()}`,
-      "/flights/results?from=BOS&to=PAP&departure=2026-09-06&passengers=1"
+      `/flights/results?from=BOS&to=PAP&departure=2026-09-06&passengers=1&${COMPOSITION_SUFFIX}`
     );
   });
 
@@ -115,7 +132,99 @@ describe("flight search validation", () => {
     );
     assert.equal(
       buildModifySearchHref(validSearch),
-      "/flights?from=BOS&to=PAP&departure=2026-09-06&passengers=1"
+      `/flights?from=BOS&to=PAP&departure=2026-09-06&passengers=1&${COMPOSITION_SUFFIX}`
+    );
+  });
+
+  it("preserves exact composition through search, modify, and select links", () => {
+    const composition = {
+      adults: 1,
+      seniors: 3,
+      children: 3,
+      infantsInSeat: 2,
+    };
+    const serialized = serializePassengerComposition(composition);
+    assert.deepEqual(serialized, {
+      passengers: "9",
+      adults: "1",
+      seniors: "3",
+      children: "3",
+      infants: "2",
+    });
+
+    const resultsParams = buildFlightSearchParams({
+      ...validSearch,
+      passengers: "9",
+      composition,
+    });
+    assert.equal(resultsParams.get("passengers"), "9");
+    assert.equal(resultsParams.get("adults"), "1");
+    assert.equal(resultsParams.get("seniors"), "3");
+    assert.equal(resultsParams.get("children"), "3");
+    assert.equal(resultsParams.get("infants"), "2");
+
+    assert.equal(
+      buildModifySearchHref({
+        ...validSearch,
+        passengers: "9",
+        composition,
+      }),
+      "/flights?from=BOS&to=PAP&departure=2026-09-06&passengers=9&adults=1&seniors=3&children=3&infants=2"
+    );
+
+    assert.equal(
+      buildOneWayPassengersHref({
+        flightCode: "SJ602",
+        passengers: "9",
+        composition,
+      }),
+      "/passengers?flight=SJ602&passengers=9&adults=1&seniors=3&children=3&infants=2"
+    );
+
+    assert.deepEqual(
+      parsePassengerComposition({
+        passengers: resultsParams.get("passengers"),
+        adults: resultsParams.get("adults"),
+        seniors: resultsParams.get("seniors"),
+        children: resultsParams.get("children"),
+        infants: resultsParams.get("infants"),
+      }),
+      composition
+    );
+  });
+
+  it("uses only passengers total for availability matching", () => {
+    const sj602 = flight({
+      id: 1,
+      code: "SJ602",
+      originCode: "BOS",
+      destinationCode: "PAP",
+      departureTime: "2026-09-06T20:55:00.000Z",
+      availableSeats: 12,
+    });
+
+    assert.equal(
+      matchesFlightLeg(sj602, {
+        from: "BOS",
+        to: "PAP",
+        departure: "2026-09-06",
+        passengers: "9",
+        requireSeats: true,
+      }),
+      true
+    );
+    assert.equal(
+      matchesFlightLeg(
+        { ...sj602, availableSeats: 8 },
+        {
+          from: "BOS",
+          to: "PAP",
+          departure: "2026-09-06",
+          passengers: "9",
+          requireSeats: true,
+        }
+      ),
+      false
     );
   });
 });
@@ -161,7 +270,7 @@ describe("round-trip search", () => {
     assert.equal(params.get("returnDate"), "2026-09-13");
     assert.equal(
       `/flights/results?${params.toString()}`,
-      "/flights/results?from=BOS&to=CAP&departure=2026-09-06&passengers=1&tripType=round-trip&returnDate=2026-09-13"
+      `/flights/results?from=BOS&to=CAP&departure=2026-09-06&passengers=1&${COMPOSITION_SUFFIX}&tripType=round-trip&returnDate=2026-09-13`
     );
   });
 
@@ -171,15 +280,50 @@ describe("round-trip search", () => {
         ...roundTrip,
         outboundFlightId: 23,
       }),
-      "/flights/results?from=BOS&to=CAP&departure=2026-09-06&passengers=1&tripType=round-trip&returnDate=2026-09-13&outboundFlightId=23"
+      `/flights/results?from=BOS&to=CAP&departure=2026-09-06&passengers=1&${COMPOSITION_SUFFIX}&tripType=round-trip&returnDate=2026-09-13&outboundFlightId=23`
     );
     assert.equal(
       buildRoundTripPassengersHref({
         outboundFlightId: 23,
         returnFlightId: 40,
         passengers: "2",
+        adults: "2",
+        seniors: "0",
+        children: "0",
+        infants: "0",
       }),
-      "/passengers?tripType=round-trip&outboundFlightId=23&returnFlightId=40&passengers=2"
+      "/passengers?tripType=round-trip&outboundFlightId=23&returnFlightId=40&passengers=2&adults=2&seniors=0&children=0&infants=0"
+    );
+  });
+
+  it("preserves the same composition through outbound and return selection", () => {
+    const composition = {
+      adults: 2,
+      seniors: 0,
+      children: 1,
+      infantsInSeat: 0,
+    };
+
+    const outboundHref = buildRoundTripResultsHref({
+      ...roundTrip,
+      passengers: "3",
+      composition,
+      outboundFlightId: 23,
+    });
+    assert.match(outboundHref, /passengers=3/);
+    assert.match(outboundHref, /adults=2/);
+    assert.match(outboundHref, /children=1/);
+    assert.match(outboundHref, /outboundFlightId=23/);
+
+    const passengersHref = buildRoundTripPassengersHref({
+      outboundFlightId: 23,
+      returnFlightId: 40,
+      passengers: "3",
+      composition,
+    });
+    assert.equal(
+      passengersHref,
+      "/passengers?tripType=round-trip&outboundFlightId=23&returnFlightId=40&passengers=3&adults=2&seniors=0&children=1&infants=0"
     );
   });
 
@@ -302,7 +446,7 @@ describe("round-trip search", () => {
   it("preserves trip type on modify-search links", () => {
     assert.equal(
       buildModifySearchHref(roundTrip),
-      "/flights?from=BOS&to=CAP&departure=2026-09-06&passengers=1&tripType=round-trip&returnDate=2026-09-13"
+      `/flights?from=BOS&to=CAP&departure=2026-09-06&passengers=1&${COMPOSITION_SUFFIX}&tripType=round-trip&returnDate=2026-09-13`
     );
   });
 });
