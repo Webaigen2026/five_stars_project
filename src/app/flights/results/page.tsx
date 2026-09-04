@@ -3,11 +3,17 @@ import Link from "next/link";
 import Footer from "../../../components/layout/Footer";
 import Header from "../../../components/layout/Header";
 import { formatAirportRoute } from "../../../data/airports";
+import { calendarDateInTimeZone, getAirportTimeZone } from "../../../lib/airport-timezones";
 import {
   buildModifySearchHref,
   formatEmptyFlightSearchMessage,
   formatSearchDate,
 } from "../../../lib/flight-search";
+import {
+  formatArrivalTime,
+  formatDepartureTime,
+  formatDuration,
+} from "../../../lib/trip-formatting";
 import { db } from "../../../prisma/db";
 
 type SearchParams = Promise<{
@@ -20,26 +26,6 @@ type SearchParams = Promise<{
 type Props = {
   searchParams: SearchParams;
 };
-
-function formatTime(value: string) {
-  return new Intl.DateTimeFormat("en-US", {
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  }).format(new Date(value));
-}
-
-function formatDuration(minutes: number) {
-  const hours = Math.floor(minutes / 60);
-  const remainingMinutes = minutes % 60;
-
-  return `${hours}h ${remainingMinutes}m`;
-}
-
-function toCalendarDate(value: string) {
-  const match = value.match(/^(\d{4}-\d{2}-\d{2})/);
-  return match?.[1] ?? "";
-}
 
 export default async function FlightResultsPage({
   searchParams,
@@ -78,7 +64,10 @@ export default async function FlightResultsPage({
 
     const matchesDeparture =
       !departure ||
-      toCalendarDate(flight.departureTime) === departure;
+      calendarDateInTimeZone(
+        flight.departureTime,
+        getAirportTimeZone(flight.originCode)
+      ) === departure;
 
     return (
       matchesOrigin &&
@@ -167,9 +156,7 @@ export default async function FlightResultsPage({
                       <div className="mt-6 grid gap-5 sm:grid-cols-[1fr_auto_1fr] sm:items-center">
                         <div>
                           <p className="text-2xl font-semibold text-slate-950">
-                            {formatTime(
-                              flight.departureTime
-                            )}
+                            {formatDepartureTime(flight)}
                           </p>
 
                           <p className="mt-1 text-sm font-medium text-slate-900">
@@ -193,9 +180,7 @@ export default async function FlightResultsPage({
 
                         <div className="sm:text-right">
                           <p className="text-2xl font-semibold text-slate-950">
-                            {formatTime(
-                              flight.arrivalTime
-                            )}
+                            {formatArrivalTime(flight)}
                           </p>
 
                           <p className="mt-1 text-sm font-medium text-slate-900">

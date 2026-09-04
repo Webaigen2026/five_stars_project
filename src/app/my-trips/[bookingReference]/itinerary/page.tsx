@@ -9,14 +9,17 @@ import Header from "../../../../components/layout/Header";
 import { requireUser } from "../../../../lib/authorization";
 import { getBookingStatusPresentation } from "../../../../lib/booking-status";
 import {
+  formatArrivalDate,
+  formatArrivalTime,
+  formatDepartureDate,
+  formatDepartureTime,
   formatDuration,
   formatMoney,
   formatRoute,
-  formatTripDate,
   formatTripDateTime,
-  formatTripTime,
-  isSameCalendarDay,
+  isOvernightFlight,
 } from "../../../../lib/trip-formatting";
+import { FALLBACK_AIRPORT_TIME_ZONE } from "../../../../lib/airport-timezones";
 import { db } from "../../../../prisma/db";
 
 export default async function ItineraryPage({
@@ -62,12 +65,13 @@ export default async function ItineraryPage({
   ]);
 
   const status = getBookingStatusPresentation(booking.status);
-  const viewedAt = formatTripDateTime(new Date().toISOString());
+  const viewedAt = formatTripDateTime(
+    new Date().toISOString(),
+    FALLBACK_AIRPORT_TIME_ZONE
+  );
   const tripHref = `/my-trips/${encodeURIComponent(booking.bookingReference)}`;
   const sortedPassengers = [...passengers].sort((left, right) => left.id - right.id);
-  const arrivalNextDay =
-    flight != null &&
-    !isSameCalendarDay(flight.departureTime, flight.arrivalTime);
+  const arrivalNextDay = flight != null && isOvernightFlight(flight);
 
   return (
     <>
@@ -133,7 +137,10 @@ export default async function ItineraryPage({
                 <div>
                   <dt className="text-slate-500">Booking created</dt>
                   <dd className="mt-1 text-slate-950">
-                    {formatTripDateTime(booking.createdAt)}
+                    {formatTripDateTime(
+                      booking.createdAt,
+                      FALLBACK_AIRPORT_TIME_ZONE
+                    )}
                   </dd>
                 </div>
                 <div>
@@ -178,10 +185,10 @@ export default async function ItineraryPage({
                       {flight.origin} ({flight.originCode})
                     </p>
                     <p className="mt-1 text-sm text-slate-600">
-                      {formatTripDate(flight.departureTime)}
+                      {formatDepartureDate(flight)}
                     </p>
                     <p className="mt-1 text-xl font-semibold text-slate-950">
-                      {formatTripTime(flight.departureTime)}
+                      {formatDepartureTime(flight)}
                     </p>
                   </div>
 
@@ -197,7 +204,7 @@ export default async function ItineraryPage({
                       {flight.destination} ({flight.destinationCode})
                     </p>
                     <p className="mt-1 text-sm text-slate-600">
-                      {formatTripDate(flight.arrivalTime)}
+                      {formatArrivalDate(flight)}
                       {arrivalNextDay ? (
                         <span className="ml-2 font-medium text-amber-700">
                           Arrives next day
@@ -205,7 +212,7 @@ export default async function ItineraryPage({
                       ) : null}
                     </p>
                     <p className="mt-1 text-xl font-semibold text-slate-950">
-                      {formatTripTime(flight.arrivalTime)}
+                      {formatArrivalTime(flight)}
                     </p>
                   </div>
                 </div>

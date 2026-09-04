@@ -7,18 +7,14 @@ import { isAdmin, requireStaffOrAdmin } from "../../../../lib/authorization";
 import { maskPassportNumber } from "../../../../lib/sensitive-data";
 import { getAllowedAdminBookingTransitions } from "../../../../lib/booking-lifecycle";
 import { getDecryptedPassportNumber } from "../../../../lib/traveler-encryption";
+import {
+  formatArrivalDateTime,
+  formatDepartureDateTime,
+  formatMoney,
+  formatTripDateTime,
+} from "../../../../lib/trip-formatting";
+import { FALLBACK_AIRPORT_TIME_ZONE } from "../../../../lib/airport-timezones";
 import { db } from "../../../../prisma/db";
-
-function formatMoney(cents: number) {
-  return `$${(cents / 100).toFixed(2)}`;
-}
-
-function formatDateTime(value: string) {
-  return new Intl.DateTimeFormat("en-US", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(value));
-}
 
 function customerDisplay(user: {
   email: string;
@@ -133,13 +129,13 @@ export default async function AdminBookingDetailPage({
             <div className="flex justify-between gap-4">
               <dt className="text-slate-500">Created</dt>
               <dd className="text-slate-950">
-                {formatDateTime(booking.createdAt)}
+                {formatTripDateTime(booking.createdAt, FALLBACK_AIRPORT_TIME_ZONE)}
               </dd>
             </div>
             <div className="flex justify-between gap-4">
               <dt className="text-slate-500">Updated</dt>
               <dd className="text-slate-950">
-                {formatDateTime(booking.updatedAt)}
+                {formatTripDateTime(booking.updatedAt, FALLBACK_AIRPORT_TIME_ZONE)}
               </dd>
             </div>
           </dl>
@@ -187,6 +183,18 @@ export default async function AdminBookingDetailPage({
                 <dt className="text-slate-500">Cities</dt>
                 <dd className="mt-1 text-slate-950">
                   {flight.origin} → {flight.destination}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-slate-500">Departure</dt>
+                <dd className="mt-1 text-slate-950">
+                  {formatDepartureDateTime(flight)}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-slate-500">Arrival</dt>
+                <dd className="mt-1 text-slate-950">
+                  {formatArrivalDateTime(flight)}
                 </dd>
               </div>
             </dl>
@@ -251,7 +259,9 @@ export default async function AdminBookingDetailPage({
             <div className="flex justify-between gap-4 sm:col-span-2">
               <dt className="text-slate-500">Paid at</dt>
               <dd className="text-slate-950">
-                {payment.paidAt ? formatDateTime(payment.paidAt) : "—"}
+                {payment.paidAt
+                  ? formatTripDateTime(payment.paidAt, FALLBACK_AIRPORT_TIME_ZONE)
+                  : "—"}
               </dd>
             </div>
           </dl>

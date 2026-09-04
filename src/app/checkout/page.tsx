@@ -13,11 +13,13 @@ import {
 } from "../../lib/checkout";
 import { isStripeConfigured } from "../../lib/payments";
 import {
+  formatArrivalDate,
+  formatArrivalTime,
+  formatDepartureDate,
+  formatDepartureTime,
   formatDuration,
   formatMoney,
   formatRoute,
-  formatTripDate,
-  formatTripTime,
 } from "../../lib/trip-formatting";
 import { db } from "../../prisma/db";
 
@@ -226,13 +228,13 @@ export default async function CheckoutPage({
                     <div className="mt-8 grid gap-6 sm:grid-cols-[1fr_auto_1fr] sm:items-center">
                       <div>
                         <p className="text-3xl font-semibold text-slate-950">
-                          {formatTripTime(flight.departureTime)}
+                          {formatDepartureTime(flight)}
                         </p>
                         <p className="mt-2 text-sm font-semibold text-slate-900">
                           {flight.origin} ({flight.originCode})
                         </p>
                         <p className="mt-1 text-sm text-slate-600">
-                          {formatTripDate(flight.departureTime)}
+                          {formatDepartureDate(flight)}
                         </p>
                       </div>
 
@@ -246,13 +248,13 @@ export default async function CheckoutPage({
 
                       <div className="sm:text-right">
                         <p className="text-3xl font-semibold text-slate-950">
-                          {formatTripTime(flight.arrivalTime)}
+                          {formatArrivalTime(flight)}
                         </p>
                         <p className="mt-2 text-sm font-semibold text-slate-900">
                           {flight.destination} ({flight.destinationCode})
                         </p>
                         <p className="mt-1 text-sm text-slate-600">
-                          {formatTripDate(flight.arrivalTime)}
+                          {formatArrivalDate(flight)}
                         </p>
                       </div>
                     </div>

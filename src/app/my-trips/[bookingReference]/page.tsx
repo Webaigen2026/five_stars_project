@@ -9,13 +9,15 @@ import Header from "../../../components/layout/Header";
 import { requireUser } from "../../../lib/authorization";
 import { getBookingStatusPresentation } from "../../../lib/booking-status";
 import {
+  formatArrivalDate,
+  formatArrivalTime,
+  formatDepartureDate,
+  formatDepartureDateShort,
+  formatDepartureTime,
   formatDuration,
   formatMoney,
   formatRoute,
-  formatTripDate,
-  formatTripDateShort,
-  formatTripTime,
-  isSameCalendarDay,
+  isOvernightFlight,
 } from "../../../lib/trip-formatting";
 import { db } from "../../../prisma/db";
 
@@ -65,9 +67,7 @@ export default async function TripDetailPage({
   const tripHref = `/my-trips/${encodeURIComponent(booking.bookingReference)}`;
   const itineraryHref = `${tripHref}/itinerary`;
   const checkoutHref = `/checkout?booking=${encodeURIComponent(booking.bookingReference)}`;
-  const arrivalNextDay =
-    flight != null &&
-    !isSameCalendarDay(flight.departureTime, flight.arrivalTime);
+  const arrivalNextDay = flight != null && isOvernightFlight(flight);
 
   return (
     <>
@@ -108,7 +108,7 @@ export default async function TripDetailPage({
                 </div>
 
                 <div className="mt-6 flex flex-wrap items-center gap-3 text-sm text-slate-600">
-                  <p>{formatTripDateShort(flight.departureTime)}</p>
+                  <p>{formatDepartureDateShort(flight)}</p>
                   <span aria-hidden="true">·</span>
                   <p className="font-semibold text-slate-950">{flight.code}</p>
                   <BookingStatusBadge status={booking.status} />
@@ -197,10 +197,10 @@ export default async function TripDetailPage({
                         {flight.origin} ({flight.originCode})
                       </p>
                       <p className="mt-1 text-sm text-slate-600">
-                        {formatTripDate(flight.departureTime)}
+                        {formatDepartureDate(flight)}
                       </p>
                       <p className="mt-1 text-2xl font-semibold text-slate-950">
-                        {formatTripTime(flight.departureTime)}
+                        {formatDepartureTime(flight)}
                       </p>
                     </div>
 
@@ -216,7 +216,7 @@ export default async function TripDetailPage({
                         {flight.destination} ({flight.destinationCode})
                       </p>
                       <p className="mt-1 text-sm text-slate-600">
-                        {formatTripDate(flight.arrivalTime)}
+                        {formatArrivalDate(flight)}
                         {arrivalNextDay ? (
                           <span className="ml-2 font-medium text-amber-700">
                             Arrives next day
@@ -224,7 +224,7 @@ export default async function TripDetailPage({
                         ) : null}
                       </p>
                       <p className="mt-1 text-2xl font-semibold text-slate-950">
-                        {formatTripTime(flight.arrivalTime)}
+                        {formatArrivalTime(flight)}
                       </p>
                     </div>
                   </div>

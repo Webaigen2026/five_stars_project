@@ -2,25 +2,12 @@ import Link from "next/link";
 
 import CreateFlightForm from "../../../components/admin/flights/CreateFlightForm";
 import { isAdmin, requireStaffOrAdmin } from "../../../lib/authorization";
+import {
+  formatArrivalDateTime,
+  formatDepartureDateTime,
+  formatDuration,
+} from "../../../lib/trip-formatting";
 import { db } from "../../../prisma/db";
-
-function formatDateTime(value: string) {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  }).format(new Date(value));
-}
-
-function formatDuration(minutes: number) {
-  const hours = Math.floor(minutes / 60);
-  const remainingMinutes = minutes % 60;
-
-  return `${hours}h ${remainingMinutes}m`;
-}
 
 function statusClassName(status: string) {
   switch (status) {
@@ -162,10 +149,10 @@ export default async function AdminFlightsPage() {
                     </td>
                     <td className="px-5 py-4 align-top">
                       <p className="text-slate-950">
-                        {formatDateTime(flight.departureTime)}
+                        {formatDepartureDateTime(flight)}
                       </p>
                       <p className="mt-1 text-slate-600">
-                        {formatDateTime(flight.arrivalTime)}
+                        {formatArrivalDateTime(flight)}
                       </p>
                       <p className="mt-1 text-slate-500">
                         {formatDuration(flight.durationMinutes)}

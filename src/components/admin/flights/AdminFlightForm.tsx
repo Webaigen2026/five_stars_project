@@ -7,6 +7,11 @@ import {
   FLIGHT_STATUSES,
   type SafeFlight,
 } from "../../../lib/admin-flights";
+import {
+  formatInstantAsDatetimeLocal,
+  getAirportTimeZone,
+  wallClockInTimeZoneToUtcIso,
+} from "../../../lib/airport-timezones";
 
 const inputClassName =
   "w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20";
@@ -15,28 +20,6 @@ type AdminFlightFormProps = {
   mode: "create" | "edit";
   flight?: SafeFlight;
 };
-
-function toDatetimeLocalInput(value: string) {
-  const match = value.match(/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})/);
-  return match?.[1] ?? "";
-}
-
-function datetimeLocalToTimestamptz(value: string) {
-  const match = value.match(/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})(?::(\d{2}))?/);
-
-  if (!match) {
-    return value;
-  }
-
-  const seconds = match[2] ?? "00";
-  const offsetMinutes = -new Date().getTimezoneOffset();
-  const sign = offsetMinutes >= 0 ? "+" : "-";
-  const absolute = Math.abs(offsetMinutes);
-  const hours = String(Math.floor(absolute / 60)).padStart(2, "0");
-  const minutes = String(absolute % 60).padStart(2, "0");
-
-  return `${match[1]}:${seconds}${sign}${hours}:${minutes}`;
-}
 
 function dollarsToCents(value: string) {
   const parsed = Number(value);
@@ -77,19 +60,24 @@ export default function AdminFlightForm({
     setSuccess(null);
     setIsSubmitting(true);
 
+    const originCode = String(formData.get("originCode") ?? "");
+    const destinationCode = String(formData.get("destinationCode") ?? "");
+
     const payload = {
       code: String(formData.get("code") ?? ""),
       airline: String(formData.get("airline") ?? ""),
       aircraft: String(formData.get("aircraft") ?? ""),
       origin: String(formData.get("origin") ?? ""),
-      originCode: String(formData.get("originCode") ?? ""),
+      originCode,
       destination: String(formData.get("destination") ?? ""),
-      destinationCode: String(formData.get("destinationCode") ?? ""),
-      departureTime: datetimeLocalToTimestamptz(
-        String(formData.get("departureTime") ?? "")
+      destinationCode,
+      departureTime: wallClockInTimeZoneToUtcIso(
+        String(formData.get("departureTime") ?? ""),
+        getAirportTimeZone(originCode)
       ),
-      arrivalTime: datetimeLocalToTimestamptz(
-        String(formData.get("arrivalTime") ?? "")
+      arrivalTime: wallClockInTimeZoneToUtcIso(
+        String(formData.get("arrivalTime") ?? ""),
+        getAirportTimeZone(destinationCode)
       ),
       durationMinutes: Number(formData.get("durationMinutes")),
       price: priceCents,
@@ -230,28 +218,46 @@ export default function AdminFlightForm({
         />
       </Field>
 
-      <Field label="Departure" htmlFor={`${mode}-departureTime`}>
+      <Field label="Departure (origin local time)" htmlFor={`${mode}-departureTime`}>
         <input
           id={`${mode}-departureTime`}
           name="departureTime"
           type="datetime-local"
           required
           defaultValue={
-            flight ? toDatetimeLocalInput(flight.departureTime) : ""
+            flight
+              ? formatInstantAsDatetimeLocal(
+                  flight.departureTime,
+                  getAirportTimeZone(flight.originCode)
+                )
+              : ""
           }
           className={inputClassName}
         />
+        <p className="mt-2 text-xs text-slate-500">
+          Enter the departure wall-clock time at the origin airport.
+        </p>
       </Field>
 
-      <Field label="Arrival" htmlFor={`${mode}-arrivalTime`}>
+      <Field label="Arrival (destination local time)" htmlFor={`${mode}-arrivalTime`}>
         <input
           id={`${mode}-arrivalTime`}
           name="arrivalTime"
           type="datetime-local"
           required
-          defaultValue={flight ? toDatetimeLocalInput(flight.arrivalTime) : ""}
+          defaultValue={
+            flight
+              ? formatInstantAsDatetimeLocal(
+                  flight.arrivalTime,
+                  getAirportTimeZone(flight.destinationCode)
+                )
+              : ""
+          }
           className={inputClassName}
         />
+        <p className="mt-2 text-xs text-slate-500">
+          Enter the arrival wall-clock time at the destination airport.
+        </p>
       </Field>
 
       <Field label="Duration (minutes)" htmlFor={`${mode}-durationMinutes`}>

@@ -8,7 +8,7 @@ import { getCurrentUser } from "../../lib/auth";
 import {
   formatMoney,
   formatRoute,
-  formatTripDateShort,
+  formatDepartureDateShort,
   isUpcomingTrip,
 } from "../../lib/trip-formatting";
 import { db } from "../../prisma/db";
@@ -99,7 +99,7 @@ export default async function MyTripsPage() {
                       {flight.origin} → {flight.destination}
                     </p>
                     <p className="mt-2 text-sm text-slate-600">
-                      {formatTripDateShort(flight.departureTime)} ·{" "}
+                      {formatDepartureDateShort(flight)} ·{" "}
                       {flight.code}
                     </p>
                   </>
