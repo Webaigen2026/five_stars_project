@@ -40,6 +40,10 @@
       "model": "Payment",
       "namespace": "public"
     },
+    "seatAssignment": {
+      "model": "SeatAssignment",
+      "namespace": "public"
+    },
     "session": {
       "model": "Session",
       "namespace": "public"
@@ -95,6 +99,13 @@
                 }
               },
               "passengerCount": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "seatFeesTotal": {
                 "nullable": false,
                 "type": {
                   "codecId": "pg/int4@1",
@@ -190,6 +201,21 @@
                   "namespace": "public"
                 }
               },
+              "seatAssignments": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "bookingId"
+                  ]
+                },
+                "to": {
+                  "model": "SeatAssignment",
+                  "namespace": "public"
+                }
+              },
               "segments": {
                 "cardinality": "1:N",
                 "on": {
@@ -240,6 +266,9 @@
                 },
                 "passengerCount": {
                   "column": "passengerCount"
+                },
+                "seatFeesTotal": {
+                  "column": "seatFeesTotal"
                 },
                 "status": {
                   "column": "status"
@@ -351,6 +380,21 @@
                 },
                 "to": {
                   "model": "Flight",
+                  "namespace": "public"
+                }
+              },
+              "seatAssignments": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "bookingSegmentId"
+                  ]
+                },
+                "to": {
+                  "model": "SeatAssignment",
                   "namespace": "public"
                 }
               }
@@ -1156,6 +1200,21 @@
                   "model": "Booking",
                   "namespace": "public"
                 }
+              },
+              "seatAssignments": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "flightId"
+                  ]
+                },
+                "to": {
+                  "model": "SeatAssignment",
+                  "namespace": "public"
+                }
               }
             },
             "storage": {
@@ -1323,6 +1382,21 @@
                 },
                 "to": {
                   "model": "Booking",
+                  "namespace": "public"
+                }
+              },
+              "seatAssignments": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "passengerId"
+                  ]
+                },
+                "to": {
+                  "model": "SeatAssignment",
                   "namespace": "public"
                 }
               }
@@ -1508,6 +1582,168 @@
               },
               "namespaceId": "public",
               "table": "payment"
+            }
+          },
+          "SeatAssignment": {
+            "fields": {
+              "bookingId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "bookingSegmentId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "flightId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "passengerId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "seatFeeCents": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "seatNumber": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "updatedAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "booking": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "bookingId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Booking",
+                  "namespace": "public"
+                }
+              },
+              "bookingSegment": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "bookingSegmentId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "BookingSegment",
+                  "namespace": "public"
+                }
+              },
+              "flight": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "flightId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Flight",
+                  "namespace": "public"
+                }
+              },
+              "passenger": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "passengerId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "Passenger",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "bookingId": {
+                  "column": "bookingId"
+                },
+                "bookingSegmentId": {
+                  "column": "bookingSegmentId"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "flightId": {
+                  "column": "flightId"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "passengerId": {
+                  "column": "passengerId"
+                },
+                "seatFeeCents": {
+                  "column": "seatFeeCents"
+                },
+                "seatNumber": {
+                  "column": "seatNumber"
+                },
+                "updatedAt": {
+                  "column": "updatedAt"
+                }
+              },
+              "namespaceId": "public",
+              "table": "seatAssignment"
             }
           },
           "Session": {
@@ -2031,6 +2267,15 @@
                 },
                 "passengerCount": {
                   "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "seatFeesTotal": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
                   "nativeType": "int4",
                   "nullable": false
                 },
@@ -3072,6 +3317,186 @@
                 }
               ]
             },
+            "seatAssignment": {
+              "columns": {
+                "bookingId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "bookingSegmentId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "flightId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "passengerId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "seatFeeCents": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": 0
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "seatNumber": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "updatedAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "bookingId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "seatAssignment"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "booking"
+                  }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "bookingSegmentId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "seatAssignment"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "bookingSegment"
+                  }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "passengerId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "seatAssignment"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "passenger"
+                  }
+                },
+                {
+                  "source": {
+                    "columns": [
+                      "flightId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "seatAssignment"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "flight"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "bookingId"
+                  ],
+                  "name": "seatAssignment_bookingId_idx_17848f4a",
+                  "prefix": "seatAssignment_bookingId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "bookingSegmentId"
+                  ],
+                  "name": "seatAssignment_bookingSegmentId_idx_40262757",
+                  "prefix": "seatAssignment_bookingSegmentId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "flightId"
+                  ],
+                  "name": "seatAssignment_flightId_idx_7ef5148f",
+                  "prefix": "seatAssignment_flightId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "passengerId"
+                  ],
+                  "name": "seatAssignment_passengerId_idx_21958ace",
+                  "prefix": "seatAssignment_passengerId_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": [
+                {
+                  "columns": [
+                    "flightId",
+                    "seatNumber"
+                  ]
+                },
+                {
+                  "columns": [
+                    "bookingSegmentId",
+                    "passengerId"
+                  ]
+                }
+              ]
+            },
             "session": {
               "columns": {
                 "createdAt": {
@@ -3358,10 +3783,10 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "aecb8761322b68ba74eac29ea85cd19a0892a1a4d140161e7b68e31652e3ece4"
+    "storageHash": "3bde8b18671ee2886262d4ea4309a8eb9ca748da66c50f292419b588c7beaca2"
   },
   "execution": {
-    "executionHash": "5934c9e328907467103b5c9bb27ca268a842ff4ead094eaf453a14e7eed8b2ee",
+    "executionHash": "e53ca58f945c2f2e6a7746970a2c9705d07ef96c22839f79616dd11711e480ac",
     "mutations": {
       "defaults": [
         {
@@ -3467,6 +3892,21 @@
             "column": "updatedAt",
             "namespace": "public",
             "table": "payment"
+          }
+        },
+        {
+          "onCreate": {
+            "id": "timestampNow",
+            "kind": "generator"
+          },
+          "onUpdate": {
+            "id": "timestampNow",
+            "kind": "generator"
+          },
+          "ref": {
+            "column": "updatedAt",
+            "namespace": "public",
+            "table": "seatAssignment"
           }
         },
         {

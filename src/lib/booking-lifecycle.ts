@@ -21,6 +21,8 @@ const ALLOWED_TRANSITIONS: Record<
 };
 
 const INVENTORY_HOLDING_STATUSES = new Set<KnownBookingStatus>([
+  // Hold begins at payment initiation (Checkout Session), not only after PAID.
+  "PENDING_PAYMENT",
   "PAID",
   "CONFIRMED",
   "TICKETED",

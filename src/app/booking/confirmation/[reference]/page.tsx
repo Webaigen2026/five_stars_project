@@ -12,7 +12,9 @@ import {
   canAccessBookingConfirmation,
   formatBookingReferenceDisplay,
 } from "../../../../lib/booking-confirmation";
+import { getBookingAmountDueCents } from "../../../../lib/booking-amount";
 import { loadBookingLegsWithFlights } from "../../../../lib/booking-segments";
+import { isPayableBookingStatus } from "../../../../lib/payments";
 import { formatMoney } from "../../../../lib/trip-formatting";
 import { db } from "../../../../prisma/db";
 
@@ -110,7 +112,7 @@ export default async function BookingConfirmationPage({ params }: Props) {
     );
   }
 
-  const [legs, passengers] = await Promise.all([
+  const [legs, passengers, seatAssignments, segments] = await Promise.all([
     loadBookingLegsWithFlights(booking),
     db.orm.public.Passenger.select(
       "id",
@@ -119,6 +121,16 @@ export default async function BookingConfirmationPage({ params }: Props) {
       "nationality",
       "passengerType"
     )
+      .where({ bookingId: booking.id })
+      .all(),
+    db.orm.public.SeatAssignment.select(
+      "bookingSegmentId",
+      "passengerId",
+      "seatNumber"
+    )
+      .where({ bookingId: booking.id })
+      .all(),
+    db.orm.public.BookingSegment.select("id", "segmentType", "flightId")
       .where({ bookingId: booking.id })
       .all(),
   ]);
@@ -137,6 +149,9 @@ export default async function BookingConfirmationPage({ params }: Props) {
   const displayReference = formatBookingReferenceDisplay(
     model.bookingReference
   );
+  const amountDueCents = getBookingAmountDueCents(booking);
+  const seatFeesTotal = booking.seatFeesTotal ?? 0;
+  const canPay = isPayableBookingStatus(booking.status);
 
   return (
     <>
@@ -247,6 +262,59 @@ export default async function BookingConfirmationPage({ params }: Props) {
                 )}
               </section>
 
+              {seatAssignments.length > 0 ? (
+                <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                  <h2 className="text-xl font-semibold text-slate-950">
+                    Selected seats
+                  </h2>
+                  <div className="mt-5 space-y-5">
+                    {legs.map((leg) => {
+                      const segment = segments.find(
+                        (row) =>
+                          row.flightId === leg.flightId &&
+                          row.segmentType === leg.segmentType
+                      );
+                      const rows = seatAssignments.filter(
+                        (assignment) =>
+                          assignment.bookingSegmentId === segment?.id
+                      );
+                      if (rows.length === 0) {
+                        return null;
+                      }
+                      return (
+                        <div key={`${leg.segmentType}-${leg.flightId}`}>
+                          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+                            {leg.segmentType === "RETURN"
+                              ? "Return"
+                              : "Outbound"}{" "}
+                            · {leg.flight.code}
+                          </p>
+                          <ul className="mt-3 space-y-2">
+                            {rows.map((assignment) => {
+                              const traveler = model.travelers.find(
+                                (row) => row.id === assignment.passengerId
+                              );
+                              return (
+                                <li
+                                  key={`${assignment.bookingSegmentId}-${assignment.passengerId}`}
+                                  className="text-sm text-slate-700"
+                                >
+                                  <span className="font-medium text-slate-950">
+                                    {traveler?.displayName ?? "Traveler"}
+                                  </span>
+                                  {" · Seat "}
+                                  {assignment.seatNumber}
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </section>
+              ) : null}
+
               <nav
                 className="flex flex-wrap gap-3"
                 aria-label="Confirmation actions"
@@ -311,7 +379,7 @@ export default async function BookingConfirmationPage({ params }: Props) {
                     ))}
 
                     <div className="flex justify-between gap-4 border-t border-slate-100 pt-4">
-                      <span className="text-slate-600">Subtotal</span>
+                      <span className="text-slate-600">Flight subtotal</span>
                       <span className="font-medium text-slate-950">
                         {formatMoney(model.price.subtotal)}
                       </span>
@@ -322,13 +390,21 @@ export default async function BookingConfirmationPage({ params }: Props) {
                         {formatMoney(model.price.taxesAndFees)}
                       </span>
                     </div>
+                    {seatFeesTotal > 0 ? (
+                      <div className="flex justify-between gap-4">
+                        <span className="text-slate-600">Seat selection</span>
+                        <span className="font-medium text-slate-950">
+                          {formatMoney(seatFeesTotal)}
+                        </span>
+                      </div>
+                    ) : null}
                     <div className="border-t border-slate-200 pt-4">
                       <div className="flex items-end justify-between gap-4">
                         <span className="font-semibold text-slate-950">
                           Total
                         </span>
                         <span className="text-3xl font-semibold tracking-tight text-slate-950">
-                          {formatMoney(model.price.total)}
+                          {formatMoney(amountDueCents)}
                         </span>
                       </div>
                       <p className="mt-2 text-right text-xs text-slate-500">
@@ -338,15 +414,26 @@ export default async function BookingConfirmationPage({ params }: Props) {
                   </div>
                 </div>
 
-                <div className="rounded-3xl border border-amber-200 bg-amber-50/80 px-5 py-4">
-                  <p className="text-sm font-semibold text-slate-950">
-                    Online payment is not available yet.
-                  </p>
-                  <p className="mt-2 text-sm leading-6 text-slate-700">
-                    Your booking record is saved. Payment completion will be
-                    available in a later release.
-                  </p>
-                </div>
+                {canPay ? (
+                  <div className="rounded-3xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
+                    <p className="text-sm font-semibold text-slate-950">
+                      Ready when you are
+                    </p>
+                    <p className="mt-2 text-sm leading-6 text-slate-700">
+                      Complete payment to confirm this booking
+                      {seatFeesTotal > 0
+                        ? ", including selected seat fees"
+                        : ""}
+                      .
+                    </p>
+                    <Link
+                      href={`/checkout?booking=${encodeURIComponent(booking.bookingReference)}`}
+                      className="mt-4 inline-flex rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                    >
+                      Continue to payment
+                    </Link>
+                  </div>
+                ) : null}
               </div>
             </aside>
           </div>

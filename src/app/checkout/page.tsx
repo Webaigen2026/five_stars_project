@@ -6,6 +6,7 @@ import CopyBookingReferenceButton from "../../components/booking/CopyBookingRefe
 import Footer from "../../components/layout/Footer";
 import Header from "../../components/layout/Header";
 import { getCurrentUser } from "../../lib/auth";
+import { getBookingAmountDueCents } from "../../lib/booking-amount";
 import { getBookingStatusPresentation } from "../../lib/booking-status";
 import {
   canReviewCheckoutBooking,
@@ -21,7 +22,7 @@ import {
   resolveSegmentFarePriceCents,
 } from "../../lib/fare-families";
 import { formatPassengerTypeLabel } from "../../lib/passenger-composition";
-import { isStripeConfigured } from "../../lib/payments";
+import { isStripeTestModeReady } from "../../lib/payments";
 import { formatMoney } from "../../lib/trip-formatting";
 import { db } from "../../prisma/db";
 import BookingLegSummary from "../../components/booking/BookingLegSummary";
@@ -143,7 +144,7 @@ export default async function CheckoutPage({
     bookingStatus: booking.status,
     currentUserId: currentUser?.id ?? null,
     currentUserRole: currentUser?.role ?? null,
-    stripeConfigured: isStripeConfigured(),
+    stripeConfigured: isStripeTestModeReady(),
   });
   const tripHref = `/my-trips/${encodeURIComponent(booking.bookingReference)}`;
   const itineraryHref = `${tripHref}/itinerary`;
@@ -358,12 +359,19 @@ export default async function CheckoutPage({
 
                   {legs.length === 0 ? (
                     <div className="flex justify-between gap-4">
-                      <span className="text-slate-600">Subtotal</span>
+                      <span className="text-slate-600">Flight subtotal</span>
                       <span className="font-medium text-slate-950">
                         {formatMoney(booking.subtotal)}
                       </span>
                     </div>
-                  ) : null}
+                  ) : (
+                    <div className="flex justify-between gap-4 border-t border-slate-100 pt-4">
+                      <span className="text-slate-600">Flight subtotal</span>
+                      <span className="font-medium text-slate-950">
+                        {formatMoney(booking.subtotal)}
+                      </span>
+                    </div>
+                  )}
 
                   <div className="flex justify-between gap-4">
                     <span className="text-slate-600">Taxes & fees</span>
@@ -372,13 +380,22 @@ export default async function CheckoutPage({
                     </span>
                   </div>
 
+                  {(booking.seatFeesTotal ?? 0) > 0 ? (
+                    <div className="flex justify-between gap-4">
+                      <span className="text-slate-600">Seat selection</span>
+                      <span className="font-medium text-slate-950">
+                        {formatMoney(booking.seatFeesTotal ?? 0)}
+                      </span>
+                    </div>
+                  ) : null}
+
                   <div className="border-t border-slate-200 pt-4">
                     <div className="flex items-end justify-between gap-4">
                       <span className="font-semibold text-slate-950">
                         Total
                       </span>
                       <span className="text-3xl font-semibold tracking-tight text-slate-950">
-                        {formatMoney(booking.total)}
+                        {formatMoney(getBookingAmountDueCents(booking))}
                       </span>
                     </div>
                     <p className="mt-2 text-right text-xs text-slate-500">

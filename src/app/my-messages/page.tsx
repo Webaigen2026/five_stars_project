@@ -62,7 +62,7 @@ export default async function MyMessagesPage() {
                 href="/contact"
                 className="mt-6 inline-flex rounded-xl bg-primary px-6 py-3 font-semibold text-white transition hover:bg-primary-hover"
               >
-                Contact StarJet
+                Contact Five Stars
               </Link>
             </div>
           ) : (

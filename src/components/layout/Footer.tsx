@@ -10,7 +10,7 @@ export default function Footer() {
               href="/"
               className="text-2xl font-bold tracking-tight text-slate-950"
             >
-              StarJet
+              Five Stars
             </Link>
 
             <p className="mt-4 max-w-sm text-sm leading-6 text-slate-600">
@@ -53,7 +53,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-10 border-t border-slate-200 pt-6 text-sm text-slate-500">
-          © 2026 StarJet. All rights reserved.
+          © 2026 Five Stars. All rights reserved.
         </div>
       </div>
     </footer>

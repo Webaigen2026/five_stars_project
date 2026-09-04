@@ -111,7 +111,7 @@ export default async function MyTripsPage() {
             </h1>
 
             <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-600">
-              Manage upcoming and past StarJet bookings.
+              Manage upcoming and past Five Stars bookings.
             </p>
           </div>
         </section>
@@ -146,7 +146,7 @@ export default async function MyTripsPage() {
                 No trips yet
               </h2>
               <p className="mt-3 text-slate-600">
-                When you book a StarJet flight, it will appear here.
+                When you book a Five Stars flight, it will appear here.
               </p>
               <Link
                 href="/flights"

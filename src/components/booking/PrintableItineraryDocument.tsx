@@ -145,6 +145,22 @@ export default function PrintableItineraryDocument({
         )}
       </section>
 
+      {model.seatLines.length > 0 ? (
+        <section className="fs-print-section fs-print-keep" aria-label="Seats">
+          <h2 className="fs-print-section-title">Seats</h2>
+          <ul className="fs-print-notes">
+            {model.seatLines.map((line) => (
+              <li
+                key={`${line.segmentLabel}-${line.flightCode}-${line.passengerName}-${line.seatNumber}`}
+              >
+                {line.segmentLabel} · {line.flightCode} — {line.passengerName}:
+                Seat {line.seatNumber}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
       <section
         className="fs-print-section fs-print-keep"
         aria-label="Price summary"
@@ -159,7 +175,7 @@ export default function PrintableItineraryDocument({
               </tr>
             ))}
             <tr>
-              <td>Subtotal</td>
+              <td>Flight subtotal</td>
               <td className="fs-print-amount">{formatMoney(model.subtotal)}</td>
             </tr>
             <tr>
@@ -168,10 +184,18 @@ export default function PrintableItineraryDocument({
                 {formatMoney(model.taxesAndFees)}
               </td>
             </tr>
+            {model.seatFeesTotal > 0 ? (
+              <tr>
+                <td>Seat selection</td>
+                <td className="fs-print-amount">
+                  {formatMoney(model.seatFeesTotal)}
+                </td>
+              </tr>
+            ) : null}
             <tr className="fs-print-total-row">
               <td>Total</td>
               <td className="fs-print-amount">
-                {formatMoney(model.total)} USD
+                {formatMoney(model.amountDueCents)} USD
               </td>
             </tr>
           </tbody>

@@ -7,7 +7,11 @@ export const PAYMENT_STATUSES = [
   "REFUNDED",
 ] as const;
 
-export const PAYABLE_BOOKING_STATUSES = ["DRAFT", "PENDING_PAYMENT"] as const;
+export const PAYABLE_BOOKING_STATUSES = [
+  "DRAFT",
+  "PENDING_PAYMENT",
+  "FAILED",
+] as const;
 
 export const REUSABLE_PAYMENT_STATUSES = [
   "PENDING",
@@ -53,6 +57,44 @@ export function isStripeConfigured() {
     process.env.STRIPE_SECRET_KEY?.trim() &&
       process.env.NEXT_PUBLIC_APP_URL?.trim()
   );
+}
+
+export function isStripeWebhookConfigured() {
+  return Boolean(process.env.STRIPE_WEBHOOK_SECRET?.trim());
+}
+
+/**
+ * D13.2: classify Stripe secret mode without exposing the key.
+ * Returns "missing" | "test" | "live" | "unknown".
+ */
+export function getStripeSecretMode(
+  secretKey: string | null | undefined = process.env.STRIPE_SECRET_KEY
+) {
+  const key = secretKey?.trim() ?? "";
+  if (!key) {
+    return "missing" as const;
+  }
+  if (key.startsWith("sk_test_")) {
+    return "test" as const;
+  }
+  if (key.startsWith("sk_live_")) {
+    return "live" as const;
+  }
+  return "unknown" as const;
+}
+
+export function isStripeSecretTestMode(
+  secretKey: string | null | undefined = process.env.STRIPE_SECRET_KEY
+) {
+  return getStripeSecretMode(secretKey) === "test";
+}
+
+/**
+ * True when Stripe Checkout may run in this environment:
+ * configured + test-mode secret (live keys are rejected).
+ */
+export function isStripeTestModeReady() {
+  return isStripeConfigured() && isStripeSecretTestMode();
 }
 
 export function isPayableBookingStatus(

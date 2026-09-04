@@ -1,11 +1,25 @@
 import { getCurrentUser } from "../../../../lib/auth";
+import {
+  holdBookingInventory,
+  releaseBookingInventory,
+} from "../../../../lib/booking-transitions";
+import { isBookingDomainError } from "../../../../lib/booking-errors";
 import { loadBookingLegsWithFlights } from "../../../../lib/booking-segments";
+import {
+  buildCheckoutLineItem,
+  buildCheckoutProductCopy,
+  buildCheckoutSessionMetadata,
+  shouldReuseOpenCheckoutSession,
+  shouldReleaseSeatsOnCheckoutSessionFailure,
+  validatePayableBookingForCheckout,
+} from "../../../../lib/payment-checkout";
 import {
   PAYMENT_CURRENCY,
   PAYMENT_PROVIDER,
   PaymentError,
-  isPayableBookingStatus,
+  getStripeSecretMode,
   isReusablePaymentStatus,
+  isStripeTestModeReady,
   parseCreateSessionInput,
 } from "../../../../lib/payments";
 import {
@@ -20,8 +34,35 @@ function jsonError(message: string, status: number) {
   return Response.json({ error: message }, { status });
 }
 
+function mapInventoryError(error: unknown) {
+  if (!isBookingDomainError(error)) {
+    return null;
+  }
+
+  if (error.code === "INSUFFICIENT_INVENTORY") {
+    return new PaymentError(
+      "Seats are no longer available for this trip.",
+      409
+    );
+  }
+
+  return new PaymentError("We couldn't start payment. Please try again.", 409);
+}
+
 export async function POST(request: Request) {
+  let heldBookingId: number | null = null;
+  let holdApplied = false;
+
   try {
+    if (!isStripeTestModeReady()) {
+      if (getStripeSecretMode() === "live") {
+        throw new StripeConfigurationError(
+          "Live Stripe keys are disabled for this phase. Use a Stripe TEST mode secret key (sk_test_...)."
+        );
+      }
+      throw new StripeConfigurationError();
+    }
+
     const currentUser = await getCurrentUser();
 
     if (!currentUser) {
@@ -50,23 +91,91 @@ export async function POST(request: Request) {
       throw new PaymentError("Booking not found.", 404);
     }
 
-    if (booking.userId == null) {
-      throw new PaymentError("Sign in is required before payment.", 403);
-    }
+    const [legs, passengers, existingPayment] = await Promise.all([
+      loadBookingLegsWithFlights(booking),
+      db.orm.public.Passenger.select("id").where({ bookingId: booking.id }).all(),
+      db.orm.public.Payment.where({ bookingId: booking.id }).first(),
+    ]);
 
-    if (booking.userId !== currentUser.id) {
-      throw new PaymentError("Forbidden.", 403);
-    }
-
-    if (!isPayableBookingStatus(booking.status)) {
+    if (
+      existingPayment &&
+      !isReusablePaymentStatus(existingPayment.status) &&
+      existingPayment.status !== "SUCCEEDED"
+    ) {
       throw new PaymentError("This booking is not eligible for payment.", 409);
     }
 
-    if (!Number.isInteger(booking.total) || booking.total <= 0) {
-      throw new PaymentError("This booking is not eligible for payment.", 409);
+    const { amountCents } = validatePayableBookingForCheckout({
+      booking: {
+        ...booking,
+        seatFeesTotal: booking.seatFeesTotal ?? 0,
+      },
+      currentUserId: currentUser.id,
+      passengerRows: passengers.length,
+      segmentCount: legs.length,
+      existingPayment: existingPayment
+        ? {
+            id: existingPayment.id,
+            status: existingPayment.status,
+            amount: existingPayment.amount,
+            stripeCheckoutId: existingPayment.stripeCheckoutId,
+          }
+        : null,
+    });
+
+    const stripe = getStripe();
+    const appUrl = getStripeAppUrl();
+
+    // Reuse an open Checkout Session when practical (idempotent retries).
+    if (existingPayment?.stripeCheckoutId) {
+      try {
+        const existingSession = await stripe.checkout.sessions.retrieve(
+          existingPayment.stripeCheckoutId
+        );
+
+        if (
+          shouldReuseOpenCheckoutSession({
+            paymentStatus: existingPayment.status,
+            stripeCheckoutId: existingPayment.stripeCheckoutId,
+            sessionStatus: existingSession.status,
+            sessionUrl: existingSession.url,
+          })
+        ) {
+          if (!booking.inventoryHeld) {
+            const held = await holdBookingInventory(booking.id);
+            heldBookingId = held.booking.id;
+            holdApplied = !held.noop;
+          }
+
+          return Response.json({
+            success: true,
+            checkoutUrl: existingSession.url,
+            sessionId: existingSession.id,
+            reused: true,
+          });
+        }
+      } catch (error) {
+        console.error("Unable to reuse Stripe Checkout Session", {
+          bookingReference: booking.bookingReference,
+          stripeCheckoutId: existingPayment.stripeCheckoutId,
+        });
+        console.error(error);
+      }
     }
 
-    const legs = await loadBookingLegsWithFlights(booking);
+    try {
+      const held = await holdBookingInventory(booking.id);
+      heldBookingId = held.booking.id;
+      // Only compensate inventory if THIS request newly acquired seats.
+      holdApplied = !held.noop;
+    } catch (error) {
+      const mapped = mapInventoryError(error);
+      if (mapped) {
+        throw mapped;
+      }
+      throw error;
+    }
+
     const outbound =
       legs.find((leg) => leg.segmentType === "OUTBOUND") ?? legs[0];
     const returnLeg = legs.find((leg) => leg.segmentType === "RETURN");
@@ -75,56 +184,79 @@ export async function POST(request: Request) {
       throw new PaymentError("Flight not found.", 404);
     }
 
-    const productName = returnLeg
-      ? `StarJet Round Trip ${outbound.flight.code}/${returnLeg.flight.code}`
-      : `StarJet Flight ${outbound.flight.code}`;
-    const productDescription = returnLeg
-      ? `${outbound.flight.originCode} ⇄ ${outbound.flight.destinationCode}`
-      : `${outbound.flight.originCode} → ${outbound.flight.destinationCode}`;
-
-    const existingPayment = await db.orm.public.Payment.where({
-      bookingId: booking.id,
-    }).first();
-
-    if (existingPayment?.status === "SUCCEEDED") {
-      throw new PaymentError("This booking has already been paid.", 409);
-    }
-
-    if (
-      existingPayment &&
-      !isReusablePaymentStatus(existingPayment.status)
-    ) {
-      throw new PaymentError("This booking is not eligible for payment.", 409);
-    }
-
-    const stripe = getStripe();
-    const appUrl = getStripeAppUrl();
-
-    const checkoutSession = await stripe.checkout.sessions.create({
-      mode: "payment",
-      line_items: [
-        {
-          quantity: 1,
-          price_data: {
-            currency: PAYMENT_CURRENCY.toLowerCase(),
-            unit_amount: booking.total,
-            product_data: {
-              name: productName,
-              description: productDescription,
-            },
-          },
-        },
-      ],
-      success_url: `${appUrl}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${appUrl}/checkout?booking=${encodeURIComponent(booking.bookingReference)}`,
-      metadata: {
-        bookingId: String(booking.id),
-        bookingReference: booking.bookingReference,
-        userId: String(currentUser.id),
-      },
+    const { productName, productDescription } = buildCheckoutProductCopy({
+      isRoundTrip: Boolean(returnLeg),
+      outboundCode: outbound.flight.code,
+      returnCode: returnLeg?.flight.code,
+      originCode: outbound.flight.originCode,
+      destinationCode: outbound.flight.destinationCode,
     });
 
+    let checkoutSession;
+
+    try {
+      checkoutSession = await stripe.checkout.sessions.create(
+        {
+          mode: "payment",
+          // Card-only MVP — async payment methods are not enabled.
+          payment_method_types: ["card"],
+          line_items: [
+            buildCheckoutLineItem({
+              bookingReference: booking.bookingReference,
+              amountCents,
+              productName,
+              productDescription,
+            }),
+          ],
+          success_url: `${appUrl}/payment/success?session_id={CHECKOUT_SESSION_ID}`,
+          cancel_url: `${appUrl}/payment/cancel?booking=${encodeURIComponent(booking.bookingReference)}`,
+          metadata: buildCheckoutSessionMetadata({
+            bookingId: booking.id,
+            bookingReference: booking.bookingReference,
+            userId: currentUser.id,
+          }),
+        },
+        {
+          idempotencyKey: `checkout_create_${booking.id}_${amountCents}_${existingPayment?.stripeCheckoutId ?? "init"}`,
+        }
+      );
+    } catch (error) {
+      console.error("Stripe Checkout Session creation failed", {
+        bookingReference: booking.bookingReference,
+        bookingId: booking.id,
+      });
+      console.error(error);
+
+      // Compensate sale inventory only. Keep SeatAssignment rows so the
+      // customer does not lose seat selections on a transient Stripe failure.
+      if (heldBookingId != null && holdApplied) {
+        try {
+          await releaseBookingInventory(heldBookingId);
+          if (shouldReleaseSeatsOnCheckoutSessionFailure()) {
+            // Intentionally disabled for D13.2 — seats remain assigned.
+          }
+        } catch (releaseError) {
+          console.error("Failed to compensate inventory after Stripe error", {
+            bookingId: heldBookingId,
+          });
+          console.error(releaseError);
+        }
+      }
+
+      throw new PaymentError(
+        "We couldn't start payment. Please try again.",
+        502
+      );
+    }
+
     if (!checkoutSession.url) {
+      if (heldBookingId != null && holdApplied) {
+        try {
+          await releaseBookingInventory(heldBookingId);
+        } catch (releaseError) {
+          console.error(releaseError);
+        }
+      }
       throw new PaymentError("Unable to create payment session.", 500);
     }
 
@@ -135,7 +267,7 @@ export async function POST(request: Request) {
     try {
       await db.transaction(async (tx) => {
         const paymentValues = {
-          amount: booking.total,
+          amount: amountCents,
           currency: PAYMENT_CURRENCY,
           status: "PENDING",
           provider: PAYMENT_PROVIDER,
@@ -154,12 +286,6 @@ export async function POST(request: Request) {
             ...paymentValues,
           });
         }
-
-        if (booking.status === "DRAFT") {
-          await tx.orm.public.Booking.where({ id: booking.id }).update({
-            status: "PENDING_PAYMENT",
-          });
-        }
       });
     } catch (error) {
       console.error(
@@ -171,6 +297,16 @@ export async function POST(request: Request) {
         }
       );
       console.error(error);
+
+      try {
+        await releaseBookingInventory(booking.id);
+        if (shouldReleaseSeatsOnCheckoutSessionFailure()) {
+          // Intentionally disabled — seats remain after persist failure.
+        }
+      } catch (releaseError) {
+        console.error(releaseError);
+      }
+
       throw new PaymentError(
         "Unable to save payment session. Please try again.",
         500
@@ -181,6 +317,7 @@ export async function POST(request: Request) {
       success: true,
       checkoutUrl: checkoutSession.url,
       sessionId: checkoutSession.id,
+      reused: false,
     });
   } catch (error) {
     if (error instanceof PaymentError) {

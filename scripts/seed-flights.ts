@@ -3,7 +3,7 @@ import { db } from "../src/prisma/db";
 const flights = [
   {
     code: "SJ101",
-    airline: "StarJet",
+    airline: "Five Stars",
     aircraft: "Airbus A320",
 
     origin: "Boston",
@@ -28,7 +28,7 @@ const flights = [
 
   {
     code: "SJ205",
-    airline: "StarJet",
+    airline: "Five Stars",
     aircraft: "Airbus A320",
 
     origin: "Boston",
@@ -52,7 +52,7 @@ const flights = [
 
   {
     code: "SJ311",
-    airline: "StarJet",
+    airline: "Five Stars",
     aircraft: "Boeing 737-800",
 
     origin: "Miami",
@@ -76,7 +76,7 @@ const flights = [
 
   {
     code: "SJ402",
-    airline: "StarJet",
+    airline: "Five Stars",
     aircraft: "Boeing 737-800",
 
     origin: "Fort Lauderdale",
@@ -100,7 +100,7 @@ const flights = [
 
   {
     code: "SJ505",
-    airline: "StarJet",
+    airline: "Five Stars",
     aircraft: "Airbus A320",
 
     origin: "New York",
@@ -125,7 +125,7 @@ const flights = [
 
 async function main() {
   try {
-    console.log("Seeding StarJet flights...");
+    console.log("Seeding Five Stars flights...");
 
     for (const flight of flights) {
       const existingFlight = await db.orm.public.Flight

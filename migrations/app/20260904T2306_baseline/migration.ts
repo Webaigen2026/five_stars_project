@@ -1,0 +1,723 @@
+#!/usr/bin/env -S node
+import type { Contract as End } from '../../snapshots/3bde8b18671ee2886262d4ea4309a8eb9ca748da66c50f292419b588c7beaca2/contract';
+import endContract from '../../snapshots/3bde8b18671ee2886262d4ea4309a8eb9ca748da66c50f292419b588c7beaca2/contract.json' with { type: 'json' };
+import { Migration, MigrationCLI, col, fn, lit, primaryKey } from '@prisma/orm-postgres/migration';
+
+export default class M extends Migration<never, End> {
+  override readonly endContractJson = endContract;
+
+  override get operations() {
+    return [
+      this.createSchema({ schema: 'public' }),
+      this.createTable({
+        schema: 'public',
+        table: 'booking',
+        columns: [
+          col('bookingReference', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('createdAt', 'timestamptz', {
+            notNull: true,
+            default: fn('now()'),
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+          col('flightId', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('id', 'SERIAL', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('inventoryHeld', 'bool', {
+            notNull: true,
+            default: lit(false),
+            codecRef: { codecId: 'pg/bool@1' },
+          }),
+          col('passengerCount', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('seatFeesTotal', 'int4', {
+            notNull: true,
+            default: lit(0),
+            codecRef: { codecId: 'pg/int4@1' },
+          }),
+          col('status', 'text', {
+            notNull: true,
+            default: lit('DRAFT'),
+            codecRef: { codecId: 'pg/text@1' },
+          }),
+          col('subtotal', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('taxesAndFees', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('total', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('updatedAt', 'timestamptz', {
+            notNull: true,
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+          col('userId', 'int4', { codecRef: { codecId: 'pg/int4@1' } }),
+        ],
+        constraints: [primaryKey(['id'])],
+      }),
+      this.createTable({
+        schema: 'public',
+        table: 'bookingSegment',
+        columns: [
+          col('bookingId', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('createdAt', 'timestamptz', {
+            notNull: true,
+            default: fn('now()'),
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+          col('fareFamily', 'text', {
+            notNull: true,
+            default: lit('BASIC'),
+            codecRef: { codecId: 'pg/text@1' },
+          }),
+          col('farePriceCents', 'int4', { codecRef: { codecId: 'pg/int4@1' } }),
+          col('flightId', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('id', 'SERIAL', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('segmentType', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('sequence', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+        ],
+        constraints: [primaryKey(['id'])],
+      }),
+      this.createTable({
+        schema: 'public',
+        table: 'cargoRequest',
+        columns: [
+          col('cargoType', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('createdAt', 'timestamptz', {
+            notNull: true,
+            default: fn('now()'),
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+          col('description', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('destination', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('email', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('fullName', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('id', 'SERIAL', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('origin', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('phone', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('preferredDate', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('quantity', 'int4', { codecRef: { codecId: 'pg/int4@1' } }),
+          col('reference', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('status', 'text', {
+            notNull: true,
+            default: lit('NEW'),
+            codecRef: { codecId: 'pg/text@1' },
+          }),
+          col('updatedAt', 'timestamptz', {
+            notNull: true,
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+          col('userId', 'int4', { codecRef: { codecId: 'pg/int4@1' } }),
+          col('weight', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+        ],
+        constraints: [primaryKey(['id'])],
+      }),
+      this.createTable({
+        schema: 'public',
+        table: 'charterRequest',
+        columns: [
+          col('aircraftPreference', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('budget', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('createdAt', 'timestamptz', {
+            notNull: true,
+            default: fn('now()'),
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+          col('departureDate', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('destination', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('email', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('fullName', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('id', 'SERIAL', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('notes', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('origin', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('passengerCount', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('phone', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('reference', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('returnDate', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('status', 'text', {
+            notNull: true,
+            default: lit('NEW'),
+            codecRef: { codecId: 'pg/text@1' },
+          }),
+          col('updatedAt', 'timestamptz', {
+            notNull: true,
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+          col('userId', 'int4', { codecRef: { codecId: 'pg/int4@1' } }),
+        ],
+        constraints: [primaryKey(['id'])],
+      }),
+      this.createTable({
+        schema: 'public',
+        table: 'contactMessage',
+        columns: [
+          col('category', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('createdAt', 'timestamptz', {
+            notNull: true,
+            default: fn('now()'),
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+          col('email', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('fullName', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('id', 'SERIAL', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('internalNote', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('message', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('phone', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('reference', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('status', 'text', {
+            notNull: true,
+            default: lit('NEW'),
+            codecRef: { codecId: 'pg/text@1' },
+          }),
+          col('subject', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('updatedAt', 'timestamptz', {
+            notNull: true,
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+          col('userId', 'int4', { codecRef: { codecId: 'pg/int4@1' } }),
+        ],
+        constraints: [primaryKey(['id'])],
+      }),
+      this.createTable({
+        schema: 'public',
+        table: 'emailVerificationToken',
+        columns: [
+          col('createdAt', 'timestamptz', {
+            notNull: true,
+            default: fn('now()'),
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+          col('expiresAt', 'timestamptz', {
+            notNull: true,
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+          col('id', 'SERIAL', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('tokenHash', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('userId', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+        ],
+        constraints: [primaryKey(['id'])],
+      }),
+      this.createTable({
+        schema: 'public',
+        table: 'flight',
+        columns: [
+          col('aircraft', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('airline', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('arrivalTime', 'timestamptz', {
+            notNull: true,
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+          col('availableSeats', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('code', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('createdAt', 'timestamptz', {
+            notNull: true,
+            default: fn('now()'),
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+          col('departureTime', 'timestamptz', {
+            notNull: true,
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+          col('destination', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('destinationCode', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('durationMinutes', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('id', 'SERIAL', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('origin', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('originCode', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('price', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('status', 'text', {
+            notNull: true,
+            default: lit('SCHEDULED'),
+            codecRef: { codecId: 'pg/text@1' },
+          }),
+          col('totalSeats', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('updatedAt', 'timestamptz', {
+            notNull: true,
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+        ],
+        constraints: [primaryKey(['id'])],
+      }),
+      this.createTable({
+        schema: 'public',
+        table: 'passenger',
+        columns: [
+          col('bookingId', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('createdAt', 'timestamptz', {
+            notNull: true,
+            default: fn('now()'),
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+          col('dateOfBirth', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('firstName', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('gender', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('id', 'SERIAL', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('lastName', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('nationality', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('passengerType', 'text', {
+            notNull: true,
+            default: lit('ADULT'),
+            codecRef: { codecId: 'pg/text@1' },
+          }),
+          col('passportCountry', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('passportExpiry', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('passportNumberEncrypted', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('updatedAt', 'timestamptz', {
+            notNull: true,
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+        ],
+        constraints: [primaryKey(['id'])],
+      }),
+      this.createTable({
+        schema: 'public',
+        table: 'payment',
+        columns: [
+          col('amount', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('bookingId', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('createdAt', 'timestamptz', {
+            notNull: true,
+            default: fn('now()'),
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+          col('currency', 'text', {
+            notNull: true,
+            default: lit('USD'),
+            codecRef: { codecId: 'pg/text@1' },
+          }),
+          col('id', 'SERIAL', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('paidAt', 'timestamptz', { codecRef: { codecId: 'pg/timestamptz-string@1' } }),
+          col('provider', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('status', 'text', {
+            notNull: true,
+            default: lit('PENDING'),
+            codecRef: { codecId: 'pg/text@1' },
+          }),
+          col('stripeCheckoutId', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('stripePaymentIntentId', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('updatedAt', 'timestamptz', {
+            notNull: true,
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+        ],
+        constraints: [primaryKey(['id'])],
+      }),
+      this.createTable({
+        schema: 'public',
+        table: 'seatAssignment',
+        columns: [
+          col('bookingId', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('bookingSegmentId', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('createdAt', 'timestamptz', {
+            notNull: true,
+            default: fn('now()'),
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+          col('flightId', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('id', 'SERIAL', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('passengerId', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('seatFeeCents', 'int4', {
+            notNull: true,
+            default: lit(0),
+            codecRef: { codecId: 'pg/int4@1' },
+          }),
+          col('seatNumber', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('updatedAt', 'timestamptz', {
+            notNull: true,
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+        ],
+        constraints: [primaryKey(['id'])],
+      }),
+      this.createTable({
+        schema: 'public',
+        table: 'session',
+        columns: [
+          col('createdAt', 'timestamptz', {
+            notNull: true,
+            default: fn('now()'),
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+          col('expiresAt', 'timestamptz', {
+            notNull: true,
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+          col('id', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('revokedAt', 'timestamptz', { codecRef: { codecId: 'pg/timestamptz-string@1' } }),
+          col('userId', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+        ],
+        constraints: [primaryKey(['id'])],
+      }),
+      this.createTable({
+        schema: 'public',
+        table: 'travelerProfile',
+        columns: [
+          col('createdAt', 'timestamptz', {
+            notNull: true,
+            default: fn('now()'),
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+          col('dateOfBirth', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('firstName', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('gender', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('id', 'SERIAL', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('isPrimary', 'bool', {
+            notNull: true,
+            default: lit(false),
+            codecRef: { codecId: 'pg/bool@1' },
+          }),
+          col('label', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('lastName', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('nationality', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('passportCountry', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('passportExpiry', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('passportNumberEncrypted', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('updatedAt', 'timestamptz', {
+            notNull: true,
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+          col('userId', 'int4', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+        ],
+        constraints: [primaryKey(['id'])],
+      }),
+      this.createTable({
+        schema: 'public',
+        table: 'user',
+        columns: [
+          col('createdAt', 'timestamptz', {
+            notNull: true,
+            default: fn('now()'),
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+          col('email', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('emailVerified', 'bool', {
+            notNull: true,
+            default: lit(false),
+            codecRef: { codecId: 'pg/bool@1' },
+          }),
+          col('failedLoginAttempts', 'int4', {
+            notNull: true,
+            default: lit(0),
+            codecRef: { codecId: 'pg/int4@1' },
+          }),
+          col('firstName', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('id', 'SERIAL', { notNull: true, codecRef: { codecId: 'pg/int4@1' } }),
+          col('lastName', 'text', { codecRef: { codecId: 'pg/text@1' } }),
+          col('lockedUntil', 'timestamptz', { codecRef: { codecId: 'pg/timestamptz-string@1' } }),
+          col('password', 'text', { notNull: true, codecRef: { codecId: 'pg/text@1' } }),
+          col('role', 'text', {
+            notNull: true,
+            default: lit('CUSTOMER'),
+            codecRef: { codecId: 'pg/text@1' },
+          }),
+          col('updatedAt', 'timestamptz', {
+            notNull: true,
+            codecRef: { codecId: 'pg/timestamptz-string@1' },
+          }),
+        ],
+        constraints: [primaryKey(['id'])],
+      }),
+      this.addUnique({
+        schema: 'public',
+        table: 'booking',
+        constraint: 'booking_bookingReference_key',
+        columns: ['bookingReference'],
+      }),
+      this.addUnique({
+        schema: 'public',
+        table: 'bookingSegment',
+        constraint: 'bookingSegment_bookingId_sequence_key',
+        columns: ['bookingId', 'sequence'],
+      }),
+      this.addUnique({
+        schema: 'public',
+        table: 'bookingSegment',
+        constraint: 'bookingSegment_bookingId_segmentType_key',
+        columns: ['bookingId', 'segmentType'],
+      }),
+      this.addUnique({
+        schema: 'public',
+        table: 'cargoRequest',
+        constraint: 'cargoRequest_reference_key',
+        columns: ['reference'],
+      }),
+      this.addUnique({
+        schema: 'public',
+        table: 'charterRequest',
+        constraint: 'charterRequest_reference_key',
+        columns: ['reference'],
+      }),
+      this.addUnique({
+        schema: 'public',
+        table: 'contactMessage',
+        constraint: 'contactMessage_reference_key',
+        columns: ['reference'],
+      }),
+      this.addUnique({
+        schema: 'public',
+        table: 'emailVerificationToken',
+        constraint: 'emailVerificationToken_tokenHash_key',
+        columns: ['tokenHash'],
+      }),
+      this.addUnique({
+        schema: 'public',
+        table: 'flight',
+        constraint: 'flight_code_key',
+        columns: ['code'],
+      }),
+      this.addUnique({
+        schema: 'public',
+        table: 'payment',
+        constraint: 'payment_bookingId_key',
+        columns: ['bookingId'],
+      }),
+      this.addUnique({
+        schema: 'public',
+        table: 'seatAssignment',
+        constraint: 'seatAssignment_flightId_seatNumber_key',
+        columns: ['flightId', 'seatNumber'],
+      }),
+      this.addUnique({
+        schema: 'public',
+        table: 'seatAssignment',
+        constraint: 'seatAssignment_bookingSegmentId_passengerId_key',
+        columns: ['bookingSegmentId', 'passengerId'],
+      }),
+      this.addUnique({
+        schema: 'public',
+        table: 'user',
+        constraint: 'user_email_key',
+        columns: ['email'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'booking',
+        index: 'booking_flightId_idx_7ef5148f',
+        columns: ['flightId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'booking',
+        index: 'booking_userId_idx_a489d58a',
+        columns: ['userId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'bookingSegment',
+        index: 'bookingSegment_bookingId_idx_17848f4a',
+        columns: ['bookingId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'bookingSegment',
+        index: 'bookingSegment_flightId_idx_7ef5148f',
+        columns: ['flightId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'cargoRequest',
+        index: 'cargoRequest_userId_idx_a489d58a',
+        columns: ['userId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'charterRequest',
+        index: 'charterRequest_userId_idx_a489d58a',
+        columns: ['userId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'contactMessage',
+        index: 'contactMessage_userId_idx_a489d58a',
+        columns: ['userId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'emailVerificationToken',
+        index: 'emailVerificationToken_userId_idx_a489d58a',
+        columns: ['userId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'passenger',
+        index: 'passenger_bookingId_idx_17848f4a',
+        columns: ['bookingId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'seatAssignment',
+        index: 'seatAssignment_bookingId_idx_17848f4a',
+        columns: ['bookingId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'seatAssignment',
+        index: 'seatAssignment_bookingSegmentId_idx_40262757',
+        columns: ['bookingSegmentId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'seatAssignment',
+        index: 'seatAssignment_flightId_idx_7ef5148f',
+        columns: ['flightId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'seatAssignment',
+        index: 'seatAssignment_passengerId_idx_21958ace',
+        columns: ['passengerId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'session',
+        index: 'session_userId_idx_a489d58a',
+        columns: ['userId'],
+      }),
+      this.createIndex({
+        schema: 'public',
+        table: 'travelerProfile',
+        index: 'travelerProfile_userId_idx_a489d58a',
+        columns: ['userId'],
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'booking',
+        foreignKey: {
+          name: 'booking_userId_fkey',
+          columns: ['userId'],
+          references: { schema: 'public', table: 'user', columns: ['id'] },
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'booking',
+        foreignKey: {
+          name: 'booking_flightId_fkey',
+          columns: ['flightId'],
+          references: { schema: 'public', table: 'flight', columns: ['id'] },
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'bookingSegment',
+        foreignKey: {
+          name: 'bookingSegment_bookingId_fkey',
+          columns: ['bookingId'],
+          references: { schema: 'public', table: 'booking', columns: ['id'] },
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'bookingSegment',
+        foreignKey: {
+          name: 'bookingSegment_flightId_fkey',
+          columns: ['flightId'],
+          references: { schema: 'public', table: 'flight', columns: ['id'] },
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'cargoRequest',
+        foreignKey: {
+          name: 'cargoRequest_userId_fkey',
+          columns: ['userId'],
+          references: { schema: 'public', table: 'user', columns: ['id'] },
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'charterRequest',
+        foreignKey: {
+          name: 'charterRequest_userId_fkey',
+          columns: ['userId'],
+          references: { schema: 'public', table: 'user', columns: ['id'] },
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'contactMessage',
+        foreignKey: {
+          name: 'contactMessage_userId_fkey',
+          columns: ['userId'],
+          references: { schema: 'public', table: 'user', columns: ['id'] },
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'emailVerificationToken',
+        foreignKey: {
+          name: 'emailVerificationToken_userId_fkey',
+          columns: ['userId'],
+          references: { schema: 'public', table: 'user', columns: ['id'] },
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'passenger',
+        foreignKey: {
+          name: 'passenger_bookingId_fkey',
+          columns: ['bookingId'],
+          references: { schema: 'public', table: 'booking', columns: ['id'] },
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'payment',
+        foreignKey: {
+          name: 'payment_bookingId_fkey',
+          columns: ['bookingId'],
+          references: { schema: 'public', table: 'booking', columns: ['id'] },
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'seatAssignment',
+        foreignKey: {
+          name: 'seatAssignment_bookingId_fkey',
+          columns: ['bookingId'],
+          references: { schema: 'public', table: 'booking', columns: ['id'] },
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'seatAssignment',
+        foreignKey: {
+          name: 'seatAssignment_bookingSegmentId_fkey',
+          columns: ['bookingSegmentId'],
+          references: { schema: 'public', table: 'bookingSegment', columns: ['id'] },
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'seatAssignment',
+        foreignKey: {
+          name: 'seatAssignment_passengerId_fkey',
+          columns: ['passengerId'],
+          references: { schema: 'public', table: 'passenger', columns: ['id'] },
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'seatAssignment',
+        foreignKey: {
+          name: 'seatAssignment_flightId_fkey',
+          columns: ['flightId'],
+          references: { schema: 'public', table: 'flight', columns: ['id'] },
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'session',
+        foreignKey: {
+          name: 'session_userId_fkey',
+          columns: ['userId'],
+          references: { schema: 'public', table: 'user', columns: ['id'] },
+        },
+      }),
+      this.addForeignKey({
+        schema: 'public',
+        table: 'travelerProfile',
+        foreignKey: {
+          name: 'travelerProfile_userId_fkey',
+          columns: ['userId'],
+          references: { schema: 'public', table: 'user', columns: ['id'] },
+        },
+      }),
+    ];
+  }
+}
+
+MigrationCLI.run(import.meta.url, M);

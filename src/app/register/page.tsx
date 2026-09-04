@@ -76,7 +76,7 @@ export default function RegisterPage() {
               </p>
 
               <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
-                Join StarJet
+                Join Five Stars
               </h1>
 
               <p className="mt-3 text-slate-600">

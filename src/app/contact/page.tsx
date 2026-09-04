@@ -26,7 +26,7 @@ export default async function ContactPage() {
             </h1>
 
             <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-600">
-              Contact the StarJet team with questions about flights, cargo,
+              Contact the Five Stars team with questions about flights, cargo,
               charter services, or an existing reservation.
             </p>
           </div>

@@ -4,7 +4,7 @@ import { db } from "../prisma/db";
 import { BookingDomainError } from "./booking-errors";
 import {
   canTransitionBookingStatus,
-  doesTransitionAcquireInventory,
+  doesBookingStatusHoldInventory,
   doesTransitionConsumeInventoryHold,
   doesTransitionReleaseInventory,
   isPaymentAuthoritativeStatus,
@@ -84,6 +84,24 @@ function assertPositivePassengerCount(passengerCount: number) {
   if (!Number.isInteger(passengerCount) || passengerCount < 1) {
     throw new BookingDomainError("INVENTORY_INCONSISTENT");
   }
+}
+
+async function resolveSeatCount(
+  tx: TransactionClient,
+  booking: { id: number; passengerCount: number }
+) {
+  const passengers = await tx.orm.public.Passenger.select("id")
+    .where({ bookingId: booking.id })
+    .all();
+
+  // Actual passenger rows are authoritative (INFANT_IN_SEAT consumes a seat).
+  if (passengers.length > 0) {
+    assertPositivePassengerCount(passengers.length);
+    return passengers.length;
+  }
+
+  assertPositivePassengerCount(booking.passengerCount);
+  return booking.passengerCount;
 }
 
 async function acquireInventory(
@@ -274,10 +292,6 @@ export async function transitionBookingStatus(input: {
     throw new BookingDomainError("PAYMENT_AUTHORITY_REQUIRED");
   }
 
-  const acquireCandidate = doesTransitionAcquireInventory(
-    existing.status,
-    toStatus
-  );
   const releaseCandidate = doesTransitionReleaseInventory(
     existing.status,
     toStatus
@@ -299,11 +313,17 @@ export async function transitionBookingStatus(input: {
     // because this UPDATE only changed status.
     const held = claimed.inventoryHeld === true;
 
-    if (acquireCandidate && !held) {
+    // Acquire whenever entering/remaining in a holding status without a hold.
+    // Covers DRAFT/FAILED -> PENDING_PAYMENT and legacy PENDING_PAYMENT -> PAID
+    // repairs without double-decrement when already held.
+    const needsAcquire = !held && doesBookingStatusHoldInventory(toStatus);
+
+    if (needsAcquire) {
       const flightIds = await loadInventoryFlightIds(tx, claimed);
+      const seatCount = await resolveSeatCount(tx, claimed);
 
       for (const flightId of flightIds) {
-        await acquireInventory(tx, flightId, claimed.passengerCount);
+        await acquireInventory(tx, flightId, seatCount);
       }
 
       claimed = await setInventoryHeld(tx, bookingId, false, true);
@@ -311,9 +331,10 @@ export async function transitionBookingStatus(input: {
 
     if (releaseCandidate && held) {
       const flightIds = await loadInventoryFlightIds(tx, claimed);
+      const seatCount = await resolveSeatCount(tx, claimed);
 
       for (const flightId of flightIds) {
-        await releaseInventory(tx, flightId, claimed.passengerCount);
+        await releaseInventory(tx, flightId, seatCount);
       }
 
       claimed = await setInventoryHeld(tx, bookingId, true, false);
@@ -329,4 +350,115 @@ export async function transitionBookingStatus(input: {
     booking,
     noop: false,
   };
+}
+
+/**
+ * Idempotent inventory hold for payment initiation.
+ * If already held: no seat mutation.
+ * If DRAFT/FAILED: transition to PENDING_PAYMENT (acquires seats).
+ * If PENDING_PAYMENT without hold (legacy): acquire seats only.
+ */
+export async function holdBookingInventory(
+  bookingId: number
+): Promise<BookingTransitionResult> {
+  const existing = await db.orm.public.Booking.where({ id: bookingId }).first();
+
+  if (!existing) {
+    throw new BookingDomainError("BOOKING_NOT_FOUND");
+  }
+
+  if (existing.inventoryHeld === true) {
+    return { booking: existing, noop: true };
+  }
+
+  if (existing.status === "DRAFT" || existing.status === "FAILED") {
+    return transitionBookingStatus({
+      bookingId,
+      toStatus: "PENDING_PAYMENT",
+      source: "SYSTEM",
+    });
+  }
+
+  if (existing.status !== "PENDING_PAYMENT") {
+    throw new BookingDomainError("INVALID_BOOKING_TRANSITION");
+  }
+
+  const booking = await db.transaction(async (tx) => {
+    const current = await tx.orm.public.Booking.where({ id: bookingId }).first();
+
+    if (!current) {
+      throw new BookingDomainError("BOOKING_NOT_FOUND");
+    }
+
+    if (current.inventoryHeld === true) {
+      return current;
+    }
+
+    const flightIds = await loadInventoryFlightIds(tx, current);
+    const seatCount = await resolveSeatCount(tx, current);
+
+    for (const flightId of flightIds) {
+      await acquireInventory(tx, flightId, seatCount);
+    }
+
+    return setInventoryHeld(tx, bookingId, false, true);
+  });
+
+  return { booking, noop: false };
+}
+
+/**
+ * Idempotent inventory release for unpaid checkout abandonment.
+ * Prefer transitioning PENDING_PAYMENT -> FAILED via webhook; this helper
+ * releases seats when inventoryHeld without relying on a second decrement path.
+ */
+export async function releaseBookingInventory(
+  bookingId: number
+): Promise<BookingTransitionResult> {
+  const existing = await db.orm.public.Booking.where({ id: bookingId }).first();
+
+  if (!existing) {
+    throw new BookingDomainError("BOOKING_NOT_FOUND");
+  }
+
+  if (existing.inventoryHeld !== true) {
+    return { booking: existing, noop: true };
+  }
+
+  if (
+    existing.status === "PENDING_PAYMENT" ||
+    existing.status === "FAILED"
+  ) {
+    if (existing.status === "PENDING_PAYMENT") {
+      return transitionBookingStatus({
+        bookingId,
+        toStatus: "FAILED",
+        source: "SYSTEM",
+      });
+    }
+  }
+
+  // Already FAILED/CANCELLED but still marked held — restore seats once.
+  const booking = await db.transaction(async (tx) => {
+    const current = await tx.orm.public.Booking.where({ id: bookingId }).first();
+
+    if (!current) {
+      throw new BookingDomainError("BOOKING_NOT_FOUND");
+    }
+
+    if (current.inventoryHeld !== true) {
+      return current;
+    }
+
+    const flightIds = await loadInventoryFlightIds(tx, current);
+    const seatCount = await resolveSeatCount(tx, current);
+
+    for (const flightId of flightIds) {
+      await releaseInventory(tx, flightId, seatCount);
+    }
+
+    return setInventoryHeld(tx, bookingId, true, false);
+  });
+
+  return { booking, noop: false };
 }

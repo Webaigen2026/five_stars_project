@@ -90,7 +90,7 @@ export default function VerifyEmailContent() {
             Email verified successfully.
           </h1>
           <p className="mt-4 text-slate-600">
-            You can now sign in to your StarJet account.
+            You can now sign in to your Five Stars account.
           </p>
           <Link
             href="/login"

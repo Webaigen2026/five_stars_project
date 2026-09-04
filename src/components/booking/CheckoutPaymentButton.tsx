@@ -34,18 +34,20 @@ export default function CheckoutPaymentButton({
         | null;
 
       if (!response.ok) {
-        setError(payload?.error ?? "Unable to start payment.");
+        setError(
+          payload?.error ?? "We couldn't start payment. Please try again."
+        );
         return;
       }
 
       if (!payload?.checkoutUrl) {
-        setError("Payment session was created, but no checkout URL was returned.");
+        setError("We couldn't start payment. Please try again.");
         return;
       }
 
       window.location.href = payload.checkoutUrl;
     } catch {
-      setError("Unable to start payment.");
+      setError("We couldn't start payment. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -59,7 +61,7 @@ export default function CheckoutPaymentButton({
         disabled={isSubmitting || disabled}
         className="w-full rounded-xl bg-primary px-5 py-3 font-semibold text-white transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-70"
       >
-        {isSubmitting ? "Preparing payment..." : "Continue to Payment"}
+        {isSubmitting ? "Preparing payment..." : "Pay securely"}
       </button>
 
       {error && (

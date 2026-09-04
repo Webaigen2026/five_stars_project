@@ -47,7 +47,7 @@ export default async function ItineraryPage({ params }: ItineraryPageProps) {
     notFound();
   }
 
-  const [legs, passengers] = await Promise.all([
+  const [legs, passengers, seatAssignments, segments] = await Promise.all([
     loadBookingLegsWithFlights(booking),
     db.orm.public.Passenger.select(
       "id",
@@ -56,6 +56,16 @@ export default async function ItineraryPage({ params }: ItineraryPageProps) {
       "nationality",
       "passengerType"
     )
+      .where({ bookingId: booking.id })
+      .all(),
+    db.orm.public.SeatAssignment.select(
+      "bookingSegmentId",
+      "passengerId",
+      "seatNumber"
+    )
+      .where({ bookingId: booking.id })
+      .all(),
+    db.orm.public.BookingSegment.select("id", "segmentType", "flightId")
       .where({ bookingId: booking.id })
       .all(),
   ]);
@@ -68,9 +78,12 @@ export default async function ItineraryPage({ params }: ItineraryPageProps) {
     subtotal: booking.subtotal,
     taxesAndFees: booking.taxesAndFees,
     total: booking.total,
+    seatFeesTotal: booking.seatFeesTotal ?? 0,
     passengerCount: booking.passengerCount,
     legs,
     passengers,
+    segments,
+    seatAssignments,
   });
 
   return (

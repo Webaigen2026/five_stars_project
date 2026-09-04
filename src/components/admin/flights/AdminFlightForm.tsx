@@ -221,7 +221,7 @@ export default function AdminFlightForm({
           id={`${mode}-airline`}
           name="airline"
           required
-          defaultValue={flight?.airline ?? "StarJet"}
+          defaultValue={flight?.airline ?? "Five Stars"}
           className={inputClassName}
         />
       </Field>
@@ -322,7 +322,7 @@ export default function AdminFlightForm({
           htmlFor={`${mode}-priceDollars`}
           className="mb-2 block text-sm font-medium text-slate-700"
         >
-          Base fare / StarJet Basic (USD)
+          Base fare / Five Stars Basic (USD)
         </label>
         <input
           id={`${mode}-priceDollars`}

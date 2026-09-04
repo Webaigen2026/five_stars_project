@@ -28,6 +28,7 @@ import {
   isActionNeededBookingStatus,
   type MyTripFlightEndpoint,
 } from "./my-trips";
+import { isPayableBookingStatus, isStripeTestModeReady } from "./payments";
 
 export type TripDetailLegInput = BookingLeg & {
   flight: MyTripFlightEndpoint & {
@@ -53,8 +54,9 @@ export type TripDetailViewModel = {
   statusDescription: string;
   isActionNeeded: boolean;
   showPaymentDisabledNotice: boolean;
-  /** Explicitly false while Stripe is disabled — no Pay now / checkout CTA. */
+  /** True when Stripe is configured and the booking is payable for the owner UI. */
   hasPayNowAction: boolean;
+  checkoutHref: string;
   isRoundTrip: boolean;
   tripTypeLabel: string;
   routeHeading: string;
@@ -137,6 +139,7 @@ export function buildTripDetailViewModel(input: {
   legs: TripDetailLegInput[];
   passengers: ConfirmationTravelerInput[];
   now?: Date;
+  stripeConfigured?: boolean;
 }): TripDetailViewModel {
   const legs = [...input.legs].sort((left, right) => left.sequence - right.sequence);
   const outbound =
@@ -148,9 +151,13 @@ export function buildTripDetailViewModel(input: {
     travelers.length > 0 ? travelers.length : input.passengerCount;
   const segments = legs.map((leg) => buildConfirmationSegmentView(leg));
   const tripHref = `/my-trips/${encodeURIComponent(input.bookingReference)}`;
+  const checkoutHref = `/checkout?booking=${encodeURIComponent(input.bookingReference)}`;
   const travelEnd = getTripTravelEndInstant(legs);
   const outboundDeparture = outbound?.flight.departureTime ?? null;
   const now = input.now ?? new Date();
+  const stripeConfigured = input.stripeConfigured ?? isStripeTestModeReady();
+  const hasPayNowAction =
+    stripeConfigured && isPayableBookingStatus(input.status);
 
   let timingLabel: TripDetailViewModel["timingLabel"] = null;
   if (outboundDeparture || travelEnd) {
@@ -175,8 +182,9 @@ export function buildTripDetailViewModel(input: {
     statusLabel: status.label,
     statusDescription: status.description,
     isActionNeeded: isActionNeededBookingStatus(input.status),
-    showPaymentDisabledNotice: status.paymentAvailable,
-    hasPayNowAction: false,
+    showPaymentDisabledNotice: status.paymentAvailable && !stripeConfigured,
+    hasPayNowAction,
+    checkoutHref,
     isRoundTrip,
     tripTypeLabel: isRoundTrip ? "Round trip" : "One way",
     routeHeading: formatMyTripRouteHeading(outbound?.flight, isRoundTrip),

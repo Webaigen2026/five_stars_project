@@ -38,7 +38,7 @@ export default function ServicesSection() {
           </h2>
 
           <p className="mt-4 text-lg leading-8 text-slate-600">
-            StarJet brings passenger travel, cargo shipping, and private
+            Five Stars brings passenger travel, cargo shipping, and private
             charter services together in one simple experience.
           </p>
         </div>

@@ -28,7 +28,7 @@ export function buildVerificationUrl(baseUrl: string, rawToken: string) {
 
 export function logVerificationUrl(url: string) {
   if (process.env.NODE_ENV !== "production") {
-    console.log(`Email verification URL: ${url}`);
+    console.log(`Five Stars email verification URL: ${url}`);
   }
 }
 

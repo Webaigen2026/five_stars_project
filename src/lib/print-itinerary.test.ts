@@ -96,10 +96,10 @@ describe("print itinerary (D12.3.3)", () => {
     assert.equal(model.documentTitle, "FLIGHT ITINERARY");
   });
 
-  it("B. screen fare labels remain StarJet; print labels are Five Stars", () => {
-    assert.equal(getFareFamilyLabel("BASIC"), "StarJet Basic");
-    assert.equal(getFareFamilyLabel("STANDARD"), "StarJet Standard");
-    assert.equal(getFareFamilyLabel("FLEX"), "StarJet Flex");
+  it("B. screen and print fare labels are Five Stars", () => {
+    assert.equal(getFareFamilyLabel("BASIC"), "Five Stars Basic");
+    assert.equal(getFareFamilyLabel("STANDARD"), "Five Stars Standard");
+    assert.equal(getFareFamilyLabel("FLEX"), "Five Stars Flex");
     assert.equal(getPrintFareFamilyLabel("BASIC"), "Five Stars Basic");
     assert.equal(getPrintFareFamilyLabel("STANDARD"), "Five Stars Standard");
     assert.equal(getPrintFareFamilyLabel("FLEX"), "Five Stars Flex");
@@ -615,5 +615,29 @@ describe("print itinerary pagination regression (D12.3.3.1)", () => {
     assert.equal(model.subtotal, 38800);
     assert.equal(model.taxesAndFees, 6800);
     assert.equal(model.total, 45600);
+    assert.equal(model.seatFeesTotal, 0);
+    assert.equal(model.amountDueCents, 45600);
+    assert.equal(model.seatLines.length, 0);
+  });
+
+  it("H2. seat fees appear in amount due and compact seat lines", () => {
+    const model = buildPrintItineraryViewModel({
+      ...oneWayInput,
+      seatFeesTotal: 2400,
+      segments: [{ id: 91, segmentType: "OUTBOUND", flightId: 23 }],
+      seatAssignments: [
+        {
+          bookingSegmentId: 91,
+          passengerId: 1,
+          seatNumber: "12A",
+        },
+      ],
+    });
+    assert.equal(model.total, 45600);
+    assert.equal(model.seatFeesTotal, 2400);
+    assert.equal(model.amountDueCents, 48000);
+    assert.equal(model.seatLines.length, 1);
+    assert.equal(model.seatLines[0]?.seatNumber, "12A");
+    assert.match(model.seatLines[0]?.passengerName ?? "", /Kepler/);
   });
 });

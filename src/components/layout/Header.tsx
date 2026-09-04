@@ -15,7 +15,7 @@ export default function Header() {
           href="/"
           className="text-2xl font-bold tracking-tight text-slate-950"
         >
-          StarJet
+          Five Stars
         </Link>
 
         <nav className="hidden items-center gap-6 text-sm font-medium md:flex">

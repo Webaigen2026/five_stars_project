@@ -2,12 +2,33 @@ import "server-only";
 
 import Stripe from "stripe";
 
+import {
+  getStripeSecretMode,
+  isStripeConfigured,
+} from "./payments";
+
 export const STRIPE_API_VERSION = "2026-08-26.dahlia" satisfies Stripe.LatestApiVersion;
 
 export class StripeConfigurationError extends Error {
   constructor(message = "Stripe is not configured.") {
     super(message);
   }
+}
+
+/**
+ * D13.2: reject live-mode secrets. Do not log the key.
+ */
+export function assertStripeSecretIsTestMode(secretKey: string) {
+  const mode = getStripeSecretMode(secretKey);
+  if (mode === "live") {
+    throw new StripeConfigurationError(
+      "Live Stripe keys are disabled for this phase. Use a Stripe TEST mode secret key (sk_test_...)."
+    );
+  }
+}
+
+export function isStripeSecretTestMode(secretKey: string | null | undefined) {
+  return getStripeSecretMode(secretKey) === "test";
 }
 
 function readStripeSecretKey() {
@@ -19,12 +40,14 @@ function readStripeSecretKey() {
     );
   }
 
+  assertStripeSecretIsTestMode(secretKey);
+
   return secretKey;
 }
 
 let stripeClient: Stripe | null = null;
 
-export { isStripeConfigured } from "./payments";
+export { isStripeConfigured };
 
 export function getStripe() {
   if (!stripeClient) {
@@ -61,3 +84,10 @@ export function getStripePaymentIntentId(
 
   return null;
 }
+
+/**
+ * After Stripe Checkout Session creation fails, restore sale inventory only.
+ * SeatAssignment rows are intentional pre-payment selections and must remain.
+ * See payment-checkout.shouldReleaseSeatsOnCheckoutSessionFailure().
+ */
+export { shouldReleaseSeatsOnCheckoutSessionFailure } from "./payment-checkout";

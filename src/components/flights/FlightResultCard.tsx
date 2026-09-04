@@ -1,5 +1,6 @@
 "use client";
 
+import { getCustomerAirlineName } from "../../lib/brand";
 import {
   formatArrivalTime,
   formatDepartureTime,
@@ -43,7 +44,7 @@ export default function FlightResultCard({
             </span>
 
             <span className="text-sm font-medium text-slate-500">
-              {flight.airline}
+              {getCustomerAirlineName(flight.airline)}
             </span>
           </div>
 

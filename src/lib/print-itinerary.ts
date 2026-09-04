@@ -9,6 +9,7 @@ import {
   resolveAirportEndpointCode,
 } from "../data/airports";
 import { FALLBACK_AIRPORT_TIME_ZONE } from "./airport-timezones";
+import { getBookingAmountDueCents } from "./booking-amount";
 import { isRoundTripLegs, type BookingLeg } from "./booking-legs";
 import { getBookingStatusPresentation } from "./booking-status";
 import {
@@ -93,6 +94,19 @@ export type PrintItineraryPriceLine = {
   amountCents: number;
 };
 
+export type PrintItinerarySeatAssignmentInput = {
+  bookingSegmentId: number;
+  passengerId: number;
+  seatNumber: string;
+};
+
+export type PrintItinerarySeatLine = {
+  segmentLabel: string;
+  flightCode: string;
+  passengerName: string;
+  seatNumber: string;
+};
+
 export type PrintItineraryViewModel = {
   brand: string;
   brandMark: string;
@@ -113,10 +127,15 @@ export type PrintItineraryViewModel = {
   travelerLabel: string;
   travelers: PrintItineraryTravelerView[];
   segments: PrintItinerarySegmentView[];
+  seatLines: PrintItinerarySeatLine[];
   priceLines: PrintItineraryPriceLine[];
   subtotal: number;
   taxesAndFees: number;
+  seatFeesTotal: number;
+  /** Airfare total (Booking.total) — does not include seat fees. */
   total: number;
+  /** Authoritative amount due including seat fees. */
+  amountDueCents: number;
   paymentNotice: string | null;
   footerNote: string;
   importantNotes: string[];
@@ -207,6 +226,54 @@ export function assertNoSensitivePrintTravelerFields(
   return true;
 }
 
+export function buildPrintItinerarySeatLines(input: {
+  legs: PrintItineraryLegInput[];
+  segments: Array<{
+    id: number;
+    segmentType: string;
+    flightId: number;
+  }>;
+  passengers: PrintItineraryTravelerInput[];
+  assignments: PrintItinerarySeatAssignmentInput[];
+}): PrintItinerarySeatLine[] {
+  if (input.assignments.length === 0) {
+    return [];
+  }
+
+  const travelers = new Map(
+    input.passengers.map((passenger) => [
+      passenger.id,
+      `${passenger.firstName} ${passenger.lastName}`.trim(),
+    ])
+  );
+  const lines: PrintItinerarySeatLine[] = [];
+
+  for (const leg of [...input.legs].sort(
+    (left, right) => left.sequence - right.sequence
+  )) {
+    const segment = input.segments.find(
+      (row) =>
+        row.flightId === leg.flightId && row.segmentType === leg.segmentType
+    );
+    if (!segment) {
+      continue;
+    }
+    const segmentAssignments = input.assignments.filter(
+      (row) => row.bookingSegmentId === segment.id
+    );
+    for (const assignment of segmentAssignments) {
+      lines.push({
+        segmentLabel: leg.segmentType === "RETURN" ? "RETURN" : "OUTBOUND",
+        flightCode: leg.flight.code,
+        passengerName: travelers.get(assignment.passengerId) ?? "Traveler",
+        seatNumber: assignment.seatNumber,
+      });
+    }
+  }
+
+  return lines;
+}
+
 export function buildPrintItineraryViewModel(input: {
   bookingReference: string;
   status: string;
@@ -214,9 +281,16 @@ export function buildPrintItineraryViewModel(input: {
   subtotal: number;
   taxesAndFees: number;
   total: number;
+  seatFeesTotal?: number | null;
   passengerCount: number;
   legs: PrintItineraryLegInput[];
   passengers: PrintItineraryTravelerInput[];
+  segments?: Array<{
+    id: number;
+    segmentType: string;
+    flightId: number;
+  }>;
+  seatAssignments?: PrintItinerarySeatAssignmentInput[];
   generatedAt?: string;
 }): PrintItineraryViewModel {
   const legs = [...input.legs].sort((left, right) => left.sequence - right.sequence);
@@ -228,6 +302,18 @@ export function buildPrintItineraryViewModel(input: {
   const travelerCount =
     travelers.length > 0 ? travelers.length : input.passengerCount;
   const segments = legs.map(buildPrintItinerarySegmentView);
+  const seatFeesTotal =
+    typeof input.seatFeesTotal === "number" &&
+    Number.isInteger(input.seatFeesTotal) &&
+    input.seatFeesTotal >= 0
+      ? input.seatFeesTotal
+      : 0;
+  const seatLines = buildPrintItinerarySeatLines({
+    legs,
+    segments: input.segments ?? [],
+    passengers: input.passengers,
+    assignments: input.seatAssignments ?? [],
+  });
   const generatedAt = input.generatedAt ?? new Date().toISOString();
 
   return {
@@ -256,6 +342,7 @@ export function buildPrintItineraryViewModel(input: {
     travelerLabel: formatTravelerCountLabel(travelerCount),
     travelers,
     segments,
+    seatLines,
     priceLines: segments.map((segment) => ({
       key: `${segment.segmentType}-${segment.flightCode}`,
       label: `${segment.flightCode} · ${segment.fareLabel}`,
@@ -263,7 +350,12 @@ export function buildPrintItineraryViewModel(input: {
     })),
     subtotal: input.subtotal,
     taxesAndFees: input.taxesAndFees,
+    seatFeesTotal,
     total: input.total,
+    amountDueCents: getBookingAmountDueCents({
+      total: input.total,
+      seatFeesTotal,
+    }),
     paymentNotice: status.paymentAvailable
       ? "Online payment is not available yet."
       : null,

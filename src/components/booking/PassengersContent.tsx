@@ -430,7 +430,7 @@ export default function PassengersContent({
       }
 
       router.push(
-        `/booking/confirmation/${encodeURIComponent(payload.bookingReference)}`
+        `/my-trips/${encodeURIComponent(payload.bookingReference)}/seats`
       );
     } catch {
       setError("Unable to create booking. Please try again.");
@@ -565,7 +565,7 @@ export default function PassengersContent({
             )}
 
             <p className="mt-5 rounded-2xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-slate-700">
-              Continue to create one StarJet booking that includes both flights.
+              Continue to create one Five Stars booking that includes both flights.
             </p>
           </div>
         ) : null}

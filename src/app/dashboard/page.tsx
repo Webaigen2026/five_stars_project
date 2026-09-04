@@ -32,7 +32,7 @@ export default async function DashboardPage() {
             </h1>
 
             <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-600">
-              Manage your StarJet trips, saved travelers, cargo requests, and
+              Manage your Five Stars trips, saved travelers, cargo requests, and
               charter requests from one place.
             </p>
           </div>

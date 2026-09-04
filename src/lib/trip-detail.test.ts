@@ -57,6 +57,7 @@ describe("trip detail (D12.3.2)", () => {
       total: 45600,
       passengerCount: 1,
       now,
+      stripeConfigured: false,
       legs: [
         leg({
           sequence: 1,
@@ -225,7 +226,7 @@ describe("trip detail (D12.3.2)", () => {
       passengers: [],
     });
 
-    assert.equal(model.segments[0]?.fareLabel, "StarJet Standard");
+    assert.equal(model.segments[0]?.fareLabel, "Five Stars Standard");
     assert.equal(model.segments[0]?.farePriceCents, 38800);
     assert.equal(model.segments[0]?.usedFareSnapshot, true);
   });
@@ -255,7 +256,7 @@ describe("trip detail (D12.3.2)", () => {
       passengers: [],
     });
 
-    assert.equal(model.segments[0]?.fareLabel, "StarJet Basic");
+    assert.equal(model.segments[0]?.fareLabel, "Five Stars Basic");
     assert.equal(model.segments[0]?.farePriceCents, 35300);
     assert.equal(model.segments[0]?.usedFareSnapshot, false);
   });
@@ -338,6 +339,7 @@ describe("trip detail (D12.3.2)", () => {
       taxesAndFees: 1,
       total: 2,
       passengerCount: 1,
+      stripeConfigured: false,
       legs: [
         leg({
           sequence: 1,
@@ -357,7 +359,7 @@ describe("trip detail (D12.3.2)", () => {
     assert.equal(model.showPaymentDisabledNotice, true);
   });
 
-  it("J. no Pay now action", () => {
+  it("J. no Pay now action when Stripe is not configured", () => {
     const model = buildTripDetailViewModel({
       bookingReference: "SJ-J",
       status: "DRAFT",
@@ -365,6 +367,7 @@ describe("trip detail (D12.3.2)", () => {
       taxesAndFees: 1,
       total: 2,
       passengerCount: 1,
+      stripeConfigured: false,
       legs: [
         leg({
           sequence: 1,
@@ -380,7 +383,38 @@ describe("trip detail (D12.3.2)", () => {
     });
 
     assert.equal(model.hasPayNowAction, false);
+    assert.equal(model.showPaymentDisabledNotice, true);
     assert.doesNotMatch(model.itineraryHref, /pay/i);
+  });
+
+  it("J2. Pay securely when Stripe is configured", () => {
+    const model = buildTripDetailViewModel({
+      bookingReference: "SJ-PAY",
+      status: "DRAFT",
+      subtotal: 38800,
+      taxesAndFees: 6800,
+      total: 45600,
+      passengerCount: 1,
+      stripeConfigured: true,
+      legs: [
+        leg({
+          sequence: 1,
+          segmentType: "OUTBOUND",
+          flightId: 1,
+          code: "SJ602",
+          originCode: "BOS",
+          destinationCode: "PAP",
+          departureTime: "2026-09-06T20:55:00.000Z",
+          fareFamily: "STANDARD",
+          farePriceCents: 38800,
+        }),
+      ],
+      passengers: [],
+    });
+
+    assert.equal(model.hasPayNowAction, true);
+    assert.equal(model.showPaymentDisabledNotice, false);
+    assert.equal(model.checkoutHref, "/checkout?booking=SJ-PAY");
   });
 
   it("K/L. one-way arrow and round-trip symbol", () => {

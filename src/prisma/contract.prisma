@@ -82,6 +82,7 @@ model Flight {
 
   bookings Booking[]
   bookingSegments BookingSegment[]
+  seatAssignments SeatAssignment[]
 
   createdAt TimestamptzString @default(now())
   updatedAt temporal.updatedAtString()
@@ -106,6 +107,11 @@ model Booking {
   taxesAndFees Int
   total        Int
 
+  // Aggregate of SeatAssignment.seatFeeCents for this booking (cents).
+  // Server-recomputed on assignment changes. Never trust client values.
+  // Stripe amount due = total + seatFeesTotal.
+  seatFeesTotal Int @default(0)
+
   status String @default("DRAFT")
 
   // Authoritative seat-hold marker. Status alone never implies inventory ownership.
@@ -116,6 +122,7 @@ model Booking {
   passengers Passenger[]
   payment    Payment?
   segments   BookingSegment[]
+  seatAssignments SeatAssignment[]
 
   createdAt TimestamptzString @default(now())
   updatedAt temporal.updatedAtString()
@@ -134,12 +141,14 @@ model BookingSegment {
   segmentType String
   sequence    Int
 
-  // StarJet fare family selected for this leg. BASIC | STANDARD | FLEX
+  // Fare family selected for this leg. BASIC | STANDARD | FLEX
   fareFamily String @default("BASIC")
 
   // Snapshot of per-passenger fare (cents) at booking creation.
   // Null on legacy segments — fall back to Flight.price when rendering.
   farePriceCents Int?
+
+  seatAssignments SeatAssignment[]
 
   createdAt TimestamptzString @default(now())
 
@@ -175,6 +184,41 @@ model Passenger {
 
   createdAt TimestamptzString @default(now())
   updatedAt temporal.updatedAtString()
+
+  seatAssignments SeatAssignment[]
+}
+
+model SeatAssignment {
+  id Int @id @default(autoincrement())
+
+  booking   Booking @relation(fields: [bookingId], references: [id])
+  bookingId Int
+
+  bookingSegment   BookingSegment @relation(fields: [bookingSegmentId], references: [id])
+  bookingSegmentId Int
+
+  passenger   Passenger @relation(fields: [passengerId], references: [id])
+  passengerId Int
+
+  flight   Flight @relation(fields: [flightId], references: [id])
+  flightId Int
+
+  // Physical seat label, e.g. "12A". Presence of this row = assigned/reserved.
+  seatNumber String
+
+  // Snapshot of the server-computed seat fee (cents) at assignment time.
+  seatFeeCents Int @default(0)
+
+  createdAt TimestamptzString @default(now())
+  updatedAt temporal.updatedAtString()
+
+  // One physical seat per flight.
+  @@unique([flightId, seatNumber])
+  // One seat per passenger per segment.
+  @@unique([bookingSegmentId, passengerId])
+  @@index([bookingId])
+  @@index([flightId])
+  @@index([passengerId])
 }
 
 model Payment {

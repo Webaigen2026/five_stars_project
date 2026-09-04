@@ -9,6 +9,7 @@ import Footer from "../../../components/layout/Footer";
 import Header from "../../../components/layout/Header";
 import { requireUser } from "../../../lib/authorization";
 import { loadBookingLegsWithFlights } from "../../../lib/booking-segments";
+import { getBookingAmountDueCents } from "../../../lib/booking-amount";
 import {
   buildTripDetailViewModel,
   canAccessTripDetail,
@@ -40,7 +41,7 @@ export default async function TripDetailPage({
     notFound();
   }
 
-  const [legs, passengers] = await Promise.all([
+  const [legs, passengers, seatAssignments, segments] = await Promise.all([
     loadBookingLegsWithFlights(booking),
     db.orm.public.Passenger.select(
       "id",
@@ -49,6 +50,17 @@ export default async function TripDetailPage({
       "nationality",
       "passengerType"
     )
+      .where({ bookingId: booking.id })
+      .all(),
+    db.orm.public.SeatAssignment.select(
+      "bookingSegmentId",
+      "passengerId",
+      "seatNumber",
+      "seatFeeCents"
+    )
+      .where({ bookingId: booking.id })
+      .all(),
+    db.orm.public.BookingSegment.select("id", "segmentType", "flightId")
       .where({ bookingId: booking.id })
       .all(),
   ]);
@@ -227,6 +239,69 @@ export default async function TripDetailPage({
 
                 <section
                   className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm"
+                  aria-labelledby="trip-seats-heading"
+                >
+                  <h2
+                    id="trip-seats-heading"
+                    className="text-xl font-semibold text-slate-950"
+                  >
+                    Seats
+                  </h2>
+                  {seatAssignments.length === 0 ? (
+                    <p className="mt-3 text-sm text-slate-600">
+                      Seat not selected.
+                    </p>
+                  ) : (
+                    <div className="mt-5 space-y-5">
+                      {legs.map((leg) => {
+                        const segment = segments.find(
+                          (row) =>
+                            row.flightId === leg.flightId &&
+                            row.segmentType === leg.segmentType
+                        );
+                        const rows = seatAssignments.filter(
+                          (assignment) =>
+                            assignment.bookingSegmentId === segment?.id
+                        );
+                        if (rows.length === 0) {
+                          return null;
+                        }
+                        return (
+                          <div key={`${leg.segmentType}-${leg.flightId}`}>
+                            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+                              {leg.segmentType === "RETURN"
+                                ? "Return"
+                                : "Outbound"}{" "}
+                              · {leg.flight.code}
+                            </p>
+                            <ul className="mt-3 space-y-2">
+                              {rows.map((assignment) => {
+                                const traveler = model.travelers.find(
+                                  (row) => row.id === assignment.passengerId
+                                );
+                                return (
+                                  <li
+                                    key={`${assignment.bookingSegmentId}-${assignment.passengerId}`}
+                                    className="text-sm text-slate-700"
+                                  >
+                                    <span className="font-medium text-slate-950">
+                                      {traveler?.displayName ?? "Traveler"}
+                                    </span>
+                                    {" · Seat "}
+                                    {assignment.seatNumber}
+                                  </li>
+                                );
+                              })}
+                            </ul>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </section>
+
+                <section
+                  className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm"
                   aria-labelledby="trip-status-heading"
                 >
                   <h2
@@ -267,7 +342,7 @@ export default async function TripDetailPage({
                     ))}
 
                     <div className="flex justify-between gap-4 border-t border-slate-100 pt-4">
-                      <span className="text-slate-600">Subtotal</span>
+                      <span className="text-slate-600">Flight subtotal</span>
                       <span className="font-medium text-slate-950">
                         {formatMoney(model.subtotal)}
                       </span>
@@ -278,13 +353,21 @@ export default async function TripDetailPage({
                         {formatMoney(model.taxesAndFees)}
                       </span>
                     </div>
+                    {(booking.seatFeesTotal ?? 0) > 0 ? (
+                      <div className="flex justify-between gap-4">
+                        <span className="text-slate-600">Seat selection</span>
+                        <span className="font-medium text-slate-950">
+                          {formatMoney(booking.seatFeesTotal ?? 0)}
+                        </span>
+                      </div>
+                    ) : null}
                     <div className="border-t border-slate-200 pt-4">
                       <div className="flex items-end justify-between gap-4">
                         <span className="font-semibold text-slate-950">
                           Total
                         </span>
                         <span className="text-3xl font-semibold tracking-tight text-slate-950">
-                          {formatMoney(model.total)}
+                          {formatMoney(getBookingAmountDueCents(booking))}
                         </span>
                       </div>
                       <p className="mt-2 text-right text-xs text-slate-500">
@@ -293,6 +376,24 @@ export default async function TripDetailPage({
                     </div>
                   </div>
                 </section>
+
+                {model.hasPayNowAction ? (
+                  <div className="rounded-3xl border border-sky-200 bg-sky-50/80 px-5 py-4">
+                    <p className="text-sm font-semibold text-slate-950">
+                      Ready to pay
+                    </p>
+                    <p className="mt-2 text-sm leading-6 text-slate-700">
+                      Complete payment securely with Stripe Checkout. Seats are
+                      held when you start checkout.
+                    </p>
+                    <Link
+                      href={model.checkoutHref}
+                      className="mt-4 inline-flex rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-primary-hover"
+                    >
+                      Pay securely
+                    </Link>
+                  </div>
+                ) : null}
 
                 {model.showPaymentDisabledNotice ? (
                   <div className="rounded-3xl border border-amber-200 bg-amber-50/80 px-5 py-4">
@@ -320,6 +421,12 @@ export default async function TripDetailPage({
                     className="mt-4 flex flex-col gap-3"
                     aria-label="Trip actions"
                   >
+                    <Link
+                      href={`/my-trips/${encodeURIComponent(booking.bookingReference)}/seats`}
+                      className="inline-flex justify-center rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-800 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                    >
+                      Select seats
+                    </Link>
                     <Link
                       href={model.itineraryHref}
                       className="inline-flex justify-center rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"

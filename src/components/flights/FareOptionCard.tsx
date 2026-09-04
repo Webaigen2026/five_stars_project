@@ -67,7 +67,7 @@ export default function FareOptionCard({
   onSelect,
   href,
 }: FareOptionCardProps) {
-  const selectLabel = `Select ${getFareFamilyLabel(option.family).replace("StarJet ", "")}`;
+  const selectLabel = `Select ${getFareFamilyLabel(option.family).replace("Five Stars ", "")}`;
   const buttonClassName = option.highlighted
     ? "mt-5 inline-flex w-full justify-center rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-60"
     : "mt-5 inline-flex w-full justify-center rounded-xl border border-primary/30 bg-sky-50 px-5 py-3 text-sm font-semibold text-primary transition hover:border-primary hover:bg-sky-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-60";

@@ -279,9 +279,9 @@ describe("admin fare preview (D12.3.1.1)", () => {
     assert.deepEqual(
       preview.map((row) => [row.family, row.label, row.priceCents]),
       [
-        ["BASIC", "StarJet Basic", 34900],
-        ["STANDARD", "StarJet Standard", 38400],
-        ["FLEX", "StarJet Flex", 43400],
+        ["BASIC", "Five Stars Basic", 34900],
+        ["STANDARD", "Five Stars Standard", 38400],
+        ["FLEX", "Five Stars Flex", 43400],
       ]
     );
     assert.deepEqual(

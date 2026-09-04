@@ -67,9 +67,9 @@ describe("booking lifecycle policy", () => {
     assert.equal(isTerminalBookingStatus("PAID"), false);
   });
 
-  it("holds inventory from PAID through COMPLETED", () => {
+  it("holds inventory from PENDING_PAYMENT through COMPLETED", () => {
     assert.equal(doesBookingStatusHoldInventory("DRAFT"), false);
-    assert.equal(doesBookingStatusHoldInventory("PENDING_PAYMENT"), false);
+    assert.equal(doesBookingStatusHoldInventory("PENDING_PAYMENT"), true);
     assert.equal(doesBookingStatusHoldInventory("PAID"), true);
     assert.equal(doesBookingStatusHoldInventory("CONFIRMED"), true);
     assert.equal(doesBookingStatusHoldInventory("TICKETED"), true);
@@ -79,10 +79,18 @@ describe("booking lifecycle policy", () => {
     assert.equal(doesBookingStatusHoldInventory("FAILED"), false);
   });
 
-  it("acquires inventory only when first entering a holding status", () => {
+  it("acquires inventory when entering PENDING_PAYMENT; not again on PAID", () => {
+    assert.equal(
+      doesTransitionAcquireInventory("DRAFT", "PENDING_PAYMENT"),
+      true
+    );
+    assert.equal(
+      doesTransitionAcquireInventory("FAILED", "PENDING_PAYMENT"),
+      true
+    );
     assert.equal(
       doesTransitionAcquireInventory("PENDING_PAYMENT", "PAID"),
-      true
+      false
     );
     assert.equal(doesTransitionAcquireInventory("PAID", "CONFIRMED"), false);
     assert.equal(
@@ -93,7 +101,15 @@ describe("booking lifecycle policy", () => {
     assert.equal(doesTransitionAcquireInventory("PAID", "PAID"), false);
   });
 
-  it("releases inventory when leaving a holding status except COMPLETED", () => {
+  it("releases inventory when leaving PENDING_PAYMENT unpaid", () => {
+    assert.equal(
+      doesTransitionReleaseInventory("PENDING_PAYMENT", "FAILED"),
+      true
+    );
+    assert.equal(
+      doesTransitionReleaseInventory("PENDING_PAYMENT", "CANCELLED"),
+      true
+    );
     assert.equal(doesTransitionReleaseInventory("CONFIRMED", "CANCELLED"), true);
     assert.equal(doesTransitionReleaseInventory("TICKETED", "CANCELLED"), true);
     assert.equal(doesTransitionReleaseInventory("PAID", "REFUNDED"), true);

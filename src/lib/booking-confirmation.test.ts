@@ -169,7 +169,7 @@ describe("booking confirmation (D12.2)", () => {
   it("E. one-way fare family shown from segment snapshot", () => {
     const segment = buildConfirmationSegmentView(oneWayLegs()[0]!);
     assert.equal(segment.fareFamily, "STANDARD");
-    assert.equal(segment.fareLabel, "StarJet Standard");
+    assert.equal(segment.fareLabel, "Five Stars Standard");
     assert.equal(segment.farePriceCents, 38800);
     assert.equal(segment.usedFareSnapshot, true);
   });
@@ -178,8 +178,8 @@ describe("booking confirmation (D12.2)", () => {
     const segments = roundTripLegs().map(buildConfirmationSegmentView);
     const outbound = segments[0]!;
     const ret = segments[1]!;
-    assert.equal(outbound.fareLabel, "StarJet Standard");
-    assert.equal(ret.fareLabel, "StarJet Flex");
+    assert.equal(outbound.fareLabel, "Five Stars Standard");
+    assert.equal(ret.fareLabel, "Five Stars Flex");
     assert.equal(outbound.farePriceCents, 38800);
     assert.equal(ret.farePriceCents, 43800);
   });
@@ -206,7 +206,7 @@ describe("booking confirmation (D12.2)", () => {
       })[0]!
     );
     assert.equal(segment.fareFamily, "BASIC");
-    assert.equal(segment.fareLabel, "StarJet Basic");
+    assert.equal(segment.fareLabel, "Five Stars Basic");
     assert.equal(segment.farePriceCents, 35300);
     assert.equal(segment.usedFareSnapshot, false);
     assert.equal(getFareFamilyPriceCents(35300, "BASIC"), 35300);

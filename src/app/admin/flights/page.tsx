@@ -65,7 +65,7 @@ export default async function AdminFlightsPage() {
       </h1>
 
       <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-600">
-        Review the StarJet schedule.{" "}
+        Review the Five Stars schedule.{" "}
         {canManage
           ? "Create and edit flights from this page."
           : "This view is read-only for staff."}

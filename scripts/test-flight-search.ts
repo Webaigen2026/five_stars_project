@@ -61,7 +61,7 @@ async function main() {
   console.log("\nAirport selector dataset");
   ok("BOB is not a selectable airport", getAirportByCode("BOB") === undefined);
   ok(
-    "required StarJet airports are present",
+    "required Five Stars network airports are present",
     ["BOS", "MIA", "FLL", "JFK", "CAP", "PAP"].every((code) =>
       AIRPORTS.some((airport) => airport.code === code)
     )

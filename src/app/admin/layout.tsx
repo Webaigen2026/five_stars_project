@@ -28,7 +28,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
               href="/admin"
               className="text-2xl font-bold tracking-tight text-slate-950"
             >
-              StarJet Admin
+              Admin — Five Stars
             </Link>
           </div>
 

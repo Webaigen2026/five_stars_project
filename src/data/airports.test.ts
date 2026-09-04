@@ -12,7 +12,7 @@ import {
 } from "./airports";
 
 describe("airport dataset", () => {
-  it("includes the StarJet airports and not invalid codes", () => {
+  it("includes the Five Stars network airports and not invalid codes", () => {
     const codes = AIRPORTS.map((airport) => airport.code);
 
     assert.deepEqual(codes, ["BOS", "MIA", "FLL", "JFK", "CAP", "PAP"]);

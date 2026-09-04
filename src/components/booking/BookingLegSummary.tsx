@@ -1,3 +1,4 @@
+import { getCustomerAirlineName } from "../../lib/brand";
 import {
   getFareFamilyLabel,
   parseFareFamily,
@@ -72,7 +73,7 @@ export default function BookingLegSummary({
             {flight.origin} → {flight.destination}
           </p>
           <p className="mt-1 text-sm text-slate-600">
-            {flight.airline}
+            {getCustomerAirlineName(flight.airline)}
             {flight.aircraft ? ` · ${flight.aircraft}` : ""}
           </p>
           {showFare ? (

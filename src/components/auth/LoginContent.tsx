@@ -62,7 +62,7 @@ export default function LoginContent() {
         </p>
 
         <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
-          Sign in to StarJet
+          Sign in to Five Stars
         </h1>
 
         <p className="mt-3 text-slate-600">
