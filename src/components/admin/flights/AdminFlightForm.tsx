@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useState, type ReactNode } from "react";
+import { FormEvent, useMemo, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 
 import {
@@ -8,6 +8,7 @@ import {
   type SafeFlight,
 } from "../../../lib/admin-flights";
 import {
+  elapsedDurationMinutes,
   formatInstantAsDatetimeLocal,
   getAirportTimeZone,
   wallClockInTimeZoneToUtcIso,
@@ -31,6 +32,12 @@ function dollarsToCents(value: string) {
   return Math.round(parsed * 100);
 }
 
+function formatDurationLabel(minutes: number) {
+  const hours = Math.floor(minutes / 60);
+  const remaining = minutes % 60;
+  return `${hours}h ${remaining}m (${minutes} min)`;
+}
+
 export default function AdminFlightForm({
   mode,
   flight,
@@ -39,6 +46,45 @@ export default function AdminFlightForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+
+  const [originCode, setOriginCode] = useState(flight?.originCode ?? "");
+  const [destinationCode, setDestinationCode] = useState(
+    flight?.destinationCode ?? ""
+  );
+  const [departureLocal, setDepartureLocal] = useState(
+    flight
+      ? formatInstantAsDatetimeLocal(
+          flight.departureTime,
+          getAirportTimeZone(flight.originCode)
+        )
+      : ""
+  );
+  const [arrivalLocal, setArrivalLocal] = useState(
+    flight
+      ? formatInstantAsDatetimeLocal(
+          flight.arrivalTime,
+          getAirportTimeZone(flight.destinationCode)
+        )
+      : ""
+  );
+
+  const computed = useMemo(() => {
+    if (!departureLocal || !arrivalLocal) {
+      return { utcDeparture: null, utcArrival: null, durationMinutes: null };
+    }
+
+    const utcDeparture = wallClockInTimeZoneToUtcIso(
+      departureLocal,
+      getAirportTimeZone(originCode)
+    );
+    const utcArrival = wallClockInTimeZoneToUtcIso(
+      arrivalLocal,
+      getAirportTimeZone(destinationCode)
+    );
+    const durationMinutes = elapsedDurationMinutes(utcDeparture, utcArrival);
+
+    return { utcDeparture, utcArrival, durationMinutes };
+  }, [arrivalLocal, departureLocal, destinationCode, originCode]);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -56,12 +102,21 @@ export default function AdminFlightForm({
       return;
     }
 
+    if (!computed.utcDeparture || !computed.utcArrival) {
+      setError("Departure and arrival times are required.");
+      return;
+    }
+
+    if (computed.durationMinutes == null || computed.durationMinutes <= 0) {
+      setError(
+        "Arrival must be after departure. Use 24-hour local times (e.g. 14:00 for 2:00 PM)."
+      );
+      return;
+    }
+
     setError(null);
     setSuccess(null);
     setIsSubmitting(true);
-
-    const originCode = String(formData.get("originCode") ?? "");
-    const destinationCode = String(formData.get("destinationCode") ?? "");
 
     const payload = {
       code: String(formData.get("code") ?? ""),
@@ -71,15 +126,9 @@ export default function AdminFlightForm({
       originCode,
       destination: String(formData.get("destination") ?? ""),
       destinationCode,
-      departureTime: wallClockInTimeZoneToUtcIso(
-        String(formData.get("departureTime") ?? ""),
-        getAirportTimeZone(originCode)
-      ),
-      arrivalTime: wallClockInTimeZoneToUtcIso(
-        String(formData.get("arrivalTime") ?? ""),
-        getAirportTimeZone(destinationCode)
-      ),
-      durationMinutes: Number(formData.get("durationMinutes")),
+      departureTime: computed.utcDeparture,
+      arrivalTime: computed.utcArrival,
+      durationMinutes: computed.durationMinutes,
       price: priceCents,
       totalSeats: Number(formData.get("totalSeats")),
       availableSeats: Number(formData.get("availableSeats")),
@@ -111,6 +160,10 @@ export default function AdminFlightForm({
 
       if (mode === "create") {
         form.reset();
+        setOriginCode("");
+        setDestinationCode("");
+        setDepartureLocal("");
+        setArrivalLocal("");
         setSuccess("Flight created.");
         router.refresh();
         return;
@@ -133,27 +186,6 @@ export default function AdminFlightForm({
           name="code"
           required
           defaultValue={flight?.code ?? ""}
-          placeholder="SJ600"
-          className={inputClassName}
-        />
-      </Field>
-
-      <Field label="Airline" htmlFor={`${mode}-airline`}>
-        <input
-          id={`${mode}-airline`}
-          name="airline"
-          required
-          defaultValue={flight?.airline ?? "StarJet"}
-          className={inputClassName}
-        />
-      </Field>
-
-      <Field label="Aircraft" htmlFor={`${mode}-aircraft`}>
-        <input
-          id={`${mode}-aircraft`}
-          name="aircraft"
-          defaultValue={flight?.aircraft ?? ""}
-          placeholder="Airbus A320"
           className={inputClassName}
         />
       </Field>
@@ -174,6 +206,25 @@ export default function AdminFlightForm({
         </select>
       </Field>
 
+      <Field label="Airline" htmlFor={`${mode}-airline`}>
+        <input
+          id={`${mode}-airline`}
+          name="airline"
+          required
+          defaultValue={flight?.airline ?? "StarJet"}
+          className={inputClassName}
+        />
+      </Field>
+
+      <Field label="Aircraft" htmlFor={`${mode}-aircraft`}>
+        <input
+          id={`${mode}-aircraft`}
+          name="aircraft"
+          defaultValue={flight?.aircraft ?? ""}
+          className={inputClassName}
+        />
+      </Field>
+
       <Field label="Origin" htmlFor={`${mode}-origin`}>
         <input
           id={`${mode}-origin`}
@@ -190,7 +241,8 @@ export default function AdminFlightForm({
           id={`${mode}-originCode`}
           name="originCode"
           required
-          defaultValue={flight?.originCode ?? ""}
+          value={originCode}
+          onChange={(event) => setOriginCode(event.target.value.toUpperCase())}
           placeholder="BOS"
           className={inputClassName}
         />
@@ -212,64 +264,67 @@ export default function AdminFlightForm({
           id={`${mode}-destinationCode`}
           name="destinationCode"
           required
-          defaultValue={flight?.destinationCode ?? ""}
+          value={destinationCode}
+          onChange={(event) =>
+            setDestinationCode(event.target.value.toUpperCase())
+          }
           placeholder="PAP"
           className={inputClassName}
         />
       </Field>
 
-      <Field label="Departure (origin local time)" htmlFor={`${mode}-departureTime`}>
+      <Field
+        label="Departure (origin local time, 24-hour)"
+        htmlFor={`${mode}-departureTime`}
+      >
         <input
           id={`${mode}-departureTime`}
           name="departureTime"
           type="datetime-local"
           required
-          defaultValue={
-            flight
-              ? formatInstantAsDatetimeLocal(
-                  flight.departureTime,
-                  getAirportTimeZone(flight.originCode)
-                )
-              : ""
-          }
+          value={departureLocal}
+          onChange={(event) => setDepartureLocal(event.target.value)}
           className={inputClassName}
         />
         <p className="mt-2 text-xs text-slate-500">
-          Enter the departure wall-clock time at the origin airport.
+          Wall-clock time at {originCode || "origin"} (
+          {getAirportTimeZone(originCode)}). Use 14:00 for 2:00 PM.
         </p>
       </Field>
 
-      <Field label="Arrival (destination local time)" htmlFor={`${mode}-arrivalTime`}>
+      <Field
+        label="Arrival (destination local time, 24-hour)"
+        htmlFor={`${mode}-arrivalTime`}
+      >
         <input
           id={`${mode}-arrivalTime`}
           name="arrivalTime"
           type="datetime-local"
           required
-          defaultValue={
-            flight
-              ? formatInstantAsDatetimeLocal(
-                  flight.arrivalTime,
-                  getAirportTimeZone(flight.destinationCode)
-                )
-              : ""
-          }
+          value={arrivalLocal}
+          onChange={(event) => setArrivalLocal(event.target.value)}
           className={inputClassName}
         />
         <p className="mt-2 text-xs text-slate-500">
-          Enter the arrival wall-clock time at the destination airport.
+          Wall-clock time at {destinationCode || "destination"} (
+          {getAirportTimeZone(destinationCode)}). Use 14:00 for 2:00 PM.
         </p>
       </Field>
 
-      <Field label="Duration (minutes)" htmlFor={`${mode}-durationMinutes`}>
+      <Field label="Duration (calculated)" htmlFor={`${mode}-durationMinutes`}>
         <input
           id={`${mode}-durationMinutes`}
           name="durationMinutes"
           type="number"
-          min={1}
-          required
-          defaultValue={flight?.durationMinutes ?? ""}
-          className={inputClassName}
+          readOnly
+          value={computed.durationMinutes ?? ""}
+          className={`${inputClassName} bg-slate-50 text-slate-700`}
         />
+        <p className="mt-2 text-xs text-slate-500">
+          {computed.durationMinutes != null
+            ? `Calculated from timestamps: ${formatDurationLabel(computed.durationMinutes)}`
+            : "Enter departure and arrival so duration can be calculated."}
+        </p>
       </Field>
 
       <Field label="Price (USD)" htmlFor={`${mode}-priceDollars`}>
@@ -280,9 +335,7 @@ export default function AdminFlightForm({
           min={0.01}
           step="0.01"
           required
-          defaultValue={
-            flight ? (flight.price / 100).toFixed(2) : ""
-          }
+          defaultValue={flight ? (flight.price / 100).toFixed(2) : ""}
           placeholder="349.00"
           className={inputClassName}
         />

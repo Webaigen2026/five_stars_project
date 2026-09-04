@@ -39,7 +39,8 @@ function pad2(value: number) {
 function getZonedParts(date: Date, timeZone: string): ZonedParts {
   const parts = new Intl.DateTimeFormat("en-US", {
     timeZone,
-    hour12: false,
+    // hourCycle h23 avoids engine-specific hour12:false quirks (0–23 vs 1–24).
+    hourCycle: "h23",
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
@@ -52,7 +53,7 @@ function getZonedParts(date: Date, timeZone: string): ZonedParts {
     parts.find((part) => part.type === type)?.value ?? "0";
 
   let hour = Number(read("hour"));
-  // Some engines report midnight as 24.
+  // Some engines still report midnight as 24.
   if (hour === 24) {
     hour = 0;
   }
@@ -141,4 +142,26 @@ export function formatInstantAsDatetimeLocal(
 export function calendarDateInTimeZone(value: string, timeZone: string): string {
   const parts = getZonedParts(new Date(value), timeZone);
   return `${parts.year}-${pad2(parts.month)}-${pad2(parts.day)}`;
+}
+
+/**
+ * Elapsed block time in whole minutes from two stored UTC instants.
+ * Returns null when chronology is invalid (arrival <= departure).
+ */
+export function elapsedDurationMinutes(
+  departureTime: string,
+  arrivalTime: string
+): number | null {
+  const departureMs = new Date(departureTime).getTime();
+  const arrivalMs = new Date(arrivalTime).getTime();
+
+  if (!Number.isFinite(departureMs) || !Number.isFinite(arrivalMs)) {
+    return null;
+  }
+
+  if (arrivalMs <= departureMs) {
+    return null;
+  }
+
+  return Math.round((arrivalMs - departureMs) / 60000);
 }

@@ -1,3 +1,5 @@
+import { elapsedDurationMinutes } from "./airport-timezones";
+
 export const FLIGHT_STATUSES = [
   "SCHEDULED",
   "BOARDING",
@@ -155,11 +157,22 @@ export function parseFlightWriteInput(body: unknown): FlightWriteInput {
     "Departure time"
   );
   const arrivalTime = asTimestamptzString(payload.arrivalTime, "Arrival time");
-  const durationMinutes = asInteger(payload.durationMinutes, "Duration");
   const price = asInteger(payload.price, "Price");
   const totalSeats = asInteger(payload.totalSeats, "Total seats");
   const availableSeats = asInteger(payload.availableSeats, "Available seats");
   const status = asTrimmedString(payload.status).toUpperCase();
+
+  const computedDuration = elapsedDurationMinutes(departureTime, arrivalTime);
+
+  if (computedDuration == null) {
+    throw new AdminFlightRequestError(
+      "Arrival must be after departure (using airport-local times converted to UTC).",
+      400
+    );
+  }
+
+  // Prefer timestamp-derived duration over a conflicting manual value.
+  const durationMinutes = computedDuration;
 
   if (!code) {
     throw new AdminFlightRequestError("Flight code is required.", 400);
