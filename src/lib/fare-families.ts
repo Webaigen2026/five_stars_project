@@ -139,3 +139,37 @@ export function listFareFamilyOptions(basePriceCents: number) {
     highlighted: family === "STANDARD",
   }));
 }
+
+/**
+ * Parse an admin-entered dollar string into base fare cents for preview.
+ * Empty, non-finite, or non-positive values return null (no derived preview).
+ */
+export function parseBaseFareDollarsToCents(value: string): number | null {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  const parsed = Number(trimmed);
+  if (!Number.isFinite(parsed) || parsed <= 0) {
+    return null;
+  }
+
+  return Math.round(parsed * 100);
+}
+
+/**
+ * Compact admin fare-family preview rows from Flight.price base cents.
+ * Reuses listFareFamilyOptions / getFareFamilyPriceCents — no duplicate add-ons.
+ */
+export function buildAdminFareFamilyPreview(basePriceCents: number) {
+  if (!Number.isFinite(basePriceCents) || basePriceCents <= 0) {
+    return null;
+  }
+
+  return listFareFamilyOptions(basePriceCents).map((option) => ({
+    family: option.family,
+    label: option.label,
+    priceCents: option.priceCents,
+  }));
+}

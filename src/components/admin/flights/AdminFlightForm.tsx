@@ -13,6 +13,12 @@ import {
   getAirportTimeZone,
   wallClockInTimeZoneToUtcIso,
 } from "../../../lib/airport-timezones";
+import {
+  buildAdminFareFamilyPreview,
+  parseBaseFareDollarsToCents,
+} from "../../../lib/fare-families";
+import { formatMoney } from "../../../lib/trip-formatting";
+import AdminAirportDateTimeField from "./AdminAirportDateTimeField";
 
 const inputClassName =
   "w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20";
@@ -23,13 +29,7 @@ type AdminFlightFormProps = {
 };
 
 function dollarsToCents(value: string) {
-  const parsed = Number(value);
-
-  if (!Number.isFinite(parsed)) {
-    return null;
-  }
-
-  return Math.round(parsed * 100);
+  return parseBaseFareDollarsToCents(value);
 }
 
 function formatDurationLabel(minutes: number) {
@@ -67,6 +67,9 @@ export default function AdminFlightForm({
         )
       : ""
   );
+  const [priceDollars, setPriceDollars] = useState(
+    flight ? (flight.price / 100).toFixed(2) : ""
+  );
 
   const computed = useMemo(() => {
     if (!departureLocal || !arrivalLocal) {
@@ -86,6 +89,14 @@ export default function AdminFlightForm({
     return { utcDeparture, utcArrival, durationMinutes };
   }, [arrivalLocal, departureLocal, destinationCode, originCode]);
 
+  const farePreview = useMemo(() => {
+    const cents = parseBaseFareDollarsToCents(priceDollars);
+    if (cents == null) {
+      return null;
+    }
+    return buildAdminFareFamilyPreview(cents);
+  }, [priceDollars]);
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -98,7 +109,7 @@ export default function AdminFlightForm({
     const priceCents = dollarsToCents(String(formData.get("priceDollars") ?? ""));
 
     if (priceCents == null || priceCents <= 0) {
-      setError("Enter a valid price in dollars.");
+      setError("Enter a valid base fare in dollars.");
       return;
     }
 
@@ -108,9 +119,7 @@ export default function AdminFlightForm({
     }
 
     if (computed.durationMinutes == null || computed.durationMinutes <= 0) {
-      setError(
-        "Arrival must be after departure. Use 24-hour local times (e.g. 14:00 for 2:00 PM)."
-      );
+      setError("Arrival must be after departure.");
       return;
     }
 
@@ -164,6 +173,7 @@ export default function AdminFlightForm({
         setDestinationCode("");
         setDepartureLocal("");
         setArrivalLocal("");
+        setPriceDollars("");
         setSuccess("Flight created.");
         router.refresh();
         return;
@@ -273,43 +283,23 @@ export default function AdminFlightForm({
         />
       </Field>
 
-      <Field
-        label="Departure (origin local time, 24-hour)"
-        htmlFor={`${mode}-departureTime`}
-      >
-        <input
-          id={`${mode}-departureTime`}
-          name="departureTime"
-          type="datetime-local"
-          required
-          value={departureLocal}
-          onChange={(event) => setDepartureLocal(event.target.value)}
-          className={inputClassName}
-        />
-        <p className="mt-2 text-xs text-slate-500">
-          Wall-clock time at {originCode || "origin"} (
-          {getAirportTimeZone(originCode)}). Use 14:00 for 2:00 PM.
-        </p>
-      </Field>
+      <AdminAirportDateTimeField
+        id={`${mode}-departure`}
+        title="Departure"
+        helper="Departure time at the origin airport."
+        airportCode={originCode}
+        value={departureLocal}
+        onChange={setDepartureLocal}
+      />
 
-      <Field
-        label="Arrival (destination local time, 24-hour)"
-        htmlFor={`${mode}-arrivalTime`}
-      >
-        <input
-          id={`${mode}-arrivalTime`}
-          name="arrivalTime"
-          type="datetime-local"
-          required
-          value={arrivalLocal}
-          onChange={(event) => setArrivalLocal(event.target.value)}
-          className={inputClassName}
-        />
-        <p className="mt-2 text-xs text-slate-500">
-          Wall-clock time at {destinationCode || "destination"} (
-          {getAirportTimeZone(destinationCode)}). Use 14:00 for 2:00 PM.
-        </p>
-      </Field>
+      <AdminAirportDateTimeField
+        id={`${mode}-arrival`}
+        title="Arrival"
+        helper="Arrival time at the destination airport."
+        airportCode={destinationCode}
+        value={arrivalLocal}
+        onChange={setArrivalLocal}
+      />
 
       <Field label="Duration (calculated)" htmlFor={`${mode}-durationMinutes`}>
         <input
@@ -327,7 +317,13 @@ export default function AdminFlightForm({
         </p>
       </Field>
 
-      <Field label="Price (USD)" htmlFor={`${mode}-priceDollars`}>
+      <div>
+        <label
+          htmlFor={`${mode}-priceDollars`}
+          className="mb-2 block text-sm font-medium text-slate-700"
+        >
+          Base fare / StarJet Basic (USD)
+        </label>
         <input
           id={`${mode}-priceDollars`}
           name="priceDollars"
@@ -335,11 +331,43 @@ export default function AdminFlightForm({
           min={0.01}
           step="0.01"
           required
-          defaultValue={flight ? (flight.price / 100).toFixed(2) : ""}
+          value={priceDollars}
+          onChange={(event) => setPriceDollars(event.target.value)}
           placeholder="349.00"
           className={inputClassName}
         />
-      </Field>
+        <p className="mt-2 text-xs text-slate-500">
+          Standard and Flex fares are derived automatically.
+        </p>
+
+        <div
+          className="mt-4 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3"
+          aria-live="polite"
+        >
+          <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+            Fare preview
+          </p>
+          {farePreview ? (
+            <dl className="mt-3 space-y-2 text-sm">
+              {farePreview.map((row) => (
+                <div
+                  key={row.family}
+                  className="flex items-center justify-between gap-4"
+                >
+                  <dt className="text-slate-700">{row.label}</dt>
+                  <dd className="font-medium text-slate-950">
+                    {formatMoney(row.priceCents)}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          ) : (
+            <p className="mt-2 text-sm text-slate-600">
+              Enter a valid base fare to preview fare families.
+            </p>
+          )}
+        </div>
+      </div>
 
       <Field label="Total seats" htmlFor={`${mode}-totalSeats`}>
         <input

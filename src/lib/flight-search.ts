@@ -1,4 +1,5 @@
 import {
+  flightReversesRoute,
   formatAirportLabelFromCode,
   getAirportByCode,
   normalizeAirportCode,
@@ -617,8 +618,7 @@ export function isValidRoundTripPair(
     returnFlight.status === "SCHEDULED" &&
     outbound.availableSeats >= count &&
     returnFlight.availableSeats >= count &&
-    returnFlight.originCode === outbound.destinationCode &&
-    returnFlight.destinationCode === outbound.originCode &&
+    flightReversesRoute(outbound, returnFlight) &&
     returnFlightDepartsAfterOutbound(outboundWithArrival, returnFlight)
   );
 }

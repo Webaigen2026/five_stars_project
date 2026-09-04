@@ -137,4 +137,38 @@ describe("booking legs", () => {
       /return/i
     );
   });
+
+  it("D12.2.1 accepts return legs with swapped city/code fields", () => {
+    const outbound = {
+      id: 23,
+      origin: "Boston",
+      originCode: "BOS",
+      destination: "Port-au-Prince",
+      destinationCode: "PAP",
+      departureTime: "2026-09-06T20:55:00.000Z",
+      arrivalTime: "2026-09-06T21:55:00.000Z",
+      status: "SCHEDULED",
+      availableSeats: 5,
+    };
+    const returnFlight = {
+      id: 39,
+      origin: "PAP",
+      originCode: "PORT-AU-PRINCE",
+      destination: "BOS",
+      destinationCode: "BOSTON",
+      departureTime: "2026-09-12T10:00:00.000Z",
+      arrivalTime: "2026-09-12T14:00:00.000Z",
+      status: "SCHEDULED",
+      availableSeats: 5,
+    };
+
+    assert.equal(
+      validateRoundTripFlights({
+        outbound,
+        returnFlight,
+        passengerCount: 1,
+      }),
+      null
+    );
+  });
 });

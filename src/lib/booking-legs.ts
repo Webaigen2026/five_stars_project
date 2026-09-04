@@ -1,3 +1,5 @@
+import { flightReversesRoute } from "../data/airports";
+
 export const BOOKING_SEGMENT_TYPES = ["OUTBOUND", "RETURN"] as const;
 
 export type BookingSegmentType = (typeof BOOKING_SEGMENT_TYPES)[number];
@@ -77,7 +79,9 @@ export function isRoundTripLegs(legs: BookingLeg[]) {
 export function validateRoundTripFlights(input: {
   outbound: {
     id: number;
+    origin?: string | null;
     originCode: string;
+    destination?: string | null;
     destinationCode: string;
     departureTime: string;
     arrivalTime: string;
@@ -86,7 +90,9 @@ export function validateRoundTripFlights(input: {
   };
   returnFlight: {
     id: number;
+    origin?: string | null;
     originCode: string;
+    destination?: string | null;
     destinationCode: string;
     departureTime: string;
     arrivalTime: string;
@@ -117,10 +123,7 @@ export function validateRoundTripFlights(input: {
     return "Not enough seats are available on the return flight.";
   }
 
-  if (
-    returnFlight.originCode !== outbound.destinationCode ||
-    returnFlight.destinationCode !== outbound.originCode
-  ) {
+  if (!flightReversesRoute(outbound, returnFlight)) {
     return "Return flight must reverse the outbound route.";
   }
 

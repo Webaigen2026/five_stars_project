@@ -3,10 +3,12 @@ import { describe, it } from "node:test";
 
 import {
   AIRPORTS,
+  flightReversesRoute,
   formatAirportLabel,
   formatAirportLabelFromCode,
   formatAirportRoute,
   getAirportByCode,
+  resolveAirportEndpointCode,
 } from "./airports";
 
 describe("airport dataset", () => {
@@ -32,5 +34,40 @@ describe("airport dataset", () => {
     );
     assert.equal(formatAirportLabelFromCode("XXX"), "XXX");
     assert.equal(formatAirportRoute("XXX", "PAP"), "XXX → Port-au-Prince (PAP)");
+  });
+
+  it("resolves swapped city/code endpoint fields to IATA codes", () => {
+    assert.equal(
+      resolveAirportEndpointCode({ code: "PORT-AU-PRINCE", label: "PAP" }),
+      "PAP"
+    );
+    assert.equal(
+      resolveAirportEndpointCode({ code: "BOSTON", label: "BOS" }),
+      "BOS"
+    );
+    assert.equal(
+      resolveAirportEndpointCode({ code: "PAP", label: "Port-au-Prince" }),
+      "PAP"
+    );
+  });
+
+  it("detects reverse routes across swapped endpoint fields", () => {
+    assert.equal(
+      flightReversesRoute(
+        {
+          origin: "Boston",
+          originCode: "BOS",
+          destination: "Port-au-Prince",
+          destinationCode: "PAP",
+        },
+        {
+          origin: "PAP",
+          originCode: "PORT-AU-PRINCE",
+          destination: "BOS",
+          destinationCode: "BOSTON",
+        }
+      ),
+      true
+    );
   });
 });

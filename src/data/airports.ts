@@ -58,6 +58,99 @@ export function getAirportByCode(code: string) {
   return AIRPORTS.find((airport) => airport.code === normalized);
 }
 
+/**
+ * Collapse city/code labels for comparison (accents/punctuation ignored).
+ * Example: "Port-au-Prince" / "PORT-AU-PRINCE" → "PORTAUPRINCE".
+ */
+export function normalizeAirportToken(value: string) {
+  return value
+    .trim()
+    .toUpperCase()
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "")
+    .replace(/[^A-Z0-9]/g, "");
+}
+
+/**
+ * Resolve a flight endpoint to a canonical IATA code when possible.
+ *
+ * Supports messy stored rows where city and code fields are swapped
+ * (e.g. origin="PAP", originCode="PORT-AU-PRINCE").
+ */
+export function resolveAirportEndpointCode(input: {
+  code: string;
+  label?: string | null;
+}): string {
+  const rawCandidates = [input.code, input.label ?? ""]
+    .map((value) => value.trim())
+    .filter(Boolean);
+
+  for (const raw of rawCandidates) {
+    const asCode = normalizeAirportCode(raw);
+    if (getAirportByCode(asCode)) {
+      return asCode;
+    }
+  }
+
+  for (const raw of rawCandidates) {
+    const token = normalizeAirportToken(raw);
+    if (!token) {
+      continue;
+    }
+
+    for (const airport of AIRPORTS) {
+      if (normalizeAirportToken(airport.city) === token) {
+        return airport.code;
+      }
+    }
+  }
+
+  return (
+    normalizeAirportCode(input.code) ||
+    normalizeAirportCode(input.label ?? "")
+  );
+}
+
+export type FlightRouteEndpoints = {
+  origin?: string | null;
+  originCode: string;
+  destination?: string | null;
+  destinationCode: string;
+};
+
+/**
+ * True when return origin/destination reverse the outbound endpoints,
+ * using canonical airport resolution (not raw string equality alone).
+ */
+export function flightReversesRoute(
+  outbound: FlightRouteEndpoints,
+  returnFlight: FlightRouteEndpoints
+) {
+  const outboundOrigin = resolveAirportEndpointCode({
+    code: outbound.originCode,
+    label: outbound.origin,
+  });
+  const outboundDestination = resolveAirportEndpointCode({
+    code: outbound.destinationCode,
+    label: outbound.destination,
+  });
+  const returnOrigin = resolveAirportEndpointCode({
+    code: returnFlight.originCode,
+    label: returnFlight.origin,
+  });
+  const returnDestination = resolveAirportEndpointCode({
+    code: returnFlight.destinationCode,
+    label: returnFlight.destination,
+  });
+
+  return (
+    Boolean(outboundOrigin) &&
+    Boolean(outboundDestination) &&
+    returnOrigin === outboundDestination &&
+    returnDestination === outboundOrigin
+  );
+}
+
 export function formatAirportLabel(airport: AirportOption) {
   return `${airport.city} (${airport.code})`;
 }

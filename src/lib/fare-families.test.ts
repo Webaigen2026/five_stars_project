@@ -6,8 +6,10 @@ import {
   normalizeBookingLegs,
 } from "./booking-legs";
 import {
+  buildAdminFareFamilyPreview,
   getFareFamilyPriceCents,
   listFareFamilyOptions,
+  parseBaseFareDollarsToCents,
   parseFareFamily,
   resolveFareFamilyForBooking,
   resolveSegmentFarePriceCents,
@@ -261,5 +263,65 @@ describe("fare continue hrefs (D12.1.3.1 modal navigation)", () => {
         ["FLEX", 43800],
       ]
     );
+  });
+});
+
+describe("admin fare preview (D12.3.1.1)", () => {
+  it("A/B/C. base 34900 derives Basic/Standard/Flex", () => {
+    assert.equal(getFareFamilyPriceCents(34900, "BASIC"), 34900);
+    assert.equal(getFareFamilyPriceCents(34900, "STANDARD"), 38400);
+    assert.equal(getFareFamilyPriceCents(34900, "FLEX"), 43400);
+  });
+
+  it("D. preview uses shared fare helper", () => {
+    const preview = buildAdminFareFamilyPreview(34900);
+    assert.ok(preview);
+    assert.deepEqual(
+      preview.map((row) => [row.family, row.label, row.priceCents]),
+      [
+        ["BASIC", "StarJet Basic", 34900],
+        ["STANDARD", "StarJet Standard", 38400],
+        ["FLEX", "StarJet Flex", 43400],
+      ]
+    );
+    assert.deepEqual(
+      preview.map((row) => row.priceCents),
+      listFareFamilyOptions(34900).map((row) => row.priceCents)
+    );
+  });
+
+  it("E. empty/invalid base fare yields no derived preview", () => {
+    assert.equal(parseBaseFareDollarsToCents(""), null);
+    assert.equal(parseBaseFareDollarsToCents("   "), null);
+    assert.equal(parseBaseFareDollarsToCents("abc"), null);
+    assert.equal(parseBaseFareDollarsToCents("-10"), null);
+    assert.equal(parseBaseFareDollarsToCents("0"), null);
+    assert.equal(buildAdminFareFamilyPreview(0), null);
+    assert.equal(buildAdminFareFamilyPreview(-100), null);
+  });
+
+  it("F. dollar string parsing matches create/edit storage path", () => {
+    assert.equal(parseBaseFareDollarsToCents("349.00"), 34900);
+    assert.equal(parseBaseFareDollarsToCents("349"), 34900);
+    // Same helper powers create and edit AdminFlightForm preview + submit.
+    const preview = buildAdminFareFamilyPreview(
+      parseBaseFareDollarsToCents("349.00")!
+    );
+    assert.equal(preview?.[0]?.priceCents, 34900);
+  });
+
+  it("G/H. customer fare helper values and add-on rules unchanged", () => {
+    const options = listFareFamilyOptions(34900);
+    assert.deepEqual(
+      options.map((item) => [item.family, item.priceCents]),
+      [
+        ["BASIC", 34900],
+        ["STANDARD", 38400],
+        ["FLEX", 43400],
+      ]
+    );
+    assert.equal(getFareFamilyPriceCents(10000, "BASIC"), 10000);
+    assert.equal(getFareFamilyPriceCents(10000, "STANDARD"), 13500);
+    assert.equal(getFareFamilyPriceCents(10000, "FLEX"), 18500);
   });
 });

@@ -25,12 +25,12 @@ import {
 const COMPOSITION_SUFFIX = "adults=1&seniors=0&children=0&infants=0";
 
 function flight(
-  overrides: Partial<SearchableFlight> &
+  overrides: Partial<SearchableFlight & { arrivalTime?: string }> &
     Pick<
       SearchableFlight,
       "id" | "code" | "originCode" | "destinationCode" | "departureTime"
     >
-): SearchableFlight {
+): SearchableFlight & { arrivalTime?: string } {
   return {
     origin: overrides.origin ?? overrides.originCode,
     destination: overrides.destination ?? overrides.destinationCode,
@@ -476,6 +476,128 @@ describe("round-trip search", () => {
         requireSeats: true,
       }),
       true
+    );
+  });
+
+  it("D12.2.1 resolves swapped city/code return endpoints for passenger verification", () => {
+    // Mirrors DB flight 23 (clean BOS→PAP) + 39 (city/code fields swapped).
+    const outbound = flight({
+      id: 23,
+      code: "SJ602",
+      origin: "Boston",
+      originCode: "BOS",
+      destination: "Port-au-Prince",
+      destinationCode: "PAP",
+      departureTime: "2026-09-06T20:55:00.000Z",
+      arrivalTime: "2026-09-06T21:55:00.000Z",
+    });
+    const returnFlight = flight({
+      id: 39,
+      code: "SJ603",
+      origin: "PAP",
+      originCode: "PORT-AU-PRINCE",
+      destination: "BOS",
+      destinationCode: "BOSTON",
+      departureTime: "2026-09-12T10:00:00.000Z",
+      arrivalTime: "2026-09-12T14:00:00.000Z",
+    });
+
+    // A. both valid IDs / records → pair resolves
+    assert.equal(isValidRoundTripPair(outbound, returnFlight, "1"), true);
+
+    // B. reverse routes with clean codes still valid
+    assert.equal(
+      isValidRoundTripPair(
+        outbound,
+        flight({
+          id: 40,
+          code: "SJ604",
+          originCode: "PAP",
+          destinationCode: "BOS",
+          departureTime: "2026-09-12T10:00:00.000Z",
+        }),
+        "1"
+      ),
+      true
+    );
+
+    // C. missing outbound
+    assert.equal(isValidRoundTripPair(null, returnFlight, "1"), false);
+
+    // D. missing return
+    assert.equal(isValidRoundTripPair(outbound, null, "1"), false);
+
+    // E. wrong route pair
+    assert.equal(
+      isValidRoundTripPair(
+        outbound,
+        flight({
+          id: 99,
+          code: "SJ999",
+          originCode: "MIA",
+          destinationCode: "JFK",
+          departureTime: "2026-09-12T10:00:00.000Z",
+        }),
+        "1"
+      ),
+      false
+    );
+
+    // F. invalid chronology
+    assert.equal(
+      isValidRoundTripPair(
+        outbound,
+        {
+          ...returnFlight,
+          id: 98,
+          departureTime: "2026-09-06T21:00:00.000Z",
+        },
+        "1"
+      ),
+      false
+    );
+
+    // G/H. fare params are independent of pair resolution (URL builder retains them)
+    const hrefStandard = buildRoundTripPassengersHref({
+      outboundFlightId: 23,
+      returnFlightId: 39,
+      passengers: "1",
+      adults: "1",
+      seniors: "0",
+      children: "0",
+      infants: "0",
+      outboundFareFamily: "STANDARD",
+      returnFareFamily: "STANDARD",
+    });
+    assert.match(hrefStandard, /outboundFlightId=23/);
+    assert.match(hrefStandard, /returnFlightId=39/);
+    assert.match(hrefStandard, /outboundFareFamily=STANDARD/);
+    assert.match(hrefStandard, /returnFareFamily=STANDARD/);
+    assert.equal(isValidRoundTripPair(outbound, returnFlight, "1"), true);
+
+    const hrefMixed = buildRoundTripPassengersHref({
+      outboundFlightId: 23,
+      returnFlightId: 39,
+      passengers: "1",
+      outboundFareFamily: "STANDARD",
+      returnFareFamily: "FLEX",
+    });
+    assert.match(hrefMixed, /outboundFareFamily=STANDARD/);
+    assert.match(hrefMixed, /returnFareFamily=FLEX/);
+  });
+
+  it("D12.2.1 one-way passengers href contract remains flight-code based", () => {
+    assert.equal(
+      buildOneWayPassengersHref({
+        flightCode: "SJ602",
+        passengers: "1",
+        adults: "1",
+        seniors: "0",
+        children: "0",
+        infants: "0",
+        fareFamily: "STANDARD",
+      }),
+      "/passengers?flight=SJ602&passengers=1&adults=1&seniors=0&children=0&infants=0&fareFamily=STANDARD"
     );
   });
 
