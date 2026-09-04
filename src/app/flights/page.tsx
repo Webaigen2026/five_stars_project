@@ -3,9 +3,11 @@ import Header from "../../components/layout/Header";
 import FlightSearchForm from "../../components/flights/FlightSearchForm";
 
 type SearchParams = Promise<{
+  tripType?: string;
   from?: string;
   to?: string;
   departure?: string;
+  returnDate?: string;
   passengers?: string;
 }>;
 
@@ -39,9 +41,11 @@ export default async function FlightsPage({
 
         <section className="mx-auto max-w-7xl px-6 py-12">
           <FlightSearchForm
+            initialTripType={params.tripType}
             initialFrom={params.from}
             initialTo={params.to}
             initialDeparture={params.departure}
+            initialReturnDate={params.returnDate}
             initialPassengers={params.passengers}
           />
         </section>

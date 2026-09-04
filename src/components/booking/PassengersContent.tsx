@@ -8,10 +8,17 @@ import PassengerForm, {
   EMPTY_PASSENGER_VALUES,
   type PassengerFormValues,
 } from "./PassengerForm";
+import type { TripType } from "../../lib/flight-search";
 import {
   travelerDisplayName,
   type SafeTraveler,
 } from "../../lib/traveler-shared";
+import {
+  formatArrivalTime,
+  formatDepartureDateShort,
+  formatDepartureTime,
+  formatRoute,
+} from "../../lib/trip-formatting";
 
 const PASSENGER_FIELDS = [
   "firstName",
@@ -26,6 +33,24 @@ const PASSENGER_FIELDS = [
 
 const SELECTION_OTHER = "other";
 const SELECTION_MYSELF = "myself";
+
+export type RoundTripFlightSummary = {
+  id: number;
+  code: string;
+  origin: string;
+  originCode: string;
+  destination: string;
+  destinationCode: string;
+  departureTime: string;
+  arrivalTime: string;
+};
+
+type PassengersContentProps = {
+  tripType?: TripType;
+  roundTripOutbound?: RoundTripFlightSummary | null;
+  roundTripReturn?: RoundTripFlightSummary | null;
+  roundTripInvalid?: boolean;
+};
 
 function travelerToPassengerValues(traveler: SafeTraveler): PassengerFormValues {
   return {
@@ -56,7 +81,12 @@ function selectionToTravelerId(
   return null;
 }
 
-export default function PassengersContent() {
+export default function PassengersContent({
+  tripType = "one-way",
+  roundTripOutbound = null,
+  roundTripReturn = null,
+  roundTripInvalid = false,
+}: PassengersContentProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -65,6 +95,7 @@ export default function PassengersContent() {
   const [isSignedIn, setIsSignedIn] = useState(false);
   const [selections, setSelections] = useState<string[]>([]);
 
+  const isRoundTrip = tripType === "round-trip";
   const flightId = searchParams.get("flight") ?? "";
   const passengerParam = searchParams.get("passengers") ?? "1";
 
@@ -119,7 +150,10 @@ export default function PassengersContent() {
         return current;
       }
 
-      return Array.from({ length: passengerCount }, (_, index) => current[index] ?? "");
+      return Array.from(
+        { length: passengerCount },
+        (_, index) => current[index] ?? ""
+      );
     });
   }, [passengerCount]);
 
@@ -154,7 +188,9 @@ export default function PassengersContent() {
     }
 
     const traveler = travelers?.find((item) => item.id === travelerId);
-    return traveler ? travelerToPassengerValues(traveler) : EMPTY_PASSENGER_VALUES;
+    return traveler
+      ? travelerToPassengerValues(traveler)
+      : EMPTY_PASSENGER_VALUES;
   }
 
   function handleSelectionChange(index: number, value: string) {
@@ -167,6 +203,11 @@ export default function PassengersContent() {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (isRoundTrip) {
+      setError("Round-trip checkout is coming next.");
+      return;
+    }
 
     if (isSubmitting) {
       return;
@@ -274,12 +315,18 @@ export default function PassengersContent() {
           </p>
 
           <div className="mt-6 flex flex-wrap gap-3">
-            {flightId && (
+            {!isRoundTrip && flightId ? (
               <div className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-700">
                 Flight{" "}
                 <span className="font-semibold text-slate-950">{flightId}</span>
               </div>
-            )}
+            ) : null}
+
+            {isRoundTrip ? (
+              <div className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-700">
+                Round trip
+              </div>
+            ) : null}
 
             <div className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-700">
               Travelers{" "}
@@ -292,6 +339,72 @@ export default function PassengersContent() {
       </section>
 
       <section className="mx-auto max-w-5xl px-6 py-12">
+        {isRoundTrip ? (
+          <div className="mb-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-slate-950">Trip summary</h2>
+
+            {roundTripInvalid || !roundTripOutbound || !roundTripReturn ? (
+              <p className="mt-3 text-sm text-slate-600">
+                We could not verify the selected outbound and return flights.
+                Please{" "}
+                <Link
+                  href="/flights"
+                  className="font-semibold text-primary transition hover:text-primary-hover"
+                >
+                  search again
+                </Link>
+                .
+              </p>
+            ) : (
+              <div className="mt-5 grid gap-5 sm:grid-cols-2">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+                    Outbound
+                  </p>
+                  <p className="mt-2 text-xl font-semibold text-slate-950">
+                    {formatRoute(
+                      roundTripOutbound.originCode,
+                      roundTripOutbound.destinationCode
+                    )}
+                  </p>
+                  <p className="mt-1 text-sm text-slate-600">
+                    {formatDepartureDateShort(roundTripOutbound)} ·{" "}
+                    {formatDepartureTime(roundTripOutbound)} →{" "}
+                    {formatArrivalTime(roundTripOutbound)}
+                  </p>
+                  <p className="mt-1 text-sm font-medium text-slate-900">
+                    {roundTripOutbound.code}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
+                    Return
+                  </p>
+                  <p className="mt-2 text-xl font-semibold text-slate-950">
+                    {formatRoute(
+                      roundTripReturn.originCode,
+                      roundTripReturn.destinationCode
+                    )}
+                  </p>
+                  <p className="mt-1 text-sm text-slate-600">
+                    {formatDepartureDateShort(roundTripReturn)} ·{" "}
+                    {formatDepartureTime(roundTripReturn)} →{" "}
+                    {formatArrivalTime(roundTripReturn)}
+                  </p>
+                  <p className="mt-1 text-sm font-medium text-slate-900">
+                    {roundTripReturn.code}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <p className="mt-5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+              Round-trip checkout is coming next. Passenger details can be
+              prepared here, but a booking will not be created yet.
+            </p>
+          </div>
+        ) : null}
+
         {showTravelerControls && travelers.length === 0 && (
           <p className="mb-6 rounded-2xl border border-slate-200 bg-white px-5 py-4 text-sm text-slate-600">
             Save your traveler details for faster booking next time.{" "}
@@ -416,22 +529,28 @@ export default function PassengersContent() {
                 </h2>
 
                 <p className="mt-1 text-sm text-slate-600">
-                  Review the passenger details before continuing to checkout.
+                  {isRoundTrip
+                    ? "Round-trip booking persistence is not available yet."
+                    : "Review the passenger details before continuing to checkout."}
                 </p>
 
-                {error && (
+                {error ? (
                   <p className="mt-3 text-sm font-medium text-red-600">
                     {error}
                   </p>
-                )}
+                ) : null}
               </div>
 
               <button
                 type="submit"
-                disabled={isSubmitting}
-                className="rounded-xl bg-primary px-6 py-3 font-semibold text-white transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-70"
+                disabled={isSubmitting || isRoundTrip || roundTripInvalid}
+                className="rounded-xl bg-primary px-6 py-3 font-semibold text-white transition hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-70"
               >
-                {isSubmitting ? "Creating booking..." : "Continue to Checkout"}
+                {isRoundTrip
+                  ? "Round-trip checkout coming next"
+                  : isSubmitting
+                    ? "Creating booking..."
+                    : "Continue to Checkout"}
               </button>
             </div>
           </div>

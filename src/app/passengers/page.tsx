@@ -1,8 +1,24 @@
 import { Suspense } from "react";
 
-import PassengersContent from "../../components/booking/PassengersContent";
+import PassengersContent, {
+  type RoundTripFlightSummary,
+} from "../../components/booking/PassengersContent";
 import Footer from "../../components/layout/Footer";
 import Header from "../../components/layout/Header";
+import {
+  isValidRoundTripPair,
+  parsePositiveIntParam,
+  parseTripType,
+} from "../../lib/flight-search";
+import { db } from "../../prisma/db";
+
+type SearchParams = Promise<{
+  tripType?: string;
+  flight?: string;
+  passengers?: string;
+  outboundFlightId?: string;
+  returnFlightId?: string;
+}>;
 
 function PassengersFallback() {
   return (
@@ -24,14 +40,74 @@ function PassengersFallback() {
   );
 }
 
-export default function PassengersPage() {
+function toSummary(flight: {
+  id: number;
+  code: string;
+  origin: string;
+  originCode: string;
+  destination: string;
+  destinationCode: string;
+  departureTime: string;
+  arrivalTime: string;
+}): RoundTripFlightSummary {
+  return {
+    id: flight.id,
+    code: flight.code,
+    origin: flight.origin,
+    originCode: flight.originCode,
+    destination: flight.destination,
+    destinationCode: flight.destinationCode,
+    departureTime: flight.departureTime,
+    arrivalTime: flight.arrivalTime,
+  };
+}
+
+export default async function PassengersPage({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
+  const params = await searchParams;
+  const tripType = parseTripType(params.tripType);
+
+  let roundTripOutbound: RoundTripFlightSummary | null = null;
+  let roundTripReturn: RoundTripFlightSummary | null = null;
+  let roundTripInvalid = false;
+
+  if (tripType === "round-trip") {
+    const outboundId = parsePositiveIntParam(params.outboundFlightId);
+    const returnId = parsePositiveIntParam(params.returnFlightId);
+    const passengers = params.passengers ?? "1";
+
+    if (outboundId == null || returnId == null) {
+      roundTripInvalid = true;
+    } else {
+      const [outbound, returnFlight] = await Promise.all([
+        db.orm.public.Flight.where({ id: outboundId }).first(),
+        db.orm.public.Flight.where({ id: returnId }).first(),
+      ]);
+
+      if (!isValidRoundTripPair(outbound, returnFlight, passengers)) {
+        roundTripInvalid = true;
+      } else if (outbound && returnFlight) {
+        roundTripOutbound = toSummary(outbound);
+        roundTripReturn = toSummary(returnFlight);
+      }
+    }
+  }
+
   return (
     <>
       <Header />
 
       <main className="min-h-screen bg-slate-50">
         <Suspense fallback={<PassengersFallback />}>
-          <PassengersContent />
+          <PassengersContent
+            tripType={tripType}
+            roundTripOutbound={roundTripOutbound}
+            roundTripReturn={roundTripReturn}
+            roundTripInvalid={roundTripInvalid}
+          />
         </Suspense>
       </main>
 
