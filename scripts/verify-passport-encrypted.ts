@@ -1,10 +1,10 @@
 /**
- * Verify D9 passport ciphertext after backfill.
+ * Encrypted-only passport health check. Does not read any legacy column.
  *
  * Usage:
- *   npx tsx scripts/verify-passport-encryption.ts
+ *   npx tsx scripts/verify-passport-encrypted.ts
  *
- * Reports counts only. Never prints passport values or keys.
+ * Reports counts only.
  */
 import {
   decryptTravelerSecret,
@@ -12,36 +12,31 @@ import {
 } from "../src/lib/traveler-encryption";
 import { db } from "../src/prisma/db";
 
-type VerifyCounts = {
+type EncryptedVerifyCounts = {
   rows: number;
   encrypted: number;
   missingEncrypted: number;
   invalidFormat: number;
   decryptFailed: number;
-  plaintextMismatch: number;
 };
 
-function emptyCounts(): VerifyCounts {
+function emptyCounts(): EncryptedVerifyCounts {
   return {
     rows: 0,
     encrypted: 0,
     missingEncrypted: 0,
     invalidFormat: 0,
     decryptFailed: 0,
-    plaintextMismatch: 0,
   };
 }
 
 function verifyRow(
-  counts: VerifyCounts,
-  row: {
-    passportNumber: string;
-    passportNumberEncrypted: string | null;
-  }
+  counts: EncryptedVerifyCounts,
+  encryptedValue: string | null
 ) {
   counts.rows += 1;
 
-  const encrypted = row.passportNumberEncrypted?.trim() ?? "";
+  const encrypted = encryptedValue?.trim() ?? "";
 
   if (!encrypted) {
     counts.missingEncrypted += 1;
@@ -56,62 +51,54 @@ function verifyRow(
   }
 
   try {
-    const decrypted = decryptTravelerSecret(encrypted);
-
-    if (decrypted !== row.passportNumber) {
-      counts.plaintextMismatch += 1;
-    }
+    decryptTravelerSecret(encrypted);
   } catch {
     counts.decryptFailed += 1;
   }
 }
 
-export async function verifyPassportEncryption() {
+export async function verifyPassportEncrypted() {
   const travelerCounts = emptyCounts();
   const passengerCounts = emptyCounts();
 
   const travelers = await db.orm.public.TravelerProfile.select(
-    "passportNumber",
     "passportNumberEncrypted"
   ).all();
 
   for (const traveler of travelers) {
-    verifyRow(travelerCounts, traveler);
+    verifyRow(travelerCounts, traveler.passportNumberEncrypted);
   }
 
   const passengers = await db.orm.public.Passenger.select(
-    "passportNumber",
     "passportNumberEncrypted"
   ).all();
 
   for (const passenger of passengers) {
-    verifyRow(passengerCounts, passenger);
+    verifyRow(passengerCounts, passenger.passportNumberEncrypted);
   }
 
   return { travelerCounts, passengerCounts };
 }
 
-function printCounts(label: string, counts: VerifyCounts) {
+function printCounts(label: string, counts: EncryptedVerifyCounts) {
   console.log(`${label}:`);
   console.log(`rows ${counts.rows}`);
   console.log(`encrypted ${counts.encrypted}`);
   console.log(`missingEncrypted ${counts.missingEncrypted}`);
   console.log(`invalidFormat ${counts.invalidFormat}`);
   console.log(`decryptFailed ${counts.decryptFailed}`);
-  console.log(`plaintextMismatch ${counts.plaintextMismatch}`);
 }
 
-function hasFailures(counts: VerifyCounts) {
+function hasFailures(counts: EncryptedVerifyCounts) {
   return (
     counts.missingEncrypted > 0 ||
     counts.invalidFormat > 0 ||
-    counts.decryptFailed > 0 ||
-    counts.plaintextMismatch > 0
+    counts.decryptFailed > 0
   );
 }
 
 async function main() {
-  const result = await verifyPassportEncryption();
+  const result = await verifyPassportEncrypted();
   printCounts("TravelerProfile", result.travelerCounts);
   printCounts("Passenger", result.passengerCounts);
 
@@ -123,7 +110,7 @@ async function main() {
   }
 }
 
-const isDirectRun = process.argv[1]?.includes("verify-passport-encryption");
+const isDirectRun = process.argv[1]?.includes("verify-passport-encrypted");
 
 if (isDirectRun) {
   main()

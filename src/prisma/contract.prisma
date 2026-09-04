@@ -43,9 +43,7 @@ model TravelerProfile {
   gender      String
   nationality String
 
-  passportNumber  String
-  // Transitional AES-256-GCM ciphertext. Authoritative when present.
-  // Plaintext passportNumber stays until a later retirement phase.
+  // AES-256-GCM ciphertext. The only stored passport number field.
   passportNumberEncrypted String?
   passportCountry String
   passportExpiry  String
@@ -135,9 +133,7 @@ model Passenger {
   gender      String
   nationality String
 
-  passportNumber  String
-  // Transitional AES-256-GCM ciphertext. Authoritative when present.
-  // Plaintext passportNumber stays until a later retirement phase.
+  // AES-256-GCM ciphertext. The only stored passport number field.
   passportNumberEncrypted String?
   passportCountry String
   passportExpiry  String

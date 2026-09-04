@@ -39,7 +39,6 @@ function asTrimmedString(value: unknown) {
 
 export function toSafePassenger(
   passenger: Omit<SafePassenger, "passportNumber"> & {
-    passportNumber?: string;
     passportNumberEncrypted?: string | null;
   }
 ): SafePassenger {

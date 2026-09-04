@@ -2,13 +2,11 @@ import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
 
 import {
-  LEGACY_ENCRYPTED_PASSPORT_PLACEHOLDER,
   TravelerEncryptionError,
   decryptTravelerSecret,
   encryptTravelerSecret,
   getDecryptedPassportNumber,
   isEncryptedTravelerSecret,
-  isLegacyPassportPlaceholder,
   passportWriteFields,
   resetTravelerEncryptionKeyCache,
 } from "./traveler-encryption";
@@ -140,11 +138,10 @@ describe("traveler encryption", () => {
     );
   });
 
-  it("writes ciphertext and a non-sensitive legacy placeholder", () => {
+  it("writes only ciphertext for persistence", () => {
     withKey(SYNTHETIC_KEY);
     const fields = passportWriteFields(PLAINTEXT);
-    assert.equal(fields.passportNumber, LEGACY_ENCRYPTED_PASSPORT_PLACEHOLDER);
-    assert.equal(isLegacyPassportPlaceholder(fields.passportNumber), true);
+    assert.equal("passportNumber" in fields, false);
     assert.match(fields.passportNumberEncrypted, /^v1:/);
     assert.equal(decryptTravelerSecret(fields.passportNumberEncrypted), PLAINTEXT);
   });

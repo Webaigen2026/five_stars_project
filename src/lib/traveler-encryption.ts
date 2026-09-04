@@ -28,8 +28,6 @@ const KEY_LENGTH = 32;
 const CURRENT_VERSION = "v1";
 const VERSIONED_SECRET_PATTERN = /^v\d+:/;
 
-export const LEGACY_ENCRYPTED_PASSPORT_PLACEHOLDER = "[encrypted]";
-
 export type TravelerEncryptionErrorCode =
   | "TRAVELER_ENCRYPTION_NOT_CONFIGURED"
   | "TRAVELER_ENCRYPTION_KEY_INVALID"
@@ -208,8 +206,7 @@ export function decryptTravelerSecret(value: string) {
 }
 
 /**
- * Encrypted-only runtime read. The legacy passportNumber column is never
- * used as a source of truth. Missing or corrupt ciphertext fails closed.
+ * Encrypted-only runtime read. Missing or corrupt ciphertext fails closed.
  */
 export function getDecryptedPassportNumber(row: {
   passportNumberEncrypted?: string | null;
@@ -226,21 +223,13 @@ export function getDecryptedPassportNumber(row: {
   return decryptTravelerSecret(encrypted);
 }
 
-/**
- * D9.1 write: persist ciphertext and a non-sensitive placeholder in the
- * required legacy column. Never write the real passport into passportNumber.
- */
+/** Persist only ciphertext. Request DTOs still use passportNumber in memory. */
 export function passportWriteFields(plaintext: string) {
   return {
-    passportNumber: LEGACY_ENCRYPTED_PASSPORT_PLACEHOLDER,
     passportNumberEncrypted: encryptTravelerSecret(plaintext),
   };
 }
 
 export function hasEncryptedPassportValue(value: string | null | undefined) {
   return Boolean(value?.trim());
-}
-
-export function isLegacyPassportPlaceholder(value: string | null | undefined) {
-  return value?.trim() === LEGACY_ENCRYPTED_PASSPORT_PLACEHOLDER;
 }

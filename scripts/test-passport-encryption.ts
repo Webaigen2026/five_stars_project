@@ -1,5 +1,5 @@
 /**
- * D9 passport encryption integration checks. Synthetic data only.
+ * D9.2 encrypted-only passport checks. Synthetic data only.
  *
  * Usage:
  *   npx tsx scripts/test-passport-encryption.ts
@@ -11,9 +11,10 @@ import bcrypt from "bcryptjs";
 import { createUserSession, SESSION_COOKIE_NAME } from "../src/lib/auth";
 import { maskPassportNumber } from "../src/lib/sensitive-data";
 import {
-  LEGACY_ENCRYPTED_PASSPORT_PLACEHOLDER,
   ensureTestEncryptionKey,
+  getDecryptedPassportNumber,
   isEncryptedTravelerSecret,
+  passportWriteFields,
 } from "../src/lib/traveler-encryption";
 import {
   createTraveler,
@@ -22,7 +23,6 @@ import {
   updateOwnedTraveler,
 } from "../src/lib/travelers";
 import { db } from "../src/prisma/db";
-import { backfillPassportEncryption } from "./backfill-passport-encryption";
 
 const stamp = `${Date.now()}-${randomInt(100, 999)}`;
 const createdUserIds: number[] = [];
@@ -49,7 +49,7 @@ const sampleTraveler = {
   dateOfBirth: "1990-01-15",
   gender: "FEMALE",
   nationality: "Haitian",
-  passportNumber: "HT-D9-SECRET",
+  passportNumber: "HT-D92-SECRET",
   passportCountry: "Haiti",
   passportExpiry: "2030-12-31",
   isPrimary: true,
@@ -57,7 +57,7 @@ const sampleTraveler = {
 
 async function createTestUser() {
   const user = await db.orm.public.User.create({
-    email: `d9.encrypt.${stamp}.${createdUserIds.length}@example.com`,
+    email: `d92.encrypt.${stamp}.${createdUserIds.length}@example.com`,
     password: await bcrypt.hash("CorrectHorse1", 4),
     firstName: "Encrypt",
     lastName: "Tester",
@@ -71,7 +71,7 @@ async function createTestUser() {
 
 async function createTestFlight() {
   const flight = await db.orm.public.Flight.create({
-    code: `D9E-${stamp}-${randomInt(10, 99)}`,
+    code: `D92-${stamp}-${randomInt(10, 99)}`,
     airline: "StarJet",
     aircraft: "Test",
     origin: "Boston",
@@ -152,6 +152,53 @@ async function cleanup() {
 async function main() {
   ensureTestEncryptionKey();
 
+  console.log("\nExisting rows load from ciphertext");
+  const existingTraveler = await db.orm.public.TravelerProfile.select(
+    "id",
+    "userId",
+    "passportNumberEncrypted"
+  ).first();
+
+  if (!existingTraveler) {
+    console.log("  skip  no existing TravelerProfile row");
+  } else {
+    const loaded = await getOwnedTraveler(
+      existingTraveler.userId,
+      existingTraveler.id
+    );
+    ok(
+      "existing traveler loads and decrypts",
+      loaded != null &&
+        loaded.passportNumber.length > 0 &&
+        loaded.passportNumber !== "[encrypted]"
+    );
+    ok(
+      "existing traveler DTO has no ciphertext",
+      loaded != null && !("passportNumberEncrypted" in loaded)
+    );
+    ok(
+      "existing traveler DB row has no legacy passportNumber field",
+      !("passportNumber" in existingTraveler)
+    );
+  }
+
+  const existingPassenger = await db.orm.public.Passenger.select(
+    "passportNumberEncrypted"
+  ).first();
+
+  if (!existingPassenger) {
+    console.log("  skip  no existing Passenger row");
+  } else {
+    const masked = maskPassportNumber(
+      getDecryptedPassportNumber(existingPassenger)
+    );
+    ok("existing passenger masking decrypts", masked.startsWith("••••"));
+    ok(
+      "existing passenger DB row has no legacy passportNumber field",
+      !("passportNumber" in existingPassenger)
+    );
+  }
+
   console.log("\nTravelerProfile encrypted writes");
   const owner = await createTestUser();
   const created = await createTraveler(
@@ -161,7 +208,6 @@ async function main() {
   createdTravelerIds.push(created.id);
 
   const stored = await db.orm.public.TravelerProfile.select(
-    "passportNumber",
     "passportNumberEncrypted"
   )
     .where({ id: created.id })
@@ -177,8 +223,8 @@ async function main() {
     )
   );
   ok(
-    "legacy column stores the non-sensitive placeholder",
-    stored?.passportNumber === LEGACY_ENCRYPTED_PASSPORT_PLACEHOLDER
+    "create does not persist a legacy passportNumber field",
+    stored != null && !("passportNumber" in stored)
   );
 
   const owned = await getOwnedTraveler(owner.id, created.id);
@@ -197,11 +243,10 @@ async function main() {
 
   await updateOwnedTraveler(owner.id, created.id, {
     ...parseTravelerInput(sampleTraveler),
-    passportNumber: "HT-D9-UPDATED",
+    passportNumber: "HT-D92-UPDATED",
   });
 
   const updatedStored = await db.orm.public.TravelerProfile.select(
-    "passportNumber",
     "passportNumberEncrypted"
   )
     .where({ id: created.id })
@@ -215,17 +260,13 @@ async function main() {
   );
   ok(
     "owner can still autofill after update",
-    updatedOwned?.passportNumber === "HT-D9-UPDATED"
-  );
-  ok(
-    "update keeps the legacy placeholder",
-    updatedStored?.passportNumber === LEGACY_ENCRYPTED_PASSPORT_PLACEHOLDER
+    updatedOwned?.passportNumber === "HT-D92-UPDATED"
   );
 
   console.log("\nPassenger snapshot encrypted writes");
   const flight = await createTestFlight();
   const booking = await db.orm.public.Booking.create({
-    bookingReference: `D9B-${stamp}`,
+    bookingReference: `D92B-${stamp}`,
     userId: owner.id,
     flightId: flight.id,
     passengerCount: 1,
@@ -237,9 +278,6 @@ async function main() {
   });
   createdBookingIds.push(booking.id);
 
-  const { passportWriteFields } = await import(
-    "../src/lib/traveler-encryption"
-  );
   const passenger = await db.orm.public.Passenger.create({
     bookingId: booking.id,
     firstName: "Ada",
@@ -247,7 +285,7 @@ async function main() {
     dateOfBirth: "1990-01-15",
     gender: "FEMALE",
     nationality: "Haitian",
-    ...passportWriteFields("HT-D9-BOOK"),
+    ...passportWriteFields("HT-D92-BOOK"),
     passportCountry: "Haiti",
     passportExpiry: "2030-12-31",
   });
@@ -261,8 +299,31 @@ async function main() {
     )
   );
   ok(
-    "passenger legacy column stores the placeholder",
-    passenger.passportNumber === LEGACY_ENCRYPTED_PASSPORT_PLACEHOLDER
+    "passenger create does not persist a legacy passportNumber field",
+    !("passportNumber" in passenger)
+  );
+  ok(
+    "passenger decrypts the submitted value",
+    getDecryptedPassportNumber(passenger) === "HT-D92-BOOK"
+  );
+
+  await db.orm.public.Passenger.where({ id: passenger.id }).update(
+    passportWriteFields("HT-D92-ADMIN")
+  );
+  const adminUpdated = await db.orm.public.Passenger.select(
+    "passportNumberEncrypted"
+  )
+    .where({ id: passenger.id })
+    .first();
+  ok(
+    "admin-style update rewrites ciphertext",
+    Boolean(adminUpdated?.passportNumberEncrypted) &&
+      adminUpdated?.passportNumberEncrypted !== passenger.passportNumberEncrypted
+  );
+  ok(
+    "admin-style update decrypts the new value",
+    adminUpdated != null &&
+      getDecryptedPassportNumber(adminUpdated) === "HT-D92-ADMIN"
   );
 
   console.log("\nCustomer privacy pages");
@@ -282,7 +343,7 @@ async function main() {
 
     if (!travelerRes.ok) {
       console.log(
-        "  skip  HTTP traveler checks (server missing encryption key or not on D9)."
+        "  skip  HTTP traveler checks (server missing encryption key or not on D9.2)."
       );
     } else {
       ok("authenticated traveler GET still works", travelerRes.ok);
@@ -296,7 +357,11 @@ async function main() {
       );
       ok(
         "traveler API returns decrypted passport for owner",
-        first?.passportNumber === "HT-D9-UPDATED"
+        first?.passportNumber === "HT-D92-UPDATED"
+      );
+      ok(
+        "traveler API does not return the retired placeholder",
+        first?.passportNumber !== "[encrypted]"
       );
     }
 
@@ -312,11 +377,13 @@ async function main() {
       const html = await page.text();
       ok(
         `${new URL(url).pathname} does not expose passport plaintext`,
-        !html.includes("HT-D9-BOOK") && !html.includes("HT-D9-UPDATED")
+        !html.includes("HT-D92-BOOK") &&
+          !html.includes("HT-D92-UPDATED") &&
+          !html.includes("HT-D92-ADMIN")
       );
       ok(
-        `${new URL(url).pathname} does not expose ciphertext`,
-        !html.includes("v1:")
+        `${new URL(url).pathname} does not expose ciphertext or placeholder`,
+        !html.includes("v1:") && !html.includes("[encrypted]")
       );
     }
   } catch {
@@ -326,76 +393,7 @@ async function main() {
   console.log("\nAdmin default masking");
   ok(
     "admin masking uses decrypted value",
-    maskPassportNumber("HT-D9-BOOK") === "•••• BOOK"
-  );
-
-  console.log("\nBackfill idempotency");
-  const legacyUser = await createTestUser();
-  const legacyTraveler = await db.orm.public.TravelerProfile.create({
-    userId: legacyUser.id,
-    label: "Legacy",
-    firstName: "Grace",
-    lastName: "Hopper",
-    dateOfBirth: "1980-02-02",
-    gender: "FEMALE",
-    nationality: "Haitian",
-    passportNumber: "HT-D9-LEGACY",
-    passportNumberEncrypted: null,
-    passportCountry: "Haiti",
-    passportExpiry: "2031-01-01",
-    isPrimary: true,
-  });
-  createdTravelerIds.push(legacyTraveler.id);
-
-  const scoped = { travelerIds: [legacyTraveler.id], passengerIds: [] };
-  const dryRun = await backfillPassportEncryption({
-    dryRun: true,
-    ...scoped,
-  });
-  const afterDryRun = await db.orm.public.TravelerProfile.select(
-    "passportNumber",
-    "passportNumberEncrypted"
-  )
-    .where({ id: legacyTraveler.id })
-    .first();
-
-  ok(
-    "dry-run reports the legacy traveler as eligible",
-    dryRun.travelerCounts.encrypted === 1
-  );
-  ok(
-    "dry-run does not write the legacy traveler",
-    afterDryRun?.passportNumberEncrypted == null &&
-      afterDryRun?.passportNumber === "HT-D9-LEGACY"
-  );
-
-  await backfillPassportEncryption({
-    dryRun: false,
-    ...scoped,
-  });
-  const afterBackfill = await db.orm.public.TravelerProfile.select(
-    "passportNumber",
-    "passportNumberEncrypted"
-  )
-    .where({ id: legacyTraveler.id })
-    .first();
-
-  ok(
-    "backfill writes v1 ciphertext",
-    Boolean(afterBackfill?.passportNumberEncrypted?.startsWith("v1:"))
-  );
-  ok(
-    "backfill leaves plaintext unchanged",
-    afterBackfill?.passportNumber === "HT-D9-LEGACY"
-  );
-
-  const second = await backfillPassportEncryption({
-    dryRun: false,
-    ...scoped,
-  });
-  ok(
-    "second backfill skips already-encrypted rows",
-    second.travelerCounts.skipped === 1 && second.travelerCounts.encrypted === 0
+    maskPassportNumber("HT-D92-BOOK") === "•••• BOOK"
   );
 
   await cleanup();
