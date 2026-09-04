@@ -15,6 +15,13 @@ const FARE_FAMILY_LABELS: Record<FareFamily, string> = {
   FLEX: "StarJet Flex",
 };
 
+/** Print/PDF-only brand labels — does not change stored fareFamily values. */
+const PRINT_FARE_FAMILY_LABELS: Record<FareFamily, string> = {
+  BASIC: "Five Stars Basic",
+  STANDARD: "Five Stars Standard",
+  FLEX: "Five Stars Flex",
+};
+
 const FARE_FAMILY_DESCRIPTIONS: Record<FareFamily, string> = {
   BASIC: "Lowest fare",
   STANDARD: "Most popular",
@@ -80,6 +87,11 @@ export function resolveFareFamilyForBooking(
 
 export function getFareFamilyLabel(family: FareFamily) {
   return FARE_FAMILY_LABELS[family];
+}
+
+/** Printable itinerary / PDF label (Five Stars). Screen booking UI still uses StarJet. */
+export function getPrintFareFamilyLabel(family: FareFamily) {
+  return PRINT_FARE_FAMILY_LABELS[family];
 }
 
 export function getFareFamilyDescription(family: FareFamily) {
