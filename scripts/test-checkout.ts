@@ -15,6 +15,10 @@ import {
   getCheckoutPaymentAction,
 } from "../src/lib/checkout";
 import { isStripeConfigured } from "../src/lib/payments";
+import {
+  ensureTestEncryptionKey,
+  passportWriteFields,
+} from "../src/lib/traveler-encryption";
 import { db } from "../src/prisma/db";
 
 const stamp = `${Date.now()}-${randomInt(100, 999)}`;
@@ -102,7 +106,7 @@ async function createTestBooking({
     dateOfBirth: "1990-01-15",
     gender: "FEMALE",
     nationality: "Haitian",
-    passportNumber: "HT-D7-SECRET",
+    ...passportWriteFields("HT-D7-SECRET"),
     passportCountry: "Haiti",
     passportExpiry: "2030-12-31",
   });
@@ -187,6 +191,8 @@ async function fetchCheckout(
 }
 
 async function main() {
+  ensureTestEncryptionKey();
+
   console.log("\nCheckout helpers");
   ok(
     "other customer cannot review an owned booking",

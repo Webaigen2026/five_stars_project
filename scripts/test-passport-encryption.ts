@@ -11,6 +11,7 @@ import bcrypt from "bcryptjs";
 import { createUserSession, SESSION_COOKIE_NAME } from "../src/lib/auth";
 import { maskPassportNumber } from "../src/lib/sensitive-data";
 import {
+  LEGACY_ENCRYPTED_PASSPORT_PLACEHOLDER,
   ensureTestEncryptionKey,
   isEncryptedTravelerSecret,
 } from "../src/lib/traveler-encryption";
@@ -176,8 +177,8 @@ async function main() {
     )
   );
   ok(
-    "transitional plaintext column is still written",
-    stored?.passportNumber === sampleTraveler.passportNumber
+    "legacy column stores the non-sensitive placeholder",
+    stored?.passportNumber === LEGACY_ENCRYPTED_PASSPORT_PLACEHOLDER
   );
 
   const owned = await getOwnedTraveler(owner.id, created.id);
@@ -215,6 +216,10 @@ async function main() {
   ok(
     "owner can still autofill after update",
     updatedOwned?.passportNumber === "HT-D9-UPDATED"
+  );
+  ok(
+    "update keeps the legacy placeholder",
+    updatedStored?.passportNumber === LEGACY_ENCRYPTED_PASSPORT_PLACEHOLDER
   );
 
   console.log("\nPassenger snapshot encrypted writes");
@@ -254,6 +259,10 @@ async function main() {
       passenger.passportNumberEncrypted &&
         passenger.passportNumberEncrypted.startsWith("v1:")
     )
+  );
+  ok(
+    "passenger legacy column stores the placeholder",
+    passenger.passportNumber === LEGACY_ENCRYPTED_PASSPORT_PLACEHOLDER
   );
 
   console.log("\nCustomer privacy pages");

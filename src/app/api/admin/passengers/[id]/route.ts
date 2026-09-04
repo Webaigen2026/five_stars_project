@@ -74,7 +74,6 @@ export async function PATCH(
       "dateOfBirth",
       "gender",
       "nationality",
-      "passportNumber",
       "passportNumberEncrypted",
       "passportCountry",
       "passportExpiry",

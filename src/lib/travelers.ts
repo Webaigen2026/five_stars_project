@@ -59,7 +59,6 @@ const TRAVELER_SELECT = [
   "dateOfBirth",
   "gender",
   "nationality",
-  "passportNumber",
   "passportNumberEncrypted",
   "passportCountry",
   "passportExpiry",
@@ -74,7 +73,6 @@ function toDecryptedTraveler(traveler: {
   dateOfBirth: string;
   gender: string;
   nationality: string;
-  passportNumber: string;
   passportNumberEncrypted?: string | null;
   passportCountry: string;
   passportExpiry: string;

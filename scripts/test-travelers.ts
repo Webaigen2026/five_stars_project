@@ -10,7 +10,11 @@ import { randomInt } from "node:crypto";
 
 import bcrypt from "bcryptjs";
 
-import { ensureTestEncryptionKey } from "../src/lib/traveler-encryption";
+import {
+  ensureTestEncryptionKey,
+  getDecryptedPassportNumber,
+  passportWriteFields,
+} from "../src/lib/traveler-encryption";
 import {
   createTraveler,
   deleteOwnedTraveler,
@@ -205,7 +209,7 @@ async function runSnapshotInvariant() {
     dateOfBirth: traveler.dateOfBirth,
     gender: traveler.gender,
     nationality: traveler.nationality,
-    passportNumber: traveler.passportNumber,
+    ...passportWriteFields(traveler.passportNumber),
     passportCountry: traveler.passportCountry,
     passportExpiry: traveler.passportExpiry,
   });
@@ -224,8 +228,9 @@ async function runSnapshotInvariant() {
 
   ok(
     "passenger snapshot keeps original travel-document values",
-    passenger?.passportNumber === "HT111111" &&
-      passenger?.passportExpiry === "2030-12-31"
+    passenger != null &&
+      getDecryptedPassportNumber(passenger) === "HT111111" &&
+      passenger.passportExpiry === "2030-12-31"
   );
   ok(
     "saved traveler profile was updated independently",
@@ -239,7 +244,8 @@ async function runSnapshotInvariant() {
   }).first();
   ok(
     "deleting a traveler profile does not alter passenger rows",
-    passengerAfterDelete?.passportNumber === "HT111111"
+    passengerAfterDelete != null &&
+      getDecryptedPassportNumber(passengerAfterDelete) === "HT111111"
   );
 }
 

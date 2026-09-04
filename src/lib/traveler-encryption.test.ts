@@ -2,11 +2,14 @@ import assert from "node:assert/strict";
 import { afterEach, describe, it } from "node:test";
 
 import {
+  LEGACY_ENCRYPTED_PASSPORT_PLACEHOLDER,
   TravelerEncryptionError,
   decryptTravelerSecret,
   encryptTravelerSecret,
   getDecryptedPassportNumber,
   isEncryptedTravelerSecret,
+  isLegacyPassportPlaceholder,
+  passportWriteFields,
   resetTravelerEncryptionKeyCache,
 } from "./traveler-encryption";
 
@@ -111,29 +114,38 @@ describe("traveler encryption", () => {
     assert.throws(
       () =>
         getDecryptedPassportNumber({
-          passportNumber: PLAINTEXT,
           passportNumberEncrypted: unknown,
         }),
       (error: unknown) => error instanceof TravelerEncryptionError
     );
   });
 
-  it("uses encrypted value when present and plaintext only as fallback", () => {
+  it("reads encrypted values only and never falls back to plaintext", () => {
     withKey(SYNTHETIC_KEY);
     const encrypted = encryptTravelerSecret(PLAINTEXT);
     assert.equal(
       getDecryptedPassportNumber({
-        passportNumber: "STALE1234",
         passportNumberEncrypted: encrypted,
       }),
       PLAINTEXT
     );
-    assert.equal(
-      getDecryptedPassportNumber({
-        passportNumber: PLAINTEXT,
-        passportNumberEncrypted: null,
-      }),
-      PLAINTEXT
+    assert.throws(
+      () =>
+        getDecryptedPassportNumber({
+          passportNumberEncrypted: null,
+        }),
+      (error: unknown) =>
+        error instanceof TravelerEncryptionError &&
+        error.code === "TRAVELER_ENCRYPTION_MISSING"
     );
+  });
+
+  it("writes ciphertext and a non-sensitive legacy placeholder", () => {
+    withKey(SYNTHETIC_KEY);
+    const fields = passportWriteFields(PLAINTEXT);
+    assert.equal(fields.passportNumber, LEGACY_ENCRYPTED_PASSPORT_PLACEHOLDER);
+    assert.equal(isLegacyPassportPlaceholder(fields.passportNumber), true);
+    assert.match(fields.passportNumberEncrypted, /^v1:/);
+    assert.equal(decryptTravelerSecret(fields.passportNumberEncrypted), PLAINTEXT);
   });
 });

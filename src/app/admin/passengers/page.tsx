@@ -16,7 +16,6 @@ export default async function AdminPassengersPage() {
       "firstName",
       "lastName",
       "nationality",
-      "passportNumber",
       "passportNumberEncrypted",
       "passportCountry",
       "passportExpiry"

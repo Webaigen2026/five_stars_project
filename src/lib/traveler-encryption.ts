@@ -28,11 +28,14 @@ const KEY_LENGTH = 32;
 const CURRENT_VERSION = "v1";
 const VERSIONED_SECRET_PATTERN = /^v\d+:/;
 
+export const LEGACY_ENCRYPTED_PASSPORT_PLACEHOLDER = "[encrypted]";
+
 export type TravelerEncryptionErrorCode =
   | "TRAVELER_ENCRYPTION_NOT_CONFIGURED"
   | "TRAVELER_ENCRYPTION_KEY_INVALID"
   | "TRAVELER_ENCRYPTION_PAYLOAD_INVALID"
-  | "TRAVELER_ENCRYPTION_DECRYPT_FAILED";
+  | "TRAVELER_ENCRYPTION_DECRYPT_FAILED"
+  | "TRAVELER_ENCRYPTION_MISSING";
 
 export class TravelerEncryptionError extends Error {
   constructor(
@@ -205,33 +208,39 @@ export function decryptTravelerSecret(value: string) {
 }
 
 /**
- * Dual-read for the D9 migration window.
- * Encrypted value is authoritative whenever present.
- * Do not fall back to plaintext if decryption fails.
+ * Encrypted-only runtime read. The legacy passportNumber column is never
+ * used as a source of truth. Missing or corrupt ciphertext fails closed.
  */
 export function getDecryptedPassportNumber(row: {
-  passportNumber: string;
   passportNumberEncrypted?: string | null;
 }) {
   const encrypted = row.passportNumberEncrypted?.trim();
 
-  if (encrypted) {
-    return decryptTravelerSecret(encrypted);
+  if (!encrypted) {
+    throw new TravelerEncryptionError(
+      "TRAVELER_ENCRYPTION_MISSING",
+      "Unable to read traveler document data."
+    );
   }
 
-  return row.passportNumber;
+  return decryptTravelerSecret(encrypted);
 }
 
 /**
- * Transitional write: keep required plaintext column and always persist ciphertext.
+ * D9.1 write: persist ciphertext and a non-sensitive placeholder in the
+ * required legacy column. Never write the real passport into passportNumber.
  */
 export function passportWriteFields(plaintext: string) {
   return {
-    passportNumber: plaintext,
+    passportNumber: LEGACY_ENCRYPTED_PASSPORT_PLACEHOLDER,
     passportNumberEncrypted: encryptTravelerSecret(plaintext),
   };
 }
 
 export function hasEncryptedPassportValue(value: string | null | undefined) {
   return Boolean(value?.trim());
+}
+
+export function isLegacyPassportPlaceholder(value: string | null | undefined) {
+  return value?.trim() === LEGACY_ENCRYPTED_PASSPORT_PLACEHOLDER;
 }
