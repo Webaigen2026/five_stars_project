@@ -18,6 +18,8 @@ export {
 } from "./booking-legs";
 
 export type BookingLegWithFlight = BookingLeg & {
+  fareFamily?: string;
+  farePriceCents?: number | null;
   flight: {
     id: number;
     code: string;

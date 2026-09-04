@@ -6,6 +6,8 @@ export type BookingLeg = {
   sequence: number;
   segmentType: BookingSegmentType;
   flightId: number;
+  fareFamily?: string;
+  farePriceCents?: number | null;
 };
 
 function asSegmentType(value: string): BookingSegmentType | null {
@@ -23,6 +25,8 @@ export function normalizeBookingLegs(input: {
     flightId: number;
     segmentType: string;
     sequence: number;
+    fareFamily?: string | null;
+    farePriceCents?: number | null;
   }>;
 }): BookingLeg[] {
   if (input.segments.length === 0) {
@@ -31,6 +35,8 @@ export function normalizeBookingLegs(input: {
         sequence: 1,
         segmentType: "OUTBOUND",
         flightId: input.flightId,
+        fareFamily: "BASIC",
+        farePriceCents: null,
       },
     ];
   }
@@ -43,11 +49,18 @@ export function normalizeBookingLegs(input: {
         return null;
       }
 
-      return {
+      const leg: BookingLeg = {
         sequence: segment.sequence,
         segmentType,
         flightId: segment.flightId,
-      } satisfies BookingLeg;
+        fareFamily: segment.fareFamily ?? "BASIC",
+        farePriceCents:
+          typeof segment.farePriceCents === "number"
+            ? segment.farePriceCents
+            : null,
+      };
+
+      return leg;
     })
     .filter((leg): leg is BookingLeg => leg != null)
     .sort((left, right) => left.sequence - right.sequence);

@@ -15,7 +15,15 @@ describe("booking legs", () => {
         flightId: 23,
         segments: [],
       }),
-      [{ sequence: 1, segmentType: "OUTBOUND", flightId: 23 }]
+      [
+        {
+          sequence: 1,
+          segmentType: "OUTBOUND",
+          flightId: 23,
+          fareFamily: "BASIC",
+          farePriceCents: null,
+        },
+      ]
     );
   });
 

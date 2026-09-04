@@ -291,8 +291,10 @@ describe("round-trip search", () => {
         seniors: "0",
         children: "0",
         infants: "0",
+        outboundFareFamily: "STANDARD",
+        returnFareFamily: "FLEX",
       }),
-      "/passengers?tripType=round-trip&outboundFlightId=23&returnFlightId=40&passengers=2&adults=2&seniors=0&children=0&infants=0"
+      "/passengers?tripType=round-trip&outboundFlightId=23&returnFlightId=40&passengers=2&adults=2&seniors=0&children=0&infants=0&outboundFareFamily=STANDARD&returnFareFamily=FLEX"
     );
   });
 
@@ -379,13 +381,27 @@ describe("round-trip search", () => {
     );
   });
 
-  it("retains outbound selection only when the flight matches the search", () => {
+  it("retains outbound selection for exact or nearby origin-local dates", () => {
     const outbound = flight({
       id: 23,
       code: "SJ602",
       originCode: "BOS",
       destinationCode: "CAP",
       departureTime: "2026-09-06T20:55:00.000Z",
+    });
+    const nearby = flight({
+      id: 24,
+      code: "SJ605",
+      originCode: "BOS",
+      destinationCode: "CAP",
+      departureTime: "2026-09-12T20:55:00.000Z",
+    });
+    const tooFar = flight({
+      id: 25,
+      code: "SJ-FAR",
+      originCode: "BOS",
+      destinationCode: "CAP",
+      departureTime: "2026-09-20T20:55:00.000Z",
     });
 
     assert.equal(
@@ -397,6 +413,26 @@ describe("round-trip search", () => {
         requireSeats: true,
       }),
       true
+    );
+    assert.equal(
+      isValidOutboundSelection(nearby, {
+        from: "BOS",
+        to: "CAP",
+        departure: "2026-09-06",
+        passengers: "1",
+        requireSeats: true,
+      }),
+      true
+    );
+    assert.equal(
+      isValidOutboundSelection(tooFar, {
+        from: "BOS",
+        to: "CAP",
+        departure: "2026-09-06",
+        passengers: "1",
+        requireSeats: true,
+      }),
+      false
     );
     assert.equal(
       isValidOutboundSelection(outbound, {

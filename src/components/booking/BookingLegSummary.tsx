@@ -1,3 +1,8 @@
+import {
+  getFareFamilyLabel,
+  parseFareFamily,
+  resolveSegmentFarePriceCents,
+} from "../../lib/fare-families";
 import type { BookingLeg } from "../../lib/booking-legs";
 import {
   formatArrivalDate,
@@ -5,6 +10,7 @@ import {
   formatDepartureDate,
   formatDepartureTime,
   formatDuration,
+  formatMoney,
   formatRoute,
   isOvernightFlight,
 } from "../../lib/trip-formatting";
@@ -29,15 +35,22 @@ type BookingLegSummaryProps = {
     };
   };
   compact?: boolean;
+  showFare?: boolean;
 };
 
 export default function BookingLegSummary({
   leg,
   compact = false,
+  showFare = true,
 }: BookingLegSummaryProps) {
   const flight = leg.flight;
   const label = leg.segmentType === "RETURN" ? "Return" : "Outbound";
   const arrivalNextDay = isOvernightFlight(flight);
+  const fareFamily = parseFareFamily(leg.fareFamily) ?? "BASIC";
+  const farePriceCents = resolveSegmentFarePriceCents({
+    farePriceCents: leg.farePriceCents,
+    flightPriceCents: flight.price,
+  });
 
   return (
     <div className={compact ? "" : "rounded-2xl border border-slate-200 bg-slate-50 p-5"}>
@@ -62,6 +75,12 @@ export default function BookingLegSummary({
             {flight.airline}
             {flight.aircraft ? ` · ${flight.aircraft}` : ""}
           </p>
+          {showFare ? (
+            <p className="mt-2 text-sm font-medium text-slate-800">
+              {getFareFamilyLabel(fareFamily)} · {formatMoney(farePriceCents)}{" "}
+              per passenger
+            </p>
+          ) : null}
         </div>
         <div className="rounded-full bg-sky-50 px-3 py-1 text-sm font-semibold text-primary">
           {flight.code}

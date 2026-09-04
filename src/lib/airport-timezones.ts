@@ -145,6 +145,13 @@ export function calendarDateInTimeZone(value: string, timeZone: string): string 
 }
 
 /**
+ * Origin/destination-local wall-clock parts for an instant (never browser/server TZ).
+ */
+export function wallClockPartsInTimeZone(value: string, timeZone: string) {
+  return getZonedParts(new Date(value), timeZone);
+}
+
+/**
  * Elapsed block time in whole minutes from two stored UTC instants.
  * Returns null when chronology is invalid (arrival <= departure).
  */

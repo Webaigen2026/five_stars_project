@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 
 import PassengersContent, {
+  type FareSummary,
   type RoundTripFlightSummary,
 } from "../../components/booking/PassengersContent";
 import Footer from "../../components/layout/Footer";
@@ -9,6 +10,11 @@ import {
   calendarDateInTimeZone,
   getAirportTimeZone,
 } from "../../lib/airport-timezones";
+import {
+  getFareFamilyLabel,
+  getFareFamilyPriceCents,
+  parseFareFamily,
+} from "../../lib/fare-families";
 import {
   isValidRoundTripPair,
   parsePositiveIntParam,
@@ -27,6 +33,9 @@ type SearchParams = Promise<{
   infants?: string;
   outboundFlightId?: string;
   returnFlightId?: string;
+  fareFamily?: string;
+  outboundFareFamily?: string;
+  returnFareFamily?: string;
 }>;
 
 function PassengersFallback() {
@@ -81,6 +90,19 @@ function outboundCalendarDate(flight: {
   );
 }
 
+function fareSummary(
+  flight: { code: string; price: number },
+  familyParam: string | null | undefined
+): FareSummary {
+  const family = parseFareFamily(familyParam) ?? "BASIC";
+  return {
+    flightCode: flight.code,
+    fareFamily: family,
+    fareLabel: getFareFamilyLabel(family),
+    priceCents: getFareFamilyPriceCents(flight.price, family),
+  };
+}
+
 export default async function PassengersPage({
   searchParams,
 }: {
@@ -101,6 +123,9 @@ export default async function PassengersPage({
   let roundTripReturn: RoundTripFlightSummary | null = null;
   let roundTripInvalid = false;
   let outboundDepartureDate: string | null = null;
+  let outboundFare: FareSummary | null = null;
+  let returnFare: FareSummary | null = null;
+  let oneWayFare: FareSummary | null = null;
 
   if (tripType === "round-trip") {
     const outboundId = parsePositiveIntParam(params.outboundFlightId);
@@ -121,6 +146,8 @@ export default async function PassengersPage({
         roundTripOutbound = toSummary(outbound);
         roundTripReturn = toSummary(returnFlight);
         outboundDepartureDate = outboundCalendarDate(outbound);
+        outboundFare = fareSummary(outbound, params.outboundFareFamily);
+        returnFare = fareSummary(returnFlight, params.returnFareFamily);
       }
     }
   } else if (params.flight) {
@@ -130,6 +157,7 @@ export default async function PassengersPage({
 
     if (flight) {
       outboundDepartureDate = outboundCalendarDate(flight);
+      oneWayFare = fareSummary(flight, params.fareFamily);
     }
   }
 
@@ -145,6 +173,9 @@ export default async function PassengersPage({
             roundTripReturn={roundTripReturn}
             roundTripInvalid={roundTripInvalid}
             outboundDepartureDate={outboundDepartureDate}
+            oneWayFare={oneWayFare}
+            outboundFare={outboundFare}
+            returnFare={returnFare}
             initialTravelerSlots={detailsModel.slots}
             initialPassengerCount={detailsModel.passengerCount}
             initialCompositionSummary={detailsModel.summary}

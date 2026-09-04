@@ -1,21 +1,28 @@
 import Link from "next/link";
 
-import FlightResultCard from "../../../components/flights/FlightResultCard";
+import FlightResultsBoard, {
+  type BoardAlternateGroup,
+  type BoardFlight,
+} from "../../../components/flights/FlightResultsBoard";
 import Footer from "../../../components/layout/Footer";
 import Header from "../../../components/layout/Header";
 import { formatAirportRoute } from "../../../data/airports";
 import {
   buildModifySearchHref,
-  buildOneWayPassengersHref,
-  buildRoundTripPassengersHref,
   buildRoundTripResultsHref,
-  filterFlightsForLeg,
+  formatAroundDateEmptyMessage,
   formatEmptyFlightSearchMessage,
   formatSearchDate,
+  isReturnSearchDateValidForOutbound,
   isValidOutboundSelection,
+  partitionFlightsForDiscovery,
+  partitionReturnFlightsForDiscovery,
   parsePositiveIntParam,
   parseTripType,
+  type AlternateFlightDateGroup,
+  type SearchableFlight,
 } from "../../../lib/flight-search";
+import { parseFareFamily } from "../../../lib/fare-families";
 import {
   formatCompositionSummary,
   parsePassengerComposition,
@@ -40,11 +47,46 @@ type SearchParams = Promise<{
   children?: string;
   infants?: string;
   outboundFlightId?: string;
+  outboundFareFamily?: string;
 }>;
 
 type Props = {
   searchParams: SearchParams;
 };
+
+type DbFlight = SearchableFlight & {
+  airline: string;
+  arrivalTime: string;
+  durationMinutes: number;
+  price: number;
+};
+
+function toBoardFlight(flight: DbFlight): BoardFlight {
+  return {
+    id: flight.id,
+    code: flight.code,
+    airline: flight.airline,
+    origin: flight.origin,
+    originCode: flight.originCode,
+    destination: flight.destination,
+    destinationCode: flight.destinationCode,
+    departureTime: flight.departureTime,
+    arrivalTime: flight.arrivalTime,
+    durationMinutes: flight.durationMinutes,
+    price: flight.price,
+    availableSeats: flight.availableSeats,
+    stops: 0,
+  };
+}
+
+function toBoardGroups(
+  groups: AlternateFlightDateGroup<DbFlight>[]
+): BoardAlternateGroup[] {
+  return groups.map((group) => ({
+    date: group.date,
+    flights: group.flights.map(toBoardFlight),
+  }));
+}
 
 function PassengerSummary({
   passengers,
@@ -92,8 +134,10 @@ export default async function FlightResultsPage({ searchParams }: Props) {
     composition,
   };
   const requestedOutboundId = parsePositiveIntParam(params.outboundFlightId);
+  const outboundFareFamily =
+    parseFareFamily(params.outboundFareFamily) ?? "BASIC";
 
-  const allFlights = await db.orm.public.Flight.all();
+  const allFlights = (await db.orm.public.Flight.all()) as DbFlight[];
 
   const modifySearchHref = buildModifySearchHref({
     tripType,
@@ -105,13 +149,15 @@ export default async function FlightResultsPage({ searchParams }: Props) {
   });
 
   if (tripType === "one-way") {
-    const matchingFlights = filterFlightsForLeg(allFlights, {
+    const discovery = partitionFlightsForDiscovery(allFlights, {
       from,
       to,
       departure,
       passengers,
-      requireSeats: false,
+      requireSeats: true,
     });
+    const hasExact = discovery.exactDateFlights.length > 0;
+    const hasAlternates = discovery.alternateGroups.length > 0;
 
     return (
       <>
@@ -154,36 +200,30 @@ export default async function FlightResultsPage({ searchParams }: Props) {
           </section>
 
           <section className="mx-auto max-w-7xl px-6 py-12">
-            <div className="mb-6 flex items-center justify-between gap-4">
-              <h2 className="text-2xl font-semibold text-slate-950">
-                Available flights
-              </h2>
-
-              <p className="text-sm text-slate-500">
-                {matchingFlights.length}{" "}
-                {matchingFlights.length === 1 ? "flight" : "flights"} found
-              </p>
-            </div>
-
-            {matchingFlights.length > 0 ? (
-              <div className="space-y-5">
-                {matchingFlights.map((flight) => (
-                  <FlightResultCard
-                    key={flight.id}
-                    flight={flight}
-                    selectHref={buildOneWayPassengersHref({
-                      flightCode: flight.code,
-                      ...compositionFields,
-                    })}
-                  />
-                ))}
-              </div>
-            ) : (
+            {!hasExact && !hasAlternates ? (
               <EmptyResults
                 from={from}
                 to={to}
                 departure={departure}
                 modifySearchHref={modifySearchHref}
+                aroundDate
+              />
+            ) : (
+              <FlightResultsBoard
+                filterScopeKey="one-way"
+                requestedDate={departure}
+                headingMode="available"
+                fareContinue={{
+                  mode: "one-way",
+                  passengers: compositionFields.passengers,
+                  adults: compositionFields.adults,
+                  seniors: compositionFields.seniors,
+                  children: compositionFields.children,
+                  infants: compositionFields.infants,
+                  passengerCount: totalPassengers(composition),
+                }}
+                exactFlights={discovery.exactDateFlights.map(toBoardFlight)}
+                alternateGroups={toBoardGroups(discovery.alternateGroups)}
               />
             )}
           </section>
@@ -202,7 +242,10 @@ export default async function FlightResultsPage({ searchParams }: Props) {
     requireSeats: true as const,
   };
 
-  const outboundFlights = filterFlightsForLeg(allFlights, outboundFilter);
+  const outboundDiscovery = partitionFlightsForDiscovery(
+    allFlights,
+    outboundFilter
+  );
 
   const selectedOutboundCandidate =
     requestedOutboundId == null
@@ -216,15 +259,25 @@ export default async function FlightResultsPage({ searchParams }: Props) {
     ? selectedOutboundCandidate
     : null;
 
-  const returnFlights = selectedOutbound
-    ? filterFlightsForLeg(allFlights, {
-        from: to,
-        to: from,
-        departure: returnDate,
-        passengers,
-        requireSeats: true,
-      })
-    : [];
+  const returnDateValidForOutbound =
+    selectedOutbound != null &&
+    Boolean(returnDate) &&
+    isReturnSearchDateValidForOutbound(selectedOutbound, returnDate);
+
+  const returnDiscovery =
+    selectedOutbound && returnDateValidForOutbound
+      ? partitionReturnFlightsForDiscovery(allFlights, selectedOutbound, {
+          from: to,
+          to: from,
+          departure: returnDate,
+          passengers,
+          requireSeats: true,
+        })
+      : {
+          exactDateFlights: [] as DbFlight[],
+          alternateFlights: [] as DbFlight[],
+          alternateGroups: [] as AlternateFlightDateGroup<DbFlight>[],
+        };
 
   const changeOutboundHref = buildRoundTripResultsHref({
     from,
@@ -233,6 +286,12 @@ export default async function FlightResultsPage({ searchParams }: Props) {
     returnDate,
     ...compositionFields,
   });
+
+  const hasOutboundExact = outboundDiscovery.exactDateFlights.length > 0;
+  const hasOutboundAlternates =
+    outboundDiscovery.alternateGroups.length > 0;
+  const hasReturnExact = returnDiscovery.exactDateFlights.length > 0;
+  const hasReturnAlternates = returnDiscovery.alternateGroups.length > 0;
 
   return (
     <>
@@ -295,36 +354,41 @@ export default async function FlightResultsPage({ searchParams }: Props) {
                   {formatRoute(from || "—", to || "—")}
                   {departure ? ` · ${formatSearchDate(departure)}` : ""}
                 </p>
-                <p className="mt-1 text-sm text-slate-500">
-                  {outboundFlights.length}{" "}
-                  {outboundFlights.length === 1 ? "flight" : "flights"} found
-                </p>
               </div>
 
-              {outboundFlights.length > 0 ? (
-                <div className="space-y-5">
-                  {outboundFlights.map((flight) => (
-                    <FlightResultCard
-                      key={flight.id}
-                      flight={flight}
-                      selectLabel="Select outbound"
-                      selectHref={buildRoundTripResultsHref({
-                        from,
-                        to,
-                        departure,
-                        returnDate,
-                        outboundFlightId: flight.id,
-                        ...compositionFields,
-                      })}
-                    />
-                  ))}
-                </div>
-              ) : (
+              {!hasOutboundExact && !hasOutboundAlternates ? (
                 <EmptyResults
                   from={from}
                   to={to}
                   departure={departure}
                   modifySearchHref={modifySearchHref}
+                  aroundDate
+                />
+              ) : (
+                <FlightResultsBoard
+                  filterScopeKey="round-trip-outbound"
+                  requestedDate={departure}
+                  headingMode="step"
+                  selectLabel="Select outbound"
+                  fareContinue={{
+                    mode: "round-trip-outbound",
+                    passengers: compositionFields.passengers,
+                    adults: compositionFields.adults,
+                    seniors: compositionFields.seniors,
+                    children: compositionFields.children,
+                    infants: compositionFields.infants,
+                    from,
+                    to,
+                    departure,
+                    returnDate,
+                    passengerCount: totalPassengers(composition),
+                  }}
+                  exactFlights={outboundDiscovery.exactDateFlights.map(
+                    toBoardFlight
+                  )}
+                  alternateGroups={toBoardGroups(
+                    outboundDiscovery.alternateGroups
+                  )}
                 />
               )}
             </div>
@@ -373,33 +437,75 @@ export default async function FlightResultsPage({ searchParams }: Props) {
                     {formatRoute(to || "—", from || "—")}
                     {returnDate ? ` · ${formatSearchDate(returnDate)}` : ""}
                   </p>
-                  <p className="mt-1 text-sm text-slate-500">
-                    {returnFlights.length}{" "}
-                    {returnFlights.length === 1 ? "flight" : "flights"} found
-                  </p>
                 </div>
 
-                {returnFlights.length > 0 ? (
-                  <div className="space-y-5">
-                    {returnFlights.map((flight) => (
-                      <FlightResultCard
-                        key={flight.id}
-                        flight={flight}
-                        selectLabel="Select return"
-                        selectHref={buildRoundTripPassengersHref({
-                          outboundFlightId: selectedOutbound.id,
-                          returnFlightId: flight.id,
-                          ...compositionFields,
-                        })}
-                      />
-                    ))}
+                {!returnDateValidForOutbound ? (
+                  <div className="rounded-3xl border border-amber-200 bg-amber-50/80 p-8">
+                    <h3 className="text-xl font-semibold text-slate-950">
+                      Return date is no longer valid
+                    </h3>
+                    <p className="mt-3 text-sm leading-relaxed text-slate-700">
+                      Your selected outbound departs on{" "}
+                      <strong className="font-medium text-slate-900">
+                        {formatDepartureDateShort(selectedOutbound)}
+                      </strong>
+                      , which is after the requested return of{" "}
+                      <strong className="font-medium text-slate-900">
+                        {formatSearchDate(returnDate)}
+                      </strong>
+                      . Choose a different outbound, or modify your search with
+                      a later return date.
+                    </p>
+                    <div className="mt-6 flex flex-wrap gap-3">
+                      <Link
+                        href={changeOutboundHref}
+                        className="inline-flex rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-800 transition hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                      >
+                        Change outbound
+                      </Link>
+                      <Link
+                        href={modifySearchHref}
+                        className="inline-flex rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                      >
+                        Modify search
+                      </Link>
+                    </div>
                   </div>
-                ) : (
+                ) : !hasReturnExact && !hasReturnAlternates ? (
                   <EmptyResults
                     from={to}
                     to={from}
                     departure={returnDate}
                     modifySearchHref={modifySearchHref}
+                    aroundDate
+                  />
+                ) : (
+                  <FlightResultsBoard
+                    filterScopeKey={`round-trip-return-${selectedOutbound.id}`}
+                    requestedDate={returnDate}
+                    headingMode="step"
+                    selectLabel="Select return"
+                    fareContinue={{
+                      mode: "round-trip-return",
+                      passengers: compositionFields.passengers,
+                      adults: compositionFields.adults,
+                      seniors: compositionFields.seniors,
+                      children: compositionFields.children,
+                      infants: compositionFields.infants,
+                      from,
+                      to,
+                      departure,
+                      returnDate,
+                      outboundFlightId: selectedOutbound.id,
+                      outboundFareFamily,
+                      passengerCount: totalPassengers(composition),
+                    }}
+                    exactFlights={returnDiscovery.exactDateFlights.map(
+                      toBoardFlight
+                    )}
+                    alternateGroups={toBoardGroups(
+                      returnDiscovery.alternateGroups
+                    )}
                   />
                 )}
               </div>
@@ -418,18 +524,22 @@ function EmptyResults({
   to,
   departure,
   modifySearchHref,
+  aroundDate = false,
 }: {
   from: string;
   to: string;
   departure: string;
   modifySearchHref: string;
+  aroundDate?: boolean;
 }) {
   return (
     <div className="rounded-3xl border border-slate-200 bg-white p-10 text-center">
       <h2 className="text-2xl font-semibold text-slate-950">No flights found</h2>
 
       <p className="mt-3 text-slate-600">
-        {formatEmptyFlightSearchMessage({ from, to, departure })}
+        {aroundDate
+          ? formatAroundDateEmptyMessage({ from, to })
+          : formatEmptyFlightSearchMessage({ from, to, departure })}
       </p>
 
       <p className="mt-2 text-slate-600">Try another date or route.</p>

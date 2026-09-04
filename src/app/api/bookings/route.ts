@@ -6,6 +6,10 @@ import {
   getAirportTimeZone,
 } from "../../../lib/airport-timezones";
 import {
+  getFareFamilyPriceCents,
+  resolveFareFamilyForBooking,
+} from "../../../lib/fare-families";
+import {
   calculateBookingTotals,
   validateRoundTripFlights,
 } from "../../../lib/booking-legs";
@@ -296,8 +300,38 @@ export async function POST(request: Request) {
 
       assertPassengersMatchOutboundAge(passengers, outbound);
 
+      let outboundFareFamily;
+      let returnFareFamily;
+
+      try {
+        outboundFareFamily = resolveFareFamilyForBooking(
+          typeof payload.outboundFareFamily === "string"
+            ? payload.outboundFareFamily
+            : typeof payload.fareFamily === "string"
+              ? payload.fareFamily
+              : null
+        );
+        returnFareFamily = resolveFareFamilyForBooking(
+          typeof payload.returnFareFamily === "string"
+            ? payload.returnFareFamily
+            : null
+        );
+      } catch {
+        throw new BookingRequestError("Invalid fare family selection.", 400);
+      }
+
+      // Ignore any client-submitted farePrice / total fields.
+      const outboundFarePriceCents = getFareFamilyPriceCents(
+        outbound.price,
+        outboundFareFamily
+      );
+      const returnFarePriceCents = getFareFamilyPriceCents(
+        returnFlight.price,
+        returnFareFamily
+      );
+
       const { subtotal, taxesAndFees, total } = calculateBookingTotals({
-        unitPricesCents: [outbound.price, returnFlight.price],
+        unitPricesCents: [outboundFarePriceCents, returnFarePriceCents],
         passengerCount,
       });
 
@@ -319,6 +353,8 @@ export async function POST(request: Request) {
           flightId: outbound.id,
           segmentType: "OUTBOUND",
           sequence: 1,
+          fareFamily: outboundFareFamily,
+          farePriceCents: outboundFarePriceCents,
         });
 
         await tx.orm.public.BookingSegment.create({
@@ -326,6 +362,8 @@ export async function POST(request: Request) {
           flightId: returnFlight.id,
           segmentType: "RETURN",
           sequence: 2,
+          fareFamily: returnFareFamily,
+          farePriceCents: returnFarePriceCents,
         });
 
         await createPassengerSnapshots(tx, createdBooking.id, passengers);
@@ -372,8 +410,20 @@ export async function POST(request: Request) {
 
     assertPassengersMatchOutboundAge(passengers, flight);
 
+    let fareFamily;
+    try {
+      fareFamily = resolveFareFamilyForBooking(
+        typeof payload.fareFamily === "string" ? payload.fareFamily : null
+      );
+    } catch {
+      throw new BookingRequestError("Invalid fare family selection.", 400);
+    }
+
+    // Ignore any client-submitted farePrice / total fields.
+    const farePriceCents = getFareFamilyPriceCents(flight.price, fareFamily);
+
     const { subtotal, taxesAndFees, total } = calculateBookingTotals({
-      unitPricesCents: [flight.price],
+      unitPricesCents: [farePriceCents],
       passengerCount,
     });
 
@@ -395,6 +445,8 @@ export async function POST(request: Request) {
         flightId: flight.id,
         segmentType: "OUTBOUND",
         sequence: 1,
+        fareFamily,
+        farePriceCents,
       });
 
       await createPassengerSnapshots(tx, createdBooking.id, passengers);

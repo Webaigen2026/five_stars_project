@@ -15,6 +15,11 @@ import {
   isRoundTripLegs,
   loadBookingLegsWithFlights,
 } from "../../lib/booking-segments";
+import {
+  getFareFamilyLabel,
+  parseFareFamily,
+  resolveSegmentFarePriceCents,
+} from "../../lib/fare-families";
 import { formatPassengerTypeLabel } from "../../lib/passenger-composition";
 import { isStripeConfigured } from "../../lib/payments";
 import { formatMoney } from "../../lib/trip-formatting";
@@ -130,8 +135,6 @@ export default async function CheckoutPage({
 
   const sortedPassengers = [...passengers].sort((left, right) => left.id - right.id);
   const passengerCount = booking.passengerCount;
-  const fareEach =
-    passengerCount > 0 ? Math.round(booking.subtotal / passengerCount) : 0;
   const bookingStatus = getBookingStatusPresentation(booking.status);
   const isOwner =
     currentUser != null && currentUser.id === booking.userId;
@@ -327,14 +330,40 @@ export default async function CheckoutPage({
                 </h2>
 
                 <div className="mt-6 space-y-4 text-sm">
-                  <div className="flex justify-between gap-4">
-                    <span className="text-slate-600">
-                      {passengerCount} × {formatMoney(fareEach)}
-                    </span>
-                    <span className="font-medium text-slate-950">
-                      {formatMoney(booking.subtotal)}
-                    </span>
-                  </div>
+                  {legs.map((leg) => {
+                    const fareCents = resolveSegmentFarePriceCents({
+                      farePriceCents: leg.farePriceCents,
+                      flightPriceCents: leg.flight.price,
+                    });
+                    const family =
+                      parseFareFamily(leg.fareFamily) ?? "BASIC";
+                    const lineTotal = fareCents * passengerCount;
+                    return (
+                      <div
+                        key={`${leg.segmentType}-${leg.flightId}`}
+                        className="flex justify-between gap-4"
+                      >
+                        <span className="text-slate-600">
+                          {leg.flight.code} · {getFareFamilyLabel(family)}
+                          <span className="mt-0.5 block text-xs text-slate-500">
+                            {passengerCount} × {formatMoney(fareCents)}
+                          </span>
+                        </span>
+                        <span className="font-medium text-slate-950">
+                          {formatMoney(lineTotal)}
+                        </span>
+                      </div>
+                    );
+                  })}
+
+                  {legs.length === 0 ? (
+                    <div className="flex justify-between gap-4">
+                      <span className="text-slate-600">Subtotal</span>
+                      <span className="font-medium text-slate-950">
+                        {formatMoney(booking.subtotal)}
+                      </span>
+                    </div>
+                  ) : null}
 
                   <div className="flex justify-between gap-4">
                     <span className="text-slate-600">Taxes & fees</span>

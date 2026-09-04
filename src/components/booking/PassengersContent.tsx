@@ -24,6 +24,7 @@ import {
   formatArrivalTime,
   formatDepartureDateShort,
   formatDepartureTime,
+  formatMoney,
   formatRoute,
 } from "../../lib/trip-formatting";
 
@@ -52,6 +53,13 @@ export type RoundTripFlightSummary = {
   arrivalTime: string;
 };
 
+export type FareSummary = {
+  flightCode: string;
+  fareFamily: string;
+  fareLabel: string;
+  priceCents: number;
+};
+
 type PassengersContentProps = {
   tripType?: TripType;
   roundTripOutbound?: RoundTripFlightSummary | null;
@@ -59,6 +67,9 @@ type PassengersContentProps = {
   roundTripInvalid?: boolean;
   /** Origin-local YYYY-MM-DD for the outbound flight departure. */
   outboundDepartureDate?: string | null;
+  oneWayFare?: FareSummary | null;
+  outboundFare?: FareSummary | null;
+  returnFare?: FareSummary | null;
   /** Server-normalized slots from /passengers search params (preferred). */
   initialTravelerSlots?: TravelerCategorySlot[];
   initialPassengerCount?: number;
@@ -101,6 +112,9 @@ export default function PassengersContent({
   roundTripReturn = null,
   roundTripInvalid = false,
   outboundDepartureDate = null,
+  oneWayFare = null,
+  outboundFare = null,
+  returnFare = null,
   initialTravelerSlots,
   initialCompositionSummary,
   initialCompositionParams,
@@ -355,11 +369,14 @@ export default function PassengersContent({
             tripType: "round-trip",
             outboundFlightId: roundTripOutbound!.id,
             returnFlightId: roundTripReturn!.id,
+            outboundFareFamily: outboundFare?.fareFamily ?? "BASIC",
+            returnFareFamily: returnFare?.fareFamily ?? "BASIC",
             passengers,
             ...compositionPayload,
           }
         : {
             flightCode: flightId,
+            fareFamily: oneWayFare?.fareFamily ?? "BASIC",
             passengers,
             ...compositionPayload,
           };
@@ -446,6 +463,13 @@ export default function PassengersContent({
               <div className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-700">
                 Flight{" "}
                 <span className="font-semibold text-slate-950">{flightId}</span>
+                {oneWayFare ? (
+                  <span className="text-slate-600">
+                    {" "}
+                    · {oneWayFare.fareLabel} ·{" "}
+                    {formatMoney(oneWayFare.priceCents)}
+                  </span>
+                ) : null}
               </div>
             ) : null}
 
@@ -505,6 +529,12 @@ export default function PassengersContent({
                   <p className="mt-1 text-sm font-medium text-slate-900">
                     {roundTripOutbound.code}
                   </p>
+                  {outboundFare ? (
+                    <p className="mt-1 text-sm text-slate-600">
+                      {outboundFare.fareLabel} ·{" "}
+                      {formatMoney(outboundFare.priceCents)} per passenger
+                    </p>
+                  ) : null}
                 </div>
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
@@ -524,6 +554,12 @@ export default function PassengersContent({
                   <p className="mt-1 text-sm font-medium text-slate-900">
                     {roundTripReturn.code}
                   </p>
+                  {returnFare ? (
+                    <p className="mt-1 text-sm text-slate-600">
+                      {returnFare.fareLabel} ·{" "}
+                      {formatMoney(returnFare.priceCents)} per passenger
+                    </p>
+                  ) : null}
                 </div>
               </div>
             )}

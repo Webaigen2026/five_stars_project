@@ -10,6 +10,11 @@ import {
   isRoundTripLegs,
   loadBookingLegsWithFlights,
 } from "../../../../lib/booking-segments";
+import {
+  getFareFamilyLabel,
+  parseFareFamily,
+  resolveSegmentFarePriceCents,
+} from "../../../../lib/fare-families";
 import { formatPassengerTypeLabel } from "../../../../lib/passenger-composition";
 import { maskPassportNumber } from "../../../../lib/sensitive-data";
 import { getDecryptedPassportNumber } from "../../../../lib/traveler-encryption";
@@ -189,6 +194,19 @@ export default async function AdminBookingDetailPage({
                   </p>
                   <p className="mt-1 text-slate-600">
                     Arrives {formatArrivalDateTime(leg.flight)}
+                  </p>
+                  <p className="mt-2 font-medium text-slate-900">
+                    {getFareFamilyLabel(
+                      parseFareFamily(leg.fareFamily) ?? "BASIC"
+                    )}{" "}
+                    ·{" "}
+                    {formatMoney(
+                      resolveSegmentFarePriceCents({
+                        farePriceCents: leg.farePriceCents,
+                        flightPriceCents: leg.flight.price,
+                      })
+                    )}{" "}
+                    per passenger
                   </p>
                 </div>
               ))}

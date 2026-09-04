@@ -1,4 +1,4 @@
-import Link from "next/link";
+"use client";
 
 import {
   formatArrivalTime,
@@ -23,14 +23,15 @@ export type FlightResultCardFlight = {
 
 type FlightResultCardProps = {
   flight: FlightResultCardFlight;
-  selectHref: string;
   selectLabel?: string;
+  /** Opens fare modal (preferred). */
+  onSelect?: () => void;
 };
 
 export default function FlightResultCard({
   flight,
-  selectHref,
   selectLabel = "Select Flight",
+  onSelect,
 }: FlightResultCardProps) {
   return (
     <article className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -92,12 +93,13 @@ export default function FlightResultCard({
 
           <p className="mt-1 text-xs text-slate-500">per passenger</p>
 
-          <Link
-            href={selectHref}
+          <button
+            type="button"
+            onClick={onSelect}
             className="mt-5 inline-flex w-full justify-center rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
           >
             {selectLabel}
-          </Link>
+          </button>
         </div>
       </div>
     </article>

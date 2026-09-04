@@ -134,6 +134,13 @@ model BookingSegment {
   segmentType String
   sequence    Int
 
+  // StarJet fare family selected for this leg. BASIC | STANDARD | FLEX
+  fareFamily String @default("BASIC")
+
+  // Snapshot of per-passenger fare (cents) at booking creation.
+  // Null on legacy segments — fall back to Flight.price when rendering.
+  farePriceCents Int?
+
   createdAt TimestamptzString @default(now())
 
   @@unique([bookingId, sequence])
