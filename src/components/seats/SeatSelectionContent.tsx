@@ -38,19 +38,23 @@ type SegmentView = {
 type SeatSelectionContentProps = {
   bookingReference: string;
   editable: boolean;
+  isGuestBooking: boolean;
   initialSegments: SegmentView[];
   initialSeatFeesTotal: number;
   confirmationHref: string;
   tripHref: string;
+  findTripHref: string;
 };
 
 export default function SeatSelectionContent({
   bookingReference,
   editable,
+  isGuestBooking,
   initialSegments,
   initialSeatFeesTotal,
   confirmationHref,
   tripHref,
+  findTripHref,
 }: SeatSelectionContentProps) {
   const router = useRouter();
   const [segments, setSegments] = useState(initialSegments);
@@ -58,6 +62,7 @@ export default function SeatSelectionContent({
   const [passengerIndex, setPassengerIndex] = useState(0);
   const [seatFeesTotal, setSeatFeesTotal] = useState(initialSeatFeesTotal);
   const [error, setError] = useState<string | null>(null);
+  const [accessDenied, setAccessDenied] = useState(false);
   const [busy, setBusy] = useState(false);
 
   const segment = segments[segmentIndex];
@@ -88,13 +93,23 @@ export default function SeatSelectionContent({
 
   async function refreshFromServer() {
     const response = await fetch(
-      `/api/bookings/${encodeURIComponent(bookingReference)}/seats`
+      `/api/bookings/${encodeURIComponent(bookingReference)}/seats`,
+      { credentials: "same-origin" }
     );
     const payload = (await response.json()) as {
       segments?: SegmentView[];
       seatFeesTotal?: number;
       error?: string;
     };
+    if (response.status === 401 || response.status === 403) {
+      setAccessDenied(true);
+      setError(
+        isGuestBooking
+          ? "Your booking access has expired. Verify your trip to continue."
+          : "You do not have access to manage seats for this booking."
+      );
+      throw new Error("access_denied");
+    }
     if (!response.ok) {
       throw new Error(payload.error ?? "Unable to refresh seats.");
     }
@@ -107,7 +122,13 @@ export default function SeatSelectionContent({
   }
 
   async function selectSeat(seatNumber: string) {
-    if (!editable || !segment?.bookingSegmentId || !passenger || busy) {
+    if (
+      !editable ||
+      !segment?.bookingSegmentId ||
+      !passenger ||
+      busy ||
+      accessDenied
+    ) {
       return;
     }
 
@@ -119,6 +140,7 @@ export default function SeatSelectionContent({
         `/api/bookings/${encodeURIComponent(bookingReference)}/seats/assign`,
         {
           method: "POST",
+          credentials: "same-origin",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             bookingSegmentId: segment.bookingSegmentId,
@@ -132,9 +154,24 @@ export default function SeatSelectionContent({
         seatFeesTotal?: number;
       };
 
+      if (response.status === 401 || response.status === 403) {
+        setAccessDenied(true);
+        setError(
+          payload.error ??
+            (isGuestBooking
+              ? "Your booking access has expired. Verify your trip to continue."
+              : "You do not have access to manage seats for this booking.")
+        );
+        return;
+      }
+
       if (!response.ok) {
         setError(payload.error ?? "That seat is no longer available.");
-        await refreshFromServer();
+        try {
+          await refreshFromServer();
+        } catch {
+          // refresh may also surface access denial
+        }
         return;
       }
 
@@ -160,6 +197,45 @@ export default function SeatSelectionContent({
       return;
     }
     router.push(confirmationHref);
+  }
+
+  if (accessDenied) {
+    return (
+      <div className="mx-auto max-w-xl rounded-3xl border border-amber-200 bg-amber-50 px-6 py-8">
+        <h1 className="text-2xl font-semibold tracking-tight text-slate-950">
+          Booking access required
+        </h1>
+        <p className="mt-3 text-slate-700" role="alert">
+          {error ??
+            (isGuestBooking
+              ? "Your booking access has expired. Verify your trip to continue."
+              : "You do not have access to manage seats for this booking.")}
+        </p>
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+          {isGuestBooking ? (
+            <Link
+              href={findTripHref}
+              className="rounded-xl bg-primary px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-primary-hover"
+            >
+              Find My Trip
+            </Link>
+          ) : (
+            <Link
+              href="/login"
+              className="rounded-xl bg-primary px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-primary-hover"
+            >
+              Sign in
+            </Link>
+          )}
+          <Link
+            href={tripHref}
+            className="rounded-xl border border-slate-200 bg-white px-5 py-3 text-center text-sm font-semibold text-slate-800 transition hover:bg-slate-50"
+          >
+            Back to trip
+          </Link>
+        </div>
+      </div>
+    );
   }
 
   if (!segment || !passenger) {

@@ -86,10 +86,6 @@ export async function POST(request: Request) {
       return jsonError("Forbidden.", 403);
     }
 
-    if (access.currentUser && access.currentUser.role !== "CUSTOMER") {
-      return jsonError("Forbidden.", 403);
-    }
-
     const [legs, passengers, existingPayment] = await Promise.all([
       loadBookingLegsWithFlights(booking),
       db.orm.public.Passenger.select("id").where({ bookingId: booking.id }).all(),

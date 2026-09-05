@@ -1,4 +1,4 @@
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 
 import Footer from "../../../../components/layout/Footer";
 import Header from "../../../../components/layout/Header";
@@ -37,6 +37,10 @@ export default async function BookingSeatsPage({
 
   const access = await resolveBookingAccess(booking);
   if (!access.authorized) {
+    // Guest access expired/missing → recovery via Find My Trip (D15.2).
+    if (booking.userId == null) {
+      redirect("/find-trip");
+    }
     notFound();
   }
 
@@ -109,10 +113,12 @@ export default async function BookingSeatsPage({
           <SeatSelectionContent
             bookingReference={booking.bookingReference}
             editable={isPayableBookingStatus(booking.status)}
+            isGuestBooking={booking.userId == null}
             initialSegments={initialSegments}
             initialSeatFeesTotal={booking.seatFeesTotal ?? 0}
             confirmationHref={confirmationHref}
             tripHref={tripHref}
+            findTripHref="/find-trip"
           />
         </section>
       </main>

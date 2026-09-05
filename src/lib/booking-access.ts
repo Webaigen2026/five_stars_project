@@ -48,6 +48,27 @@ export function canAccessBooking(input: BookingAccessInput) {
   return evaluateBookingAccess(input).authorized;
 }
 
+/**
+ * Seat / checkout mutations must trust evaluateBookingAccess alone.
+ * Do NOT re-gate on role === "CUSTOMER" after authorization — that blocks:
+ * - STAFF/ADMIN who own a booking they created while logged in
+ * - logged-in STAFF/ADMIN holding a valid D15.2 guest JWT for a guest booking
+ * while the seat page (which has no role gate) still renders the map.
+ */
+export function canMutateAuthorizedBooking(
+  access: BookingAccessResult
+): access is { authorized: true; mode: "account" | "guest" } {
+  return access.authorized === true;
+}
+
+/** Customer-facing denial copy for seat mutation 403s. */
+export function seatMutationAccessDeniedMessage(bookingUserId: number | null) {
+  if (bookingUserId == null) {
+    return "Your booking access has expired. Verify your trip to continue.";
+  }
+  return "You do not have access to manage seats for this booking.";
+}
+
 /** Normalize booking contact email (same convention as login/register). */
 export function normalizeBookingContactEmail(email: string) {
   return email.trim().toLowerCase();

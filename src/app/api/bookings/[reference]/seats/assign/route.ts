@@ -1,11 +1,18 @@
 import { resolveBookingAccess } from "../../../../../../lib/booking-access-server";
 import {
+  canMutateAuthorizedBooking,
+  seatMutationAccessDeniedMessage,
+} from "../../../../../../lib/booking-access";
+import {
   assignPassengerSeat,
   isSeatAssignmentError,
   seatAssignmentHttpStatus,
 } from "../../../../../../lib/seat-assignments";
 import { db } from "../../../../../../prisma/db";
-import { sensitiveJson } from "../../../../../../lib/request-security";
+import {
+  rejectUntrustedMutation,
+  sensitiveJson,
+} from "../../../../../../lib/request-security";
 
 function jsonError(message: string, status: number) {
   return sensitiveJson({ error: message }, { status });
@@ -15,6 +22,11 @@ export async function POST(
   request: Request,
   context: { params: Promise<{ reference: string }> }
 ) {
+  const rejected = rejectUntrustedMutation(request);
+  if (rejected) {
+    return rejected;
+  }
+
   const { reference: raw } = await context.params;
   const bookingReference = decodeURIComponent(raw).trim();
 
@@ -27,12 +39,10 @@ export async function POST(
   }
 
   const access = await resolveBookingAccess(booking);
-  if (!access.authorized) {
-    return jsonError("Forbidden.", 403);
-  }
-
-  if (access.currentUser && access.currentUser.role !== "CUSTOMER") {
-    return jsonError("Forbidden.", 403);
+  // Authoritative policy: account owner OR booking-scoped guest JWT.
+  // Do not re-check CUSTOMER role after this (see canMutateAuthorizedBooking).
+  if (!canMutateAuthorizedBooking(access)) {
+    return jsonError(seatMutationAccessDeniedMessage(booking.userId), 403);
   }
 
   let body: unknown;

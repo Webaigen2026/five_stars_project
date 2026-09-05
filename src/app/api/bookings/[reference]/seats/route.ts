@@ -1,4 +1,7 @@
 import { resolveBookingAccess } from "../../../../../lib/booking-access-server";
+import {
+  seatMutationAccessDeniedMessage,
+} from "../../../../../lib/booking-access";
 import { loadBookingLegsWithFlights } from "../../../../../lib/booking-segments";
 import { parseFareFamily } from "../../../../../lib/fare-families";
 import { getSeatLayout } from "../../../../../lib/seat-layouts";
@@ -35,7 +38,8 @@ export async function GET(
 
   const access = await resolveBookingAccess(booking);
   if (!access.authorized) {
-    return jsonError("Booking not found.", 404);
+    // Distinguish missing booking from expired/missing authorization.
+    return jsonError(seatMutationAccessDeniedMessage(booking.userId), 403);
   }
 
   const [legs, passengers, assignments] = await Promise.all([
