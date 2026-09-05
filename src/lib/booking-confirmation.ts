@@ -6,7 +6,10 @@ import {
 import { getBookingStatusPresentation } from "./booking-status";
 import { formatPassengerTypeLabel } from "./passenger-composition";
 import { isRoundTripLegs, type BookingLeg } from "./booking-legs";
-import { canReviewCheckoutBooking } from "./checkout";
+import {
+  canAccessBooking,
+  type BookingAccessInput,
+} from "./booking-access";
 
 export type ConfirmationTravelerInput = {
   id: number;
@@ -62,11 +65,19 @@ export type BookingConfirmationViewModel = {
   flightsHref: string;
 };
 
-export function canAccessBookingConfirmation(
+export function canAccessBookingConfirmation(input: BookingAccessInput) {
+  return canAccessBooking(input);
+}
+
+/** @deprecated Use canAccessBookingConfirmation(BookingAccessInput). */
+export function canAccessBookingConfirmationLegacy(
   bookingUserId: number | null,
   currentUserId: number | null
 ) {
-  return canReviewCheckoutBooking(bookingUserId, currentUserId);
+  if (bookingUserId == null || currentUserId == null) {
+    return false;
+  }
+  return bookingUserId === currentUserId;
 }
 
 export function buildConfirmationSegmentView(leg: {

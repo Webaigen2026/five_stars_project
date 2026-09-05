@@ -155,6 +155,21 @@ export async function revokeSession(sessionId: string) {
   });
 }
 
+/** Revoke every session for a user (password reset / account recovery). */
+export async function revokeAllSessionsForUser(userId: number) {
+  const revokedAt = new Date().toISOString();
+  const sessions = await db.orm.public.Session.where({ userId }).all();
+
+  for (const session of sessions) {
+    if (session.revokedAt) {
+      continue;
+    }
+    await db.orm.public.Session.where({ id: session.id }).update({
+      revokedAt,
+    });
+  }
+}
+
 export async function cleanupExpiredSessions() {
   const expiredSessions = await db.orm.public.Session.all();
   const now = Date.now();

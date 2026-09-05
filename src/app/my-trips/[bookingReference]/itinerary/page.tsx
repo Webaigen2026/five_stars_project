@@ -6,7 +6,7 @@ import PrintableItineraryDocument from "../../../../components/booking/Printable
 import PrintItineraryButton from "../../../../components/booking/PrintItineraryButton";
 import Footer from "../../../../components/layout/Footer";
 import Header from "../../../../components/layout/Header";
-import { requireUser } from "../../../../lib/authorization";
+import { resolveBookingAccess } from "../../../../lib/booking-access-server";
 import { loadBookingLegsWithFlights } from "../../../../lib/booking-segments";
 import { buildPrintItineraryViewModel } from "../../../../lib/print-itinerary";
 import { db } from "../../../../prisma/db";
@@ -31,7 +31,6 @@ export async function generateMetadata({
 }
 
 export default async function ItineraryPage({ params }: ItineraryPageProps) {
-  const currentUser = await requireUser();
   const { bookingReference: rawReference } = await params;
   const bookingReference = decodeURIComponent(rawReference).trim();
 
@@ -43,7 +42,12 @@ export default async function ItineraryPage({ params }: ItineraryPageProps) {
     bookingReference,
   }).first();
 
-  if (!booking || booking.userId !== currentUser.id) {
+  if (!booking) {
+    notFound();
+  }
+
+  const access = await resolveBookingAccess(booking);
+  if (!access.authorized) {
     notFound();
   }
 

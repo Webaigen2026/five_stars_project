@@ -68,19 +68,19 @@ export function assertCheckoutAmountMatchesBooking(input: {
 
 export function validatePayableBookingForCheckout(input: {
   booking: PayableBookingSnapshot;
-  currentUserId: number;
+  /**
+   * Pre-checked via evaluateBookingAccess / canAccessBooking.
+   * Callers must authorize before invoking this helper.
+   */
+  accessAuthorized: boolean;
   passengerRows: number;
   segmentCount: number;
   existingPayment: PayablePaymentSnapshot;
 }) {
-  const { booking, currentUserId, passengerRows, segmentCount, existingPayment } =
+  const { booking, accessAuthorized, passengerRows, segmentCount, existingPayment } =
     input;
 
-  if (booking.userId == null) {
-    throw new PaymentError("Sign in is required before payment.", 403);
-  }
-
-  if (booking.userId !== currentUserId) {
+  if (!accessAuthorized) {
     throw new PaymentError("Forbidden.", 403);
   }
 
@@ -144,13 +144,18 @@ export function buildCheckoutProductCopy(input: {
 export function buildCheckoutSessionMetadata(input: {
   bookingId: number;
   bookingReference: string;
-  userId: number;
+  userId?: number | null;
 }) {
-  return {
+  const metadata: Record<string, string> = {
     bookingId: String(input.bookingId),
     bookingReference: input.bookingReference,
-    userId: String(input.userId),
   };
+
+  if (input.userId != null) {
+    metadata.userId = String(input.userId);
+  }
+
+  return metadata;
 }
 
 export function parseBookingIdFromMetadata(

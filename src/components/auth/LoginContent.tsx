@@ -4,6 +4,8 @@ import { FormEvent, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 
+import { OPTIONAL_VERIFICATION_COPY } from "../../lib/auth-email-policy";
+
 export default function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -74,17 +76,15 @@ export default function LoginContent() {
         {registered && !error && (
           <div className="mt-4 space-y-2">
             <p className="text-sm font-medium text-green-700">
-              Account created successfully. Please sign in.
+              Account created. You can sign in now.
             </p>
             {verificationEmailFailed ? (
               <p className="text-sm text-amber-800">
-                We couldn&apos;t send the verification email. Please try
-                again from your account after signing in.
+                {OPTIONAL_VERIFICATION_COPY.loginAfterRegisterEmailFailed}
               </p>
             ) : (
               <p className="text-sm text-slate-600">
-                Please verify your email when you receive the verification
-                link.
+                {OPTIONAL_VERIFICATION_COPY.loginAfterRegister}
               </p>
             )}
           </div>
@@ -111,12 +111,20 @@ export default function LoginContent() {
         </div>
 
         <div>
-          <label
-            htmlFor="password"
-            className="mb-2 block text-sm font-medium text-slate-700"
-          >
-            Password
-          </label>
+          <div className="mb-2 flex items-center justify-between gap-3">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-slate-700"
+            >
+              Password
+            </label>
+            <Link
+              href="/forgot-password"
+              className="text-sm font-semibold text-primary"
+            >
+              Forgot password?
+            </Link>
+          </div>
 
           <input
             id="password"
@@ -142,6 +150,13 @@ export default function LoginContent() {
       </form>
 
       <p className="mt-6 text-center text-sm text-slate-600">
+        Looking for a guest booking?{" "}
+        <Link href="/find-trip" className="font-semibold text-primary">
+          Find My Trip
+        </Link>
+      </p>
+
+      <p className="mt-3 text-center text-sm text-slate-600">
         Don&apos;t have an account?{" "}
         <Link href="/register" className="font-semibold text-primary">
           Create one

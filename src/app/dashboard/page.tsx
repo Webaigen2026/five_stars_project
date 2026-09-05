@@ -157,11 +157,17 @@ export default async function DashboardPage() {
                   <dt className="text-slate-500">Email verification</dt>
                   <dd className="mt-1 font-medium text-slate-950">
                     {user.emailVerified
-                      ? "Email verified"
-                      : "Email not verified"}
+                      ? "Verified"
+                      : "Not verified (optional)"}
                   </dd>
                   {!user.emailVerified && (
-                    <ResendVerificationButton email={user.email} />
+                    <>
+                      <p className="mt-2 text-xs text-slate-500">
+                        Confirm your email so we know we can reach you. You can
+                        keep using your account either way.
+                      </p>
+                      <ResendVerificationButton email={user.email} />
+                    </>
                   )}
                 </div>
               </dl>

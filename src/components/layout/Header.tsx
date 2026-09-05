@@ -46,6 +46,13 @@ export default function Header() {
           >
             Contact
           </Link>
+
+          <Link
+            href="/find-trip"
+            className="text-slate-700 transition hover:text-primary"
+          >
+            Find My Trip
+          </Link>
         </nav>
 
         <div className="hidden items-center gap-3 md:flex">
@@ -107,6 +114,14 @@ export default function Header() {
               className="rounded-lg px-3 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50"
             >
               Contact
+            </Link>
+
+            <Link
+              href="/find-trip"
+              onClick={() => setMenuOpen(false)}
+              className="rounded-lg px-3 py-3 text-sm font-medium text-slate-700 hover:bg-slate-50"
+            >
+              Find My Trip
             </Link>
 
             <div className="mt-3 flex flex-col gap-3 border-t border-slate-200 pt-4">

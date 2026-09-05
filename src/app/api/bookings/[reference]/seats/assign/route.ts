@@ -1,29 +1,39 @@
-import { getCurrentUser } from "../../../../../../lib/auth";
+import { resolveBookingAccess } from "../../../../../../lib/booking-access-server";
 import {
   assignPassengerSeat,
   isSeatAssignmentError,
   seatAssignmentHttpStatus,
 } from "../../../../../../lib/seat-assignments";
+import { db } from "../../../../../../prisma/db";
+import { sensitiveJson } from "../../../../../../lib/request-security";
 
 function jsonError(message: string, status: number) {
-  return Response.json({ error: message }, { status });
+  return sensitiveJson({ error: message }, { status });
 }
 
 export async function POST(
   request: Request,
   context: { params: Promise<{ reference: string }> }
 ) {
-  const currentUser = await getCurrentUser();
-  if (!currentUser) {
-    return jsonError("Not authenticated.", 401);
+  const { reference: raw } = await context.params;
+  const bookingReference = decodeURIComponent(raw).trim();
+
+  const booking = await db.orm.public.Booking.where({
+    bookingReference,
+  }).first();
+
+  if (!booking) {
+    return jsonError("Booking not found.", 404);
   }
 
-  if (currentUser.role !== "CUSTOMER") {
+  const access = await resolveBookingAccess(booking);
+  if (!access.authorized) {
     return jsonError("Forbidden.", 403);
   }
 
-  const { reference: raw } = await context.params;
-  const bookingReference = decodeURIComponent(raw).trim();
+  if (access.currentUser && access.currentUser.role !== "CUSTOMER") {
+    return jsonError("Forbidden.", 403);
+  }
 
   let body: unknown;
   try {
@@ -51,13 +61,13 @@ export async function POST(
   try {
     const result = await assignPassengerSeat({
       bookingReference,
-      currentUserId: currentUser.id,
+      accessAuthorized: true,
       bookingSegmentId,
       passengerId,
       seatNumber,
     });
 
-    return Response.json({
+    return sensitiveJson({
       success: true,
       seatNumber: result.seatNumber,
       passengerId: result.passengerId,
@@ -70,7 +80,10 @@ export async function POST(
     if (isSeatAssignmentError(error)) {
       return jsonError(error.message, seatAssignmentHttpStatus(error));
     }
-    console.error("Seat assignment failed", error);
+    console.error("Seat assignment failed", {
+      bookingReference,
+      operation: "assign-seat",
+    });
     return jsonError("Unable to assign that seat.", 500);
   }
 }

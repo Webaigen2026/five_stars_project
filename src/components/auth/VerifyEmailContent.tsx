@@ -90,14 +90,23 @@ export default function VerifyEmailContent() {
             Email verified successfully.
           </h1>
           <p className="mt-4 text-slate-600">
-            You can now sign in to your Five Stars account.
+            Thanks for confirming your email. Your Five Stars account is up to
+            date.
           </p>
-          <Link
-            href="/login"
-            className="mt-6 inline-flex rounded-xl bg-primary px-6 py-3 font-semibold text-white transition hover:bg-primary-hover"
-          >
-            Sign in
-          </Link>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Link
+              href="/dashboard"
+              className="inline-flex rounded-xl bg-primary px-6 py-3 font-semibold text-white transition hover:bg-primary-hover"
+            >
+              Go to dashboard
+            </Link>
+            <Link
+              href="/login"
+              className="inline-flex rounded-xl border border-slate-200 px-6 py-3 font-semibold text-slate-800 transition hover:bg-slate-50"
+            >
+              Sign in
+            </Link>
+          </div>
         </>
       )}
 

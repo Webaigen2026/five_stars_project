@@ -7,11 +7,9 @@ import Footer from "../../components/layout/Footer";
 import Header from "../../components/layout/Header";
 import { getCurrentUser } from "../../lib/auth";
 import { getBookingAmountDueCents } from "../../lib/booking-amount";
+import { resolveBookingAccess } from "../../lib/booking-access-server";
 import { getBookingStatusPresentation } from "../../lib/booking-status";
-import {
-  canReviewCheckoutBooking,
-  getCheckoutPaymentAction,
-} from "../../lib/checkout";
+import { getCheckoutPaymentAction } from "../../lib/checkout";
 import {
   isRoundTripLegs,
   loadBookingLegsWithFlights,
@@ -117,12 +115,14 @@ export default async function CheckoutPage({
     );
   }
 
-  if (!canReviewCheckoutBooking(booking.userId, currentUser?.id ?? null)) {
+  const access = await resolveBookingAccess(booking);
+
+  if (!access.authorized) {
     return (
       <CheckoutError
         title="Booking not available."
-        message="This booking is not available for review."
-        showMyTrips
+        message="This booking is not available for review. If you just created it as a guest, continue from the same browser session."
+        showMyTrips={Boolean(currentUser)}
       />
     );
   }
@@ -145,9 +145,14 @@ export default async function CheckoutPage({
     currentUserId: currentUser?.id ?? null,
     currentUserRole: currentUser?.role ?? null,
     stripeConfigured: isStripeTestModeReady(),
+    guestAuthorized: access.mode === "guest",
   });
-  const tripHref = `/my-trips/${encodeURIComponent(booking.bookingReference)}`;
-  const itineraryHref = `${tripHref}/itinerary`;
+  const tripHref =
+    access.mode === "account"
+      ? `/my-trips/${encodeURIComponent(booking.bookingReference)}`
+      : `/booking/confirmation/${encodeURIComponent(booking.bookingReference)}`;
+  const itineraryHref =
+    access.mode === "account" ? `${tripHref}/itinerary` : tripHref;
   const isRoundTrip = isRoundTripLegs(legs);
 
   return (

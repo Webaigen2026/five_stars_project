@@ -145,7 +145,7 @@ async function main() {
 
   const first = await assignPassengerSeat({
     bookingReference: booking1.booking.bookingReference,
-    currentUserId: user.id,
+    accessAuthorized: true,
     bookingSegmentId: booking1.outbound.id,
     passengerId: booking1.adult.id,
     seatNumber: "12A",
@@ -157,7 +157,7 @@ async function main() {
   try {
     await assignPassengerSeat({
       bookingReference: booking2.booking.bookingReference,
-      currentUserId: user.id,
+      accessAuthorized: true,
       bookingSegmentId: booking2.outbound.id,
       passengerId: booking2.adult.id,
       seatNumber: "12A",
@@ -170,7 +170,7 @@ async function main() {
 
   const returnSeat = await assignPassengerSeat({
     bookingReference: booking1.booking.bookingReference,
-    currentUserId: user.id,
+    accessAuthorized: true,
     bookingSegmentId: booking1.inbound.id,
     passengerId: booking1.adult.id,
     seatNumber: "12A",
@@ -182,7 +182,7 @@ async function main() {
   try {
     await assignPassengerSeat({
       bookingReference: booking1.booking.bookingReference,
-      currentUserId: user.id,
+      accessAuthorized: true,
       bookingSegmentId: booking1.outbound.id,
       passengerId: booking1.child.id,
       seatNumber: "12B",
@@ -196,7 +196,7 @@ async function main() {
 
   const changed = await assignPassengerSeat({
     bookingReference: booking1.booking.bookingReference,
-    currentUserId: user.id,
+    accessAuthorized: true,
     bookingSegmentId: booking1.outbound.id,
     passengerId: booking1.adult.id,
     seatNumber: "14C",
@@ -205,7 +205,7 @@ async function main() {
 
   await assignPassengerSeat({
     bookingReference: booking2.booking.bookingReference,
-    currentUserId: user.id,
+    accessAuthorized: true,
     bookingSegmentId: booking2.outbound.id,
     passengerId: booking2.adult.id,
     seatNumber: "15A",
@@ -215,7 +215,7 @@ async function main() {
   try {
     await assignPassengerSeat({
       bookingReference: booking1.booking.bookingReference,
-      currentUserId: user.id,
+      accessAuthorized: true,
       bookingSegmentId: booking1.outbound.id,
       passengerId: booking1.adult.id,
       seatNumber: "15A",

@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import Footer from "../../../../components/layout/Footer";
 import Header from "../../../../components/layout/Header";
 import SeatSelectionContent from "../../../../components/seats/SeatSelectionContent";
-import { requireUser } from "../../../../lib/authorization";
+import { resolveBookingAccess } from "../../../../lib/booking-access-server";
 import { loadBookingLegsWithFlights } from "../../../../lib/booking-segments";
 import { parseFareFamily } from "../../../../lib/fare-families";
 import { getSeatLayout } from "../../../../lib/seat-layouts";
@@ -20,7 +20,6 @@ export default async function BookingSeatsPage({
 }: {
   params: Promise<{ bookingReference: string }>;
 }) {
-  const currentUser = await requireUser();
   const { bookingReference: raw } = await params;
   const bookingReference = decodeURIComponent(raw).trim();
 
@@ -32,7 +31,12 @@ export default async function BookingSeatsPage({
     bookingReference,
   }).first();
 
-  if (!booking || booking.userId !== currentUser.id) {
+  if (!booking) {
+    notFound();
+  }
+
+  const access = await resolveBookingAccess(booking);
+  if (!access.authorized) {
     notFound();
   }
 

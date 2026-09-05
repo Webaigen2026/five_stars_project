@@ -7,12 +7,11 @@ import BookingStatusBadge from "../../../components/booking/BookingStatusBadge";
 import CopyBookingReferenceButton from "../../../components/booking/CopyBookingReferenceButton";
 import Footer from "../../../components/layout/Footer";
 import Header from "../../../components/layout/Header";
-import { requireUser } from "../../../lib/authorization";
+import { resolveBookingAccess } from "../../../lib/booking-access-server";
 import { loadBookingLegsWithFlights } from "../../../lib/booking-segments";
 import { getBookingAmountDueCents } from "../../../lib/booking-amount";
 import {
   buildTripDetailViewModel,
-  canAccessTripDetail,
   formatMoney,
 } from "../../../lib/trip-detail";
 import { db } from "../../../prisma/db";
@@ -22,7 +21,6 @@ export default async function TripDetailPage({
 }: {
   params: Promise<{ bookingReference: string }>;
 }) {
-  const currentUser = await requireUser();
   const { bookingReference: rawReference } = await params;
   const bookingReference = decodeURIComponent(rawReference).trim();
 
@@ -34,10 +32,12 @@ export default async function TripDetailPage({
     bookingReference,
   }).first();
 
-  if (
-    !booking ||
-    !canAccessTripDetail(booking.userId ?? null, currentUser.id)
-  ) {
+  if (!booking) {
+    notFound();
+  }
+
+  const access = await resolveBookingAccess(booking);
+  if (!access.authorized) {
     notFound();
   }
 

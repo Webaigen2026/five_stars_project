@@ -49,7 +49,7 @@ describe("payment checkout architecture (D13.1)", () => {
 
     const ok = validatePayableBookingForCheckout({
       booking: bookingBase,
-      currentUserId: 7,
+      accessAuthorized: true,
       passengerRows: 1,
       segmentCount: 1,
       existingPayment: null,
@@ -60,7 +60,7 @@ describe("payment checkout architecture (D13.1)", () => {
       () =>
         validatePayableBookingForCheckout({
           booking: bookingBase,
-          currentUserId: 99,
+          accessAuthorized: false,
           passengerRows: 1,
           segmentCount: 1,
           existingPayment: null,
@@ -271,7 +271,7 @@ describe("payment checkout architecture (D13.1)", () => {
       () =>
         validatePayableBookingForCheckout({
           booking: { ...bookingBase, userId: 1 },
-          currentUserId: 2,
+          accessAuthorized: false,
           passengerRows: 1,
           segmentCount: 1,
           existingPayment: null,
@@ -285,7 +285,7 @@ describe("payment checkout architecture (D13.1)", () => {
       () =>
         validatePayableBookingForCheckout({
           booking: bookingBase,
-          currentUserId: 7,
+          accessAuthorized: true,
           passengerRows: 1,
           segmentCount: 1,
           existingPayment: {

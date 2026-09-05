@@ -21,6 +21,7 @@ model User {
   charterRequests CharterRequest[]
   contactMessages ContactMessage[]
   emailVerificationTokens EmailVerificationToken[]
+  passwordResetCodes PasswordResetCode[]
   sessions Session[]
   travelerProfiles TravelerProfile[]
 
@@ -96,6 +97,11 @@ model Booking {
   user   User? @relation(fields: [userId], references: [id])
   userId Int?
 
+  // D15.1: booking-level contact email (authoritative for guest + account bookings).
+  // Nullable at DB for additive safety; required at app layer for guest creates.
+  // Never used as authorization by itself.
+  contactEmail String?
+
   // Compatibility primary flight (outbound for round trips). Prefer BookingSegment for reads.
   flight   Flight @relation(fields: [flightId], references: [id])
   flightId Int
@@ -123,6 +129,7 @@ model Booking {
   payment    Payment?
   segments   BookingSegment[]
   seatAssignments SeatAssignment[]
+  guestTripAccessCodes GuestTripAccessCode[]
 
   createdAt TimestamptzString @default(now())
   updatedAt temporal.updatedAtString()
@@ -254,6 +261,56 @@ model EmailVerificationToken {
   expiresAt TimestamptzString
 
   createdAt TimestamptzString @default(now())
+}
+
+// D14.2: password-reset OTP challenge. Stores only hashes — never plaintext codes.
+model PasswordResetCode {
+  id Int @id @default(autoincrement())
+
+  user   User @relation(fields: [userId], references: [id])
+  userId Int
+
+  // SHA-256 of purpose-prefixed six-digit code.
+  codeHash String
+
+  expiresAt    TimestamptzString
+  attemptCount Int @default(0)
+
+  // Set after successful OTP verification. Authorization secret is hashed only.
+  verifiedAt               TimestamptzString?
+  authorizationTokenHash   String? @unique
+  authorizationExpiresAt   TimestamptzString?
+
+  // Set when password is successfully changed (authorization single-use).
+  consumedAt TimestamptzString?
+
+  createdAt TimestamptzString @default(now())
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+// D15.2: guest Find My Trip OTP challenge. Booking-scoped; never plaintext codes.
+// Post-OTP access reuses D15.1 five_stars_guest_booking JWT (not stored here).
+model GuestTripAccessCode {
+  id Int @id @default(autoincrement())
+
+  booking   Booking @relation(fields: [bookingId], references: [id])
+  bookingId Int
+
+  // SHA-256 of purpose-prefixed six-digit code.
+  codeHash String
+
+  expiresAt    TimestamptzString
+  attemptCount Int @default(0)
+
+  verifiedAt TimestamptzString?
+  consumedAt TimestamptzString?
+
+  createdAt TimestamptzString @default(now())
+
+  @@index([bookingId])
+  @@index([expiresAt])
 }
 
 model Session {

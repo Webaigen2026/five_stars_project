@@ -187,10 +187,16 @@ export default async function AccountPage() {
                 {user.email}
               </h2>
               <p className="mt-3 text-sm font-medium text-slate-950">
-                {user.emailVerified ? "Email verified" : "Email not verified"}
+                {user.emailVerified ? "Verified" : "Not verified (optional)"}
               </p>
               {!user.emailVerified && (
-                <ResendVerificationButton email={user.email} />
+                <>
+                  <p className="mt-2 text-sm text-slate-600">
+                    Confirm your email so we know we can reach you and help
+                    keep your account secure. Sign-in works either way.
+                  </p>
+                  <ResendVerificationButton email={user.email} />
+                </>
               )}
             </div>
 

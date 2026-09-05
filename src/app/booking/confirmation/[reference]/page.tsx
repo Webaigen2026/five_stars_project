@@ -6,10 +6,10 @@ import CopyBookingReferenceButton from "../../../../components/booking/CopyBooki
 import Footer from "../../../../components/layout/Footer";
 import Header from "../../../../components/layout/Header";
 import { getCurrentUser } from "../../../../lib/auth";
+import { resolveBookingAccess } from "../../../../lib/booking-access-server";
 import {
   BOOKING_CONFIRMATION_NOT_FOUND,
   buildBookingConfirmationViewModel,
-  canAccessBookingConfirmation,
   formatBookingReferenceDisplay,
 } from "../../../../lib/booking-confirmation";
 import { getBookingAmountDueCents } from "../../../../lib/booking-amount";
@@ -98,16 +98,13 @@ export default async function BookingConfirmationPage({ params }: Props) {
   }
 
   if (
-    !canAccessBookingConfirmation(
-      booking.userId ?? null,
-      currentUser?.id ?? null
-    )
+    !(await resolveBookingAccess(booking)).authorized
   ) {
     return (
       <ConfirmationError
         title="Booking not available."
-        message="This booking is not available for review."
-        showMyTrips
+        message="This booking is not available for review. If you booked as a guest, open confirmation from the same browser session used to create the booking."
+        showMyTrips={Boolean(currentUser)}
       />
     );
   }

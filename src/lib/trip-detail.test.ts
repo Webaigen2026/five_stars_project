@@ -542,7 +542,7 @@ describe("trip detail (D12.3.2)", () => {
     assert.equal(canAccessTripDetail(10, 10), true);
     assert.equal(canAccessTripDetail(10, 11), false);
     // Guest checkout review remains broader; trip detail stays owner-only.
-    assert.equal(canReviewCheckoutBooking(10, null), true);
+    assert.equal(canReviewCheckoutBooking(10, null), false);
     assert.equal(canAccessTripDetail(10, null), false);
   });
 

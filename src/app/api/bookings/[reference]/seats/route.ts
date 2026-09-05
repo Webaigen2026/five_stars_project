@@ -1,4 +1,4 @@
-import { getCurrentUser } from "../../../../../lib/auth";
+import { resolveBookingAccess } from "../../../../../lib/booking-access-server";
 import { loadBookingLegsWithFlights } from "../../../../../lib/booking-segments";
 import { parseFareFamily } from "../../../../../lib/fare-families";
 import { getSeatLayout } from "../../../../../lib/seat-layouts";
@@ -8,21 +8,17 @@ import {
   formatDepartureTime,
 } from "../../../../../lib/trip-formatting";
 import { isPayableBookingStatus } from "../../../../../lib/payments";
+import { sensitiveJson } from "../../../../../lib/request-security";
 import { db } from "../../../../../prisma/db";
 
 function jsonError(message: string, status: number) {
-  return Response.json({ error: message }, { status });
+  return sensitiveJson({ error: message }, { status });
 }
 
 export async function GET(
   _request: Request,
   context: { params: Promise<{ reference: string }> }
 ) {
-  const currentUser = await getCurrentUser();
-  if (!currentUser) {
-    return jsonError("Not authenticated.", 401);
-  }
-
   const { reference: raw } = await context.params;
   const bookingReference = decodeURIComponent(raw).trim();
   if (!bookingReference) {
@@ -33,7 +29,12 @@ export async function GET(
     bookingReference,
   }).first();
 
-  if (!booking || booking.userId !== currentUser.id) {
+  if (!booking) {
+    return jsonError("Booking not found.", 404);
+  }
+
+  const access = await resolveBookingAccess(booking);
+  if (!access.authorized) {
     return jsonError("Booking not found.", 404);
   }
 
@@ -102,7 +103,7 @@ export async function GET(
     };
   });
 
-  return Response.json({
+  return sensitiveJson({
     bookingReference: booking.bookingReference,
     status: booking.status,
     editable: isPayableBookingStatus(booking.status),

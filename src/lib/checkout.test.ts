@@ -2,16 +2,16 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
 import { getBookingStatusPresentation } from "./booking-status";
-import { canReviewCheckoutBooking, getCheckoutPaymentAction } from "./checkout";
+import {
+  canReviewCheckoutBooking,
+  getCheckoutPaymentAction,
+} from "./checkout";
 
 describe("checkout ownership", () => {
-  it("allows guest bookings and logged-out review", () => {
-    assert.equal(canReviewCheckoutBooking(null, null), true);
-    assert.equal(canReviewCheckoutBooking(null, 10), true);
-    assert.equal(canReviewCheckoutBooking(10, null), true);
-  });
-
-  it("allows the owner and blocks another customer", () => {
+  it("account owners only via legacy helper (guests need cookie auth)", () => {
+    assert.equal(canReviewCheckoutBooking(null, null), false);
+    assert.equal(canReviewCheckoutBooking(null, 10), false);
+    assert.equal(canReviewCheckoutBooking(10, null), false);
     assert.equal(canReviewCheckoutBooking(10, 10), true);
     assert.equal(canReviewCheckoutBooking(10, 11), false);
   });
@@ -41,21 +41,26 @@ describe("checkout payment action", () => {
     );
   });
 
-  it("requires sign-in for guests and logged-out viewers", () => {
+  it("requires guest authorization for guest payment", () => {
     assert.equal(
       getCheckoutPaymentAction({
         ...ownerReady,
         bookingUserId: null,
+        currentUserId: null,
+        currentUserRole: null,
+        guestAuthorized: false,
       }),
       "signin"
     );
     assert.equal(
       getCheckoutPaymentAction({
         ...ownerReady,
+        bookingUserId: null,
         currentUserId: null,
         currentUserRole: null,
+        guestAuthorized: true,
       }),
-      "signin"
+      "ready"
     );
   });
 

@@ -6,6 +6,7 @@ import {
   createUserSession,
   getSessionCookieOptions,
 } from "../../../../lib/auth";
+import { canSignInWithCredentials } from "../../../../lib/auth-email-policy";
 import { db } from "../../../../prisma/db";
 
 const LOCKOUT_THRESHOLD = 5;
@@ -102,6 +103,15 @@ export async function POST(request: Request) {
 
     if (!passwordMatches) {
       await recordFailedLogin(user);
+      throw new LoginRequestError("Invalid email or password.", 401);
+    }
+
+    // D14.1.1: emailVerified does not block ordinary customer sign-in.
+    if (
+      !canSignInWithCredentials({
+        emailVerified: user.emailVerified,
+      })
+    ) {
       throw new LoginRequestError("Invalid email or password.", 401);
     }
 

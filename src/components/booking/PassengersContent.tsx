@@ -373,12 +373,26 @@ export default function PassengersContent({
             returnFareFamily: returnFare?.fareFamily ?? "BASIC",
             passengers,
             ...compositionPayload,
+            ...(!isSignedIn
+              ? {
+                  contactEmail: String(
+                    formData.get("contactEmail") ?? ""
+                  ).trim(),
+                }
+              : {}),
           }
         : {
             flightCode: flightId,
             fareFamily: oneWayFare?.fareFamily ?? "BASIC",
             passengers,
             ...compositionPayload,
+            ...(!isSignedIn
+              ? {
+                  contactEmail: String(
+                    formData.get("contactEmail") ?? ""
+                  ).trim(),
+                }
+              : {}),
           };
 
       const response = await fetch("/api/bookings", {
@@ -583,6 +597,42 @@ export default function PassengersContent({
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
+          {!isSignedIn ? (
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+              <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">
+                Contact
+              </p>
+              <h2 className="mt-2 text-xl font-semibold text-slate-950">
+                Continue as guest
+              </h2>
+              <p className="mt-2 text-sm text-slate-600">
+                We&apos;ll use this email for booking updates. You can sign in
+                anytime — an account is not required to book.
+              </p>
+              <label
+                htmlFor="contactEmail"
+                className="mt-4 block text-sm font-medium text-slate-700"
+              >
+                Contact email
+              </label>
+              <input
+                id="contactEmail"
+                name="contactEmail"
+                type="email"
+                required
+                autoComplete="email"
+                placeholder="you@example.com"
+                className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+              />
+              <p className="mt-3 text-sm text-slate-500">
+                Already have an account?{" "}
+                <Link href="/login" className="font-semibold text-primary">
+                  Sign in
+                </Link>
+              </p>
+            </div>
+          ) : null}
+
           {travelerSlots.map((slot, index) => {
             const selection = selections[index] ?? "";
             const travelerId = selectionToTravelerId(

@@ -41,7 +41,10 @@ export default async function PaymentSuccessPage({
           booking.userId === currentUser.id)
       ) {
         bookingReference = booking.bookingReference;
-        tripHref = `/my-trips/${encodeURIComponent(booking.bookingReference)}`;
+        tripHref =
+          booking.userId == null
+            ? `/booking/confirmation/${encodeURIComponent(booking.bookingReference)}`
+            : `/my-trips/${encodeURIComponent(booking.bookingReference)}`;
         paid =
           booking.status === "PAID" || payment.status === "SUCCEEDED";
         processing = !paid;

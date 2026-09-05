@@ -1,6 +1,6 @@
 /**
- * Five Stars verification email template (D14.1).
- * Email-safe HTML + plain text. No StarJet branding.
+ * Five Stars verification email template (D14.1 / D14.1.1).
+ * Email-safe HTML + plain text. Verification is optional for sign-in.
  */
 
 import { CUSTOMER_BRAND, CUSTOMER_BRAND_MARK } from "../../brand";
@@ -32,7 +32,8 @@ export function buildVerifyEmailTemplate(
     "Verify your email address",
     "",
     `Thanks for creating your ${CUSTOMER_BRAND} account.`,
-    "Please verify your email address to finish setting up your account.",
+    "Confirm your email so we know we can reach you and help keep your account secure.",
+    "Your account can still be used if you choose to verify later.",
     "",
     `Verify email: ${verificationUrl}`,
     "",
@@ -68,7 +69,10 @@ export function buildVerifyEmailTemplate(
                 Thanks for creating your ${escapeHtml(CUSTOMER_BRAND)} account.
               </p>
               <p style="margin:12px 0 0 0;font-size:16px;line-height:1.6;color:#334155;">
-                Please verify your email address to finish setting up your account.
+                Confirm your email so we know we can reach you and help keep your account secure.
+              </p>
+              <p style="margin:12px 0 0 0;font-size:15px;line-height:1.6;color:#64748b;">
+                Your account can still be used if you choose to verify later.
               </p>
             </td>
           </tr>

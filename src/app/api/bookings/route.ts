@@ -2,6 +2,9 @@ import { randomInt } from "node:crypto";
 
 import { getCurrentUser } from "../../../lib/auth";
 import {
+  resolveBookingContactEmail,
+} from "../../../lib/booking-access";
+import {
   calendarDateInTimeZone,
   getAirportTimeZone,
 } from "../../../lib/airport-timezones";
@@ -14,9 +17,10 @@ import {
   validateRoundTripFlights,
 } from "../../../lib/booking-legs";
 import { parseTripType } from "../../../lib/flight-search";
+import { setGuestBookingAuthorizationCookie } from "../../../lib/guest-booking-auth";
 import { validatePassengerAgeForType } from "../../../lib/passenger-age";
 import { MAX_TRAVELERS, resolvePassengerTypesForBooking } from "../../../lib/passenger-composition";
-import { rejectUntrustedMutation } from "../../../lib/request-security";
+import { rejectUntrustedMutation, sensitiveJson } from "../../../lib/request-security";
 import { logServerError } from "../../../lib/sensitive-data";
 import { passportWriteFields } from "../../../lib/traveler-encryption";
 import { db } from "../../../prisma/db";
@@ -52,7 +56,7 @@ class BookingRequestError extends Error {
 }
 
 function jsonError(message: string, status: number) {
-  return Response.json({ error: message }, { status });
+  return sensitiveJson({ error: message }, { status });
 }
 
 function asTrimmedString(value: unknown) {
@@ -268,6 +272,31 @@ export async function POST(request: Request) {
     const bookingReference = await createUniqueBookingReference();
     const currentUser = await getCurrentUser();
 
+    // Never trust client-provided userId. Ownership is session-derived only.
+    let contactEmail: string;
+    try {
+      ({ contactEmail } = resolveBookingContactEmail({
+        currentUserEmail: currentUser?.email,
+        submittedContactEmail:
+          typeof payload.contactEmail === "string"
+            ? payload.contactEmail
+            : typeof payload.email === "string"
+              ? payload.email
+              : "",
+      }));
+    } catch (error) {
+      throw new BookingRequestError(
+        error instanceof Error
+          ? error.message
+          : "A valid contact email is required.",
+        400
+      );
+    }
+
+    const ownershipFields = currentUser
+      ? { userId: currentUser.id, contactEmail }
+      : { contactEmail };
+
     if (tripType === "round-trip") {
       const outboundFlightId = parsePositiveInt(payload.outboundFlightId);
       const returnFlightId = parsePositiveInt(payload.returnFlightId);
@@ -336,7 +365,10 @@ export async function POST(request: Request) {
       });
 
       const booking = await db.transaction(async (tx) => {
-        const createdBooking = await tx.orm.public.Booking.create({
+        const createdBooking = await tx.orm.public.Booking.select(
+          "id",
+          "bookingReference"
+        ).create({
           bookingReference,
           flightId: outbound.id,
           passengerCount,
@@ -346,7 +378,7 @@ export async function POST(request: Request) {
           seatFeesTotal: 0,
           status: "DRAFT",
           inventoryHeld: false,
-          ...(currentUser ? { userId: currentUser.id } : {}),
+          ...ownershipFields,
         });
 
         await tx.orm.public.BookingSegment.create({
@@ -372,7 +404,20 @@ export async function POST(request: Request) {
         return createdBooking;
       });
 
-      return Response.json(
+      if (!currentUser) {
+        await setGuestBookingAuthorizationCookie({
+          bookingId: booking.id,
+          bookingReference: booking.bookingReference,
+        });
+      }
+
+      console.log("Booking created", {
+        bookingReference: booking.bookingReference,
+        userId: currentUser?.id ?? "guest",
+        operation: "create-booking",
+      });
+
+      return sensitiveJson(
         {
           bookingReference: booking.bookingReference,
         },
@@ -429,7 +474,10 @@ export async function POST(request: Request) {
     });
 
     const booking = await db.transaction(async (tx) => {
-      const createdBooking = await tx.orm.public.Booking.create({
+      const createdBooking = await tx.orm.public.Booking.select(
+        "id",
+        "bookingReference"
+      ).create({
         bookingReference,
         flightId: flight.id,
         passengerCount,
@@ -439,7 +487,7 @@ export async function POST(request: Request) {
         seatFeesTotal: 0,
         status: "DRAFT",
         inventoryHeld: false,
-        ...(currentUser ? { userId: currentUser.id } : {}),
+        ...ownershipFields,
       });
 
       await tx.orm.public.BookingSegment.create({
@@ -456,7 +504,20 @@ export async function POST(request: Request) {
       return createdBooking;
     });
 
-    return Response.json(
+    if (!currentUser) {
+      await setGuestBookingAuthorizationCookie({
+        bookingId: booking.id,
+        bookingReference: booking.bookingReference,
+      });
+    }
+
+    console.log("Booking created", {
+      bookingReference: booking.bookingReference,
+      userId: currentUser?.id ?? "guest",
+      operation: "create-booking",
+    });
+
+    return sensitiveJson(
       {
         bookingReference: booking.bookingReference,
       },

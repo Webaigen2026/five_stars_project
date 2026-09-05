@@ -1,4 +1,4 @@
-import { getCurrentUser } from "../../../../lib/auth";
+import { resolveBookingAccess } from "../../../../lib/booking-access-server";
 import {
   holdBookingInventory,
   releaseBookingInventory,
@@ -63,16 +63,6 @@ export async function POST(request: Request) {
       throw new StripeConfigurationError();
     }
 
-    const currentUser = await getCurrentUser();
-
-    if (!currentUser) {
-      return jsonError("Not authenticated.", 401);
-    }
-
-    if (currentUser.role !== "CUSTOMER") {
-      return jsonError("Forbidden.", 403);
-    }
-
     let body: unknown;
 
     try {
@@ -89,6 +79,15 @@ export async function POST(request: Request) {
 
     if (!booking) {
       throw new PaymentError("Booking not found.", 404);
+    }
+
+    const access = await resolveBookingAccess(booking);
+    if (!access.authorized) {
+      return jsonError("Forbidden.", 403);
+    }
+
+    if (access.currentUser && access.currentUser.role !== "CUSTOMER") {
+      return jsonError("Forbidden.", 403);
     }
 
     const [legs, passengers, existingPayment] = await Promise.all([
@@ -110,7 +109,7 @@ export async function POST(request: Request) {
         ...booking,
         seatFeesTotal: booking.seatFeesTotal ?? 0,
       },
-      currentUserId: currentUser.id,
+      accessAuthorized: true,
       passengerRows: passengers.length,
       segmentCount: legs.length,
       existingPayment: existingPayment
@@ -213,7 +212,7 @@ export async function POST(request: Request) {
           metadata: buildCheckoutSessionMetadata({
             bookingId: booking.id,
             bookingReference: booking.bookingReference,
-            userId: currentUser.id,
+            userId: booking.userId,
           }),
         },
         {

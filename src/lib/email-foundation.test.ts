@@ -48,6 +48,7 @@ describe("email template (D14.1)", () => {
     });
     assert.match(template.html, /Five Stars/);
     assert.match(template.html, /FIVE STARS/);
+    assert.match(template.html, /verify later/i);
   });
 
   it("C. HTML contains verification link", () => {

@@ -45,6 +45,10 @@ export default function Footer() {
                 Contact
               </Link>
 
+              <Link href="/find-trip" className="hover:text-primary">
+                Find My Trip
+              </Link>
+
               <Link href="/login" className="hover:text-primary">
                 Sign In
               </Link>

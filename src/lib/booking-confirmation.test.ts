@@ -282,20 +282,59 @@ describe("booking confirmation (D12.2)", () => {
     assert.equal(model.flightsHref, "/flights");
   });
 
-  it("N. authorization behavior remains unchanged (same as checkout)", () => {
-    assert.equal(canAccessBookingConfirmation(null, null), true);
-    assert.equal(canAccessBookingConfirmation(null, 10), true);
-    assert.equal(canAccessBookingConfirmation(10, null), true);
-    assert.equal(canAccessBookingConfirmation(10, 10), true);
-    assert.equal(canAccessBookingConfirmation(10, 11), false);
-
+  it("N. authorization requires account ownership or guest cookie (via BookingAccessInput)", () => {
     assert.equal(
-      canAccessBookingConfirmation(10, 11),
-      canReviewCheckoutBooking(10, 11)
+      canAccessBookingConfirmation({
+        bookingId: 1,
+        bookingReference: "SJ-X",
+        bookingUserId: null,
+        currentUserId: null,
+        guestAuthorization: null,
+      }),
+      false
     );
     assert.equal(
-      canAccessBookingConfirmation(10, 10),
-      canReviewCheckoutBooking(10, 10)
+      canAccessBookingConfirmation({
+        bookingId: 1,
+        bookingReference: "SJ-X",
+        bookingUserId: null,
+        currentUserId: null,
+        guestAuthorization: {
+          bookingId: 1,
+          bookingReference: "SJ-X",
+        },
+      }),
+      true
+    );
+    assert.equal(
+      canAccessBookingConfirmation({
+        bookingId: 1,
+        bookingReference: "SJ-X",
+        bookingUserId: 10,
+        currentUserId: 10,
+        guestAuthorization: null,
+      }),
+      true
+    );
+    assert.equal(
+      canAccessBookingConfirmation({
+        bookingId: 1,
+        bookingReference: "SJ-X",
+        bookingUserId: 10,
+        currentUserId: 11,
+        guestAuthorization: null,
+      }),
+      false
+    );
+    assert.equal(
+      canAccessBookingConfirmation({
+        bookingId: 1,
+        bookingReference: "SJ-X",
+        bookingUserId: 10,
+        currentUserId: 11,
+        guestAuthorization: null,
+      }),
+      canReviewCheckoutBooking(10, 11)
     );
   });
 });

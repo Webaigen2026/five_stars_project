@@ -100,7 +100,7 @@ export async function releaseSeatAssignmentsForBooking(bookingId: number) {
 
 export async function assignPassengerSeat(input: {
   bookingReference: string;
-  currentUserId: number;
+  accessAuthorized: boolean;
   bookingSegmentId: number;
   passengerId: number;
   seatNumber: string;
@@ -118,7 +118,7 @@ export async function assignPassengerSeat(input: {
     throw new SeatAssignmentError("NOT_FOUND", "Booking not found.");
   }
 
-  if (booking.userId !== input.currentUserId) {
+  if (!input.accessAuthorized) {
     throw new SeatAssignmentError("FORBIDDEN", "Forbidden.");
   }
 
@@ -274,7 +274,7 @@ export async function assignPassengerSeat(input: {
 
 export async function clearPassengerSeat(input: {
   bookingReference: string;
-  currentUserId: number;
+  accessAuthorized: boolean;
   bookingSegmentId: number;
   passengerId: number;
 }) {
@@ -286,7 +286,7 @@ export async function clearPassengerSeat(input: {
     throw new SeatAssignmentError("NOT_FOUND", "Booking not found.");
   }
 
-  if (booking.userId !== input.currentUserId) {
+  if (!input.accessAuthorized) {
     throw new SeatAssignmentError("FORBIDDEN", "Forbidden.");
   }
 

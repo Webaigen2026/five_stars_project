@@ -458,7 +458,7 @@ describe("my trips list (D12.3.1)", () => {
   });
 
   it("P. ownership/auth behavior unchanged (same checkout helper)", () => {
-    assert.equal(canReviewCheckoutBooking(null, null), true);
+    assert.equal(canReviewCheckoutBooking(null, null), false);
     assert.equal(canReviewCheckoutBooking(10, 10), true);
     assert.equal(canReviewCheckoutBooking(10, 11), false);
     // My Trips page still requires signed-in owner via userId filter.

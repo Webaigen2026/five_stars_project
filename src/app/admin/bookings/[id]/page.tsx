@@ -27,15 +27,18 @@ import {
 } from "../../../../lib/trip-formatting";
 import { db } from "../../../../prisma/db";
 
-function customerDisplay(user: {
-  email: string;
-  firstName: string | null;
-  lastName: string | null;
-} | null) {
+function customerDisplay(
+  user: {
+    email: string;
+    firstName: string | null;
+    lastName: string | null;
+  } | null,
+  contactEmail: string | null | undefined
+) {
   if (!user) {
     return {
       name: "Guest",
-      email: "No account",
+      email: contactEmail?.trim() || "No contact email",
     };
   }
 
@@ -46,7 +49,7 @@ function customerDisplay(user: {
 
   return {
     name: name || user.email,
-    email: user.email,
+    email: contactEmail?.trim() || user.email,
   };
 }
 
@@ -86,7 +89,7 @@ export default async function AdminBookingDetailPage({
     return last !== 0 ? last : left.firstName.localeCompare(right.firstName);
   });
 
-  const customerInfo = customerDisplay(customer);
+  const customerInfo = customerDisplay(customer, booking.contactEmail);
   const allowedTransitions = getAllowedAdminBookingTransitions(booking.status);
   const isRoundTrip = isRoundTripLegs(legs);
   const outbound = legs.find((leg) => leg.segmentType === "OUTBOUND") ?? legs[0];
