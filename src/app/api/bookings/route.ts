@@ -8,6 +8,7 @@ import {
   calendarDateInTimeZone,
   getAirportTimeZone,
 } from "../../../lib/airport-timezones";
+import { notifyBookingCreatedEmail } from "../../../lib/booking-email-service";
 import {
   getFareFamilyPriceCents,
   resolveFareFamilyForBooking,
@@ -411,6 +412,8 @@ export async function POST(request: Request) {
         });
       }
 
+      await notifyBookingCreatedEmail(booking.id);
+
       console.log("Booking created", {
         bookingReference: booking.bookingReference,
         userId: currentUser?.id ?? "guest",
@@ -510,6 +513,8 @@ export async function POST(request: Request) {
         bookingReference: booking.bookingReference,
       });
     }
+
+    await notifyBookingCreatedEmail(booking.id);
 
     console.log("Booking created", {
       bookingReference: booking.bookingReference,

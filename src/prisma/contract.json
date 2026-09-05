@@ -71,6 +71,13 @@
         "models": {
           "Booking": {
             "fields": {
+              "bookingCreatedEmailSentAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
               "bookingReference": {
                 "nullable": false,
                 "type": {
@@ -117,6 +124,13 @@
                 "nullable": false,
                 "type": {
                   "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "paymentReceivedEmailSentAt": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
                   "kind": "scalar"
                 }
               },
@@ -279,6 +293,9 @@
             },
             "storage": {
               "fields": {
+                "bookingCreatedEmailSentAt": {
+                  "column": "bookingCreatedEmailSentAt"
+                },
                 "bookingReference": {
                   "column": "bookingReference"
                 },
@@ -299,6 +316,9 @@
                 },
                 "passengerCount": {
                   "column": "passengerCount"
+                },
+                "paymentReceivedEmailSentAt": {
+                  "column": "paymentReceivedEmailSentAt"
                 },
                 "seatFeesTotal": {
                   "column": "seatFeesTotal"
@@ -2510,6 +2530,11 @@
           "table": {
             "booking": {
               "columns": {
+                "bookingCreatedEmailSentAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
+                },
                 "bookingReference": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
@@ -2556,6 +2581,11 @@
                   "codecId": "pg/int4@1",
                   "nativeType": "int4",
                   "nullable": false
+                },
+                "paymentReceivedEmailSentAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "nativeType": "timestamptz",
+                  "nullable": true
                 },
                 "seatFeesTotal": {
                   "codecId": "pg/int4@1",
@@ -4282,7 +4312,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "6b7ae93eb542079d4b47b61076b39feb8a332936c32ec5caea326af07f4781cb"
+    "storageHash": "8ceb2b75a9dd791fd8cc2a94d267c5fc93184bb566bf4cbee859317912d4c6ef"
   },
   "execution": {
     "executionHash": "e53ca58f945c2f2e6a7746970a2c9705d07ef96c22839f79616dd11711e480ac",

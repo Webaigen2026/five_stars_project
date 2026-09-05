@@ -125,6 +125,11 @@ model Booking {
   // true  = this booking currently owns passengerCount seats on each held flight leg.
   inventoryHeld Boolean @default(false)
 
+  // D14.3: durable transactional email delivery markers (idempotency).
+  // Null = not successfully sent. Set only after Resend accepts the send.
+  bookingCreatedEmailSentAt  TimestamptzString?
+  paymentReceivedEmailSentAt TimestamptzString?
+
   passengers Passenger[]
   payment    Payment?
   segments   BookingSegment[]

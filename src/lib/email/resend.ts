@@ -1,5 +1,5 @@
 /**
- * Server-only Resend transactional email client (D14.1).
+ * Server-only Resend transactional email client (D14.1 / D14.3).
  * Never import from client components.
  */
 
@@ -80,35 +80,57 @@ export type SendEmailResult = {
   id: string | null;
 };
 
+export type SendEmailPayload = {
+  from: string;
+  to: string;
+  subject: string;
+  html: string;
+  text: string;
+};
+
+export type SendEmailOptions = {
+  /** Deterministic Resend Idempotency-Key (D14.3 concurrency/retry complement). */
+  idempotencyKey?: string;
+};
+
+export type SendEmailFn = (
+  payload: SendEmailPayload,
+  options?: SendEmailOptions
+) => Promise<{
+  id?: string | null;
+  error?: { message?: string; name?: string } | null;
+}>;
+
 export async function sendTransactionalEmail(
   input: SendEmailInput,
   deps?: {
     env?: NodeJS.ProcessEnv;
-    send?: (payload: {
-      from: string;
-      to: string;
-      subject: string;
-      html: string;
-      text: string;
-    }) => Promise<{ id?: string | null; error?: { message?: string; name?: string } | null }>;
+    send?: SendEmailFn;
+    idempotencyKey?: string;
   }
 ): Promise<SendEmailResult> {
   const env = deps?.env ?? process.env;
   const from = readEmailFrom(env);
+  const idempotencyKey = deps?.idempotencyKey?.trim() || undefined;
+  const sendOptions: SendEmailOptions | undefined = idempotencyKey
+    ? { idempotencyKey }
+    : undefined;
 
   if (!input.to.trim()) {
     throw new EmailDeliveryError("A recipient email is required.");
   }
 
+  const payload: SendEmailPayload = {
+    from,
+    to: input.to.trim(),
+    subject: input.subject,
+    html: input.html,
+    text: input.text,
+  };
+
   try {
     if (deps?.send) {
-      const result = await deps.send({
-        from,
-        to: input.to.trim(),
-        subject: input.subject,
-        html: input.html,
-        text: input.text,
-      });
+      const result = await deps.send(payload, sendOptions);
 
       if (result.error) {
         throw new EmailDeliveryError(
@@ -121,13 +143,18 @@ export async function sendTransactionalEmail(
     }
 
     const resend = getResendClient(env);
-    const { data, error } = await resend.emails.send({
-      from,
-      to: input.to.trim(),
-      subject: input.subject,
-      html: input.html,
-      text: input.text,
-    });
+    const { data, error } = await resend.emails.send(
+      {
+        from: payload.from,
+        to: payload.to,
+        subject: payload.subject,
+        html: payload.html,
+        text: payload.text,
+      },
+      sendOptions?.idempotencyKey
+        ? { idempotencyKey: sendOptions.idempotencyKey }
+        : undefined
+    );
 
     if (error) {
       throw new EmailDeliveryError(

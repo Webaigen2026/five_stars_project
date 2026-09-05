@@ -1,5 +1,6 @@
 import { transitionBookingStatus } from "../../../../lib/booking-transitions";
 import { isBookingDomainError } from "../../../../lib/booking-errors";
+import { notifyPaymentReceivedEmail } from "../../../../lib/booking-email-service";
 import { releaseSeatAssignmentsForBooking } from "../../../../lib/seat-assignments";
 import {
   buildExpiredPaymentValues,
@@ -183,6 +184,16 @@ export async function POST(request: Request) {
           if (latest?.status !== "PAID") {
             throw error;
           }
+        }
+
+        // Side effect only — never fail the webhook because email failed.
+        await notifyPaymentReceivedEmail(decision.bookingId);
+      }
+
+      if (decision.action === "noop_paid") {
+        // Retry payment email if a prior attempt failed after payment succeeded.
+        if (booking?.id) {
+          await notifyPaymentReceivedEmail(booking.id);
         }
       }
 
