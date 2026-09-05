@@ -1,10 +1,18 @@
 import { issueEmailVerificationToken } from "../../../../lib/email-verification";
+import {
+  getSafeVerificationEmailErrorMessage,
+  sendVerificationEmail,
+} from "../../../../lib/email/send-verification";
+import {
+  EmailConfigurationError,
+  EmailDeliveryError,
+} from "../../../../lib/email/resend";
 import { db } from "../../../../prisma/db";
 
 const GENERIC_SUCCESS = {
   success: true,
   message:
-    "If an eligible account exists, a verification link has been generated.",
+    "If an eligible account exists, a verification link has been sent.",
 } as const;
 
 function asTrimmedString(value: unknown) {
@@ -34,7 +42,31 @@ export async function POST(request: Request) {
     const user = await db.orm.public.User.where({ email }).first();
 
     if (user && !user.emailVerified) {
-      await issueEmailVerificationToken(user.id, request);
+      const { url } = await issueEmailVerificationToken(user.id);
+
+      try {
+        const sent = await sendVerificationEmail({
+          to: user.email,
+          verificationUrl: url,
+        });
+        console.log("Verification email resent", {
+          userId: user.id,
+          provider: "resend",
+          messageId: sent.id,
+        });
+      } catch (error) {
+        console.error("Failed to resend verification email", {
+          userId: user.id,
+          provider: "resend",
+          code:
+            error instanceof EmailDeliveryError ||
+            error instanceof EmailConfigurationError
+              ? error.name
+              : "unexpected",
+          message: getSafeVerificationEmailErrorMessage(error),
+        });
+        // Keep generic success to avoid email enumeration.
+      }
     }
   } catch (error) {
     console.error("Failed to resend verification:", error);

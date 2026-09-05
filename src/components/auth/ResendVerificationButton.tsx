@@ -35,11 +35,11 @@ export default function ResendVerificationButton({
 
       setMessage(
         payload?.message ??
-          "If an eligible account exists, a verification link has been generated."
+          "If an eligible account exists, a verification link has been sent."
       );
     } catch {
       setMessage(
-        "If an eligible account exists, a verification link has been generated."
+        "If an eligible account exists, a verification link has been sent."
       );
     } finally {
       setIsSending(false);

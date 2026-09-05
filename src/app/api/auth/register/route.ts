@@ -1,6 +1,15 @@
 import bcrypt from "bcryptjs";
 
 import { issueEmailVerificationToken } from "../../../../lib/email-verification";
+import {
+  EMAIL_SEND_FAILURE_MESSAGE,
+  getSafeVerificationEmailErrorMessage,
+  sendVerificationEmail,
+} from "../../../../lib/email/send-verification";
+import {
+  EmailConfigurationError,
+  EmailDeliveryError,
+} from "../../../../lib/email/resend";
 import { db } from "../../../../prisma/db";
 
 const BCRYPT_ROUNDS = 12;
@@ -120,12 +129,43 @@ export async function POST(request: Request) {
       failedLoginAttempts: 0,
     });
 
-    await issueEmailVerificationToken(user.id, request);
+    const { url } = await issueEmailVerificationToken(user.id);
+
+    let emailSent = false;
+    let emailMessage: string | undefined;
+
+    try {
+      const sent = await sendVerificationEmail({
+        to: user.email,
+        verificationUrl: url,
+      });
+      emailSent = true;
+      console.log("Verification email sent", {
+        userId: user.id,
+        provider: "resend",
+        messageId: sent.id,
+      });
+    } catch (error) {
+      emailMessage = getSafeVerificationEmailErrorMessage(error);
+      console.error("Failed to send verification email after registration", {
+        userId: user.id,
+        provider: "resend",
+        code:
+          error instanceof EmailDeliveryError ||
+          error instanceof EmailConfigurationError
+            ? error.name
+            : "unexpected",
+      });
+    }
 
     return Response.json(
       {
         success: true,
         user,
+        emailSent,
+        message: emailSent
+          ? undefined
+          : emailMessage ?? EMAIL_SEND_FAILURE_MESSAGE,
       },
       { status: 201 }
     );

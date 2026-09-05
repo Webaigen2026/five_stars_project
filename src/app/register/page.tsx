@@ -45,13 +45,18 @@ export default function RegisterPage() {
       });
 
       const payload = (await response.json().catch(() => null)) as
-        | { error?: string; success?: boolean }
+        | { error?: string; success?: boolean; emailSent?: boolean }
         | null;
 
       if (!response.ok) {
         setError(
           payload?.error ?? "Unable to create account. Please try again."
         );
+        return;
+      }
+
+      if (payload?.emailSent === false) {
+        router.push("/login?registered=1&verification_email=failed");
         return;
       }
 

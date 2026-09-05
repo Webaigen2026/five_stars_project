@@ -8,6 +8,8 @@ export default function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const registered = searchParams.get("registered") === "1";
+  const verificationEmailFailed =
+    searchParams.get("verification_email") === "failed";
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -74,10 +76,17 @@ export default function LoginContent() {
             <p className="text-sm font-medium text-green-700">
               Account created successfully. Please sign in.
             </p>
-            <p className="text-sm text-slate-600">
-              Please verify your email when you receive the verification
-              link.
-            </p>
+            {verificationEmailFailed ? (
+              <p className="text-sm text-amber-800">
+                We couldn&apos;t send the verification email. Please try
+                again from your account after signing in.
+              </p>
+            ) : (
+              <p className="text-sm text-slate-600">
+                Please verify your email when you receive the verification
+                link.
+              </p>
+            )}
           </div>
         )}
       </div>

@@ -1,5 +1,6 @@
 import { createHash, randomBytes } from "node:crypto";
 
+import { requireCanonicalAppUrl, joinAppPath } from "./app-url";
 import { db } from "../prisma/db";
 
 export const VERIFICATION_TOKEN_TTL_MS = 24 * 60 * 60 * 1000;
@@ -12,24 +13,17 @@ export function hashVerificationToken(token: string) {
   return createHash("sha256").update(token).digest("hex");
 }
 
-export function getAppBaseUrl(request: Request) {
-  const fromEnv = process.env.APP_URL ?? process.env.NEXTAUTH_URL;
-
-  if (fromEnv) {
-    return fromEnv.replace(/\/$/, "");
-  }
-
-  return new URL(request.url).origin;
+/**
+ * @deprecated Prefer getCanonicalAppUrl / requireCanonicalAppUrl.
+ * Kept temporarily for any callers; no longer uses request Host.
+ */
+export function getAppBaseUrl(_request?: Request) {
+  return requireCanonicalAppUrl();
 }
 
 export function buildVerificationUrl(baseUrl: string, rawToken: string) {
-  return `${baseUrl.replace(/\/$/, "")}/verify-email?token=${encodeURIComponent(rawToken)}`;
-}
-
-export function logVerificationUrl(url: string) {
-  if (process.env.NODE_ENV !== "production") {
-    console.log(`Five Stars email verification URL: ${url}`);
-  }
+  const path = `/verify-email?token=${encodeURIComponent(rawToken)}`;
+  return joinAppPath(baseUrl, path);
 }
 
 export async function deleteVerificationTokensForUser(userId: number) {
@@ -38,10 +32,11 @@ export async function deleteVerificationTokensForUser(userId: number) {
   }).delete();
 }
 
-export async function issueEmailVerificationToken(
-  userId: number,
-  request: Request
-) {
+/**
+ * Creates a hashed verification token for the user.
+ * Does not send email — callers must use sendVerificationEmail.
+ */
+export async function issueEmailVerificationToken(userId: number) {
   await deleteVerificationTokensForUser(userId);
 
   const rawToken = generateVerificationToken();
@@ -54,8 +49,12 @@ export async function issueEmailVerificationToken(
     expiresAt,
   });
 
-  const url = buildVerificationUrl(getAppBaseUrl(request), rawToken);
-  logVerificationUrl(url);
+  const url = buildVerificationUrl(requireCanonicalAppUrl(), rawToken);
+
+  console.log("Issued email verification token", {
+    userId,
+    expiresAt,
+  });
 
   return { rawToken, url };
 }
