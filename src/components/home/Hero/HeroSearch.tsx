@@ -122,7 +122,7 @@ export default function HeroSearch() {
           <aside className="hidden min-w-0 self-stretch lg:block">
             <div
               className="
-                h-full
+                h-[36rem]
                 w-full
                 overflow-hidden
 
