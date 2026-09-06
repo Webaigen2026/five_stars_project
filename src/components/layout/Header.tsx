@@ -1,43 +1,54 @@
 "use client";
 
 import { useEffect, useId, useState } from "react";
+
 import Link from "next/link";
 
 import HeaderAccountNav from "./HeaderAccountNav";
 
-function MenuIcon() {
+function MenuIcon({
+  open,
+}: {
+  open: boolean;
+}) {
   return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
+    <span
       aria-hidden="true"
-      className="h-5 w-5"
+      className="relative block h-5 w-5"
     >
-      <path
-        d="M4 7h16M4 12h16M4 17h16"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
+      {/* Top line */}
+      <span
+        className={[
+          "absolute left-1/2 top-[4px] h-[1.8px] w-5 -translate-x-1/2 rounded-full bg-current",
+          "transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]",
+          open
+            ? "top-1/2 -translate-y-1/2 rotate-45"
+            : "",
+        ].join(" ")}
       />
-    </svg>
-  );
-}
 
-function CloseIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      aria-hidden="true"
-      className="h-5 w-5"
-    >
-      <path
-        d="m6 6 12 12M18 6 6 18"
-        stroke="currentColor"
-        strokeWidth="1.8"
-        strokeLinecap="round"
+      {/* Middle line */}
+      <span
+        className={[
+          "absolute left-1/2 top-1/2 h-[1.8px] w-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-current",
+          "transition-all duration-200 ease-out",
+          open
+            ? "scale-x-0 opacity-0"
+            : "scale-x-100 opacity-100",
+        ].join(" ")}
       />
-    </svg>
+
+      {/* Bottom line */}
+      <span
+        className={[
+          "absolute bottom-[4px] left-1/2 h-[1.8px] w-5 -translate-x-1/2 rounded-full bg-current",
+          "transition-all duration-300 ease-[cubic-bezier(0.4,0,0.2,1)]",
+          open
+            ? "bottom-1/2 translate-y-1/2 -rotate-45"
+            : "",
+        ].join(" ")}
+      />
+    </span>
   );
 }
 
@@ -90,6 +101,7 @@ const navigation = [
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
+
   const mobileMenuId = useId();
 
   useEffect(() => {
@@ -111,7 +123,11 @@ export default function Header() {
 
     return () => {
       document.body.style.overflow = previousOverflow;
-      window.removeEventListener("keydown", handleKeyDown);
+
+      window.removeEventListener(
+        "keydown",
+        handleKeyDown
+      );
     };
   }, [menuOpen]);
 
@@ -208,32 +224,44 @@ export default function Header() {
           {/* Mobile menu trigger */}
           <button
             type="button"
-            onClick={() => setMenuOpen(true)}
+            onClick={() =>
+              setMenuOpen((current) => !current)
+            }
             className="
+              group
               inline-flex
               h-11
               w-11
               items-center
               justify-center
-              rounded-lg
+              rounded-xl
               border
               border-slate-200
               bg-white
               text-slate-700
-              transition
+              shadow-[0_1px_2px_rgba(15,23,42,0.04)]
+              transition-all
+              duration-200
               hover:border-[#0078D2]
-              hover:bg-[#f5faff]
+              hover:bg-[#f4f9fd]
               hover:text-[#0078D2]
+              hover:shadow-[0_4px_12px_rgba(0,120,210,0.10)]
               focus-visible:outline-none
               focus-visible:ring-2
               focus-visible:ring-[#0078D2]/30
+              focus-visible:ring-offset-2
+              active:scale-[0.96]
               lg:hidden
             "
-            aria-label="Open navigation"
+            aria-label={
+              menuOpen
+                ? "Close navigation"
+                : "Open navigation"
+            }
             aria-expanded={menuOpen}
             aria-controls={mobileMenuId}
           >
-            <MenuIcon />
+            <MenuIcon open={menuOpen} />
           </button>
         </div>
       </header>
@@ -273,7 +301,9 @@ export default function Header() {
             ease-out
             lg:hidden
           `,
-          menuOpen ? "translate-x-0" : "translate-x-full",
+          menuOpen
+            ? "translate-x-0"
+            : "translate-x-full",
         ].join(" ")}
       >
         {/* Drawer header */}
@@ -286,30 +316,38 @@ export default function Header() {
             Five Stars
           </Link>
 
+          {/* Animated close control */}
           <button
             type="button"
             onClick={closeMenu}
             className="
+              group
               inline-flex
               h-10
               w-10
               items-center
               justify-center
-              rounded-lg
+              rounded-xl
               border
               border-slate-200
+              bg-white
               text-slate-600
-              transition
+              shadow-[0_1px_2px_rgba(15,23,42,0.04)]
+              transition-all
+              duration-200
               hover:border-[#0078D2]
-              hover:bg-[#f5faff]
+              hover:bg-[#f4f9fd]
               hover:text-[#0078D2]
+              hover:shadow-[0_4px_12px_rgba(0,120,210,0.10)]
               focus-visible:outline-none
               focus-visible:ring-2
               focus-visible:ring-[#0078D2]/30
+              focus-visible:ring-offset-2
+              active:scale-[0.96]
             "
             aria-label="Close navigation"
           >
-            <CloseIcon />
+            <MenuIcon open />
           </button>
         </div>
 
@@ -404,7 +442,7 @@ export default function Header() {
           </div>
         </div>
 
-        {/* Persistent bottom CTA */}
+        {/* Bottom CTA */}
         <div className="shrink-0 border-t border-slate-200 bg-white p-4">
           <Link
             href="/flights"
