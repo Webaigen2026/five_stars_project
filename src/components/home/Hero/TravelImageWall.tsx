@@ -117,7 +117,7 @@ function TravelCircle({
         w-full
         max-w-[clamp(7rem,34vw,12rem)]
         p-[clamp(0.4rem,1.4vw,0.65rem)]
-        bg-[#EDF1F4]
+        bg-[#ffffff]
         dark:bg-surface
         shadow-[-3px_-3px_7px_var(--neu-highlight),3px_3px_7px_var(--neu-shadow)]
       "
