@@ -130,7 +130,7 @@ export default function HeroSearch() {
                 px-2
                 py-2
 
-                lg:max-w-[24rem]
+                lg:max-w-[23rem]
                 2xl:max-w-none
               "
             >
