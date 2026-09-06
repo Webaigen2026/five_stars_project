@@ -485,7 +485,7 @@ export default function FlightSearchForm({
             type="submit"
             className="
               flex
-              h-[86px]
+              h-[66px]
               w-full
               items-center
               justify-center
