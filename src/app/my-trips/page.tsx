@@ -139,7 +139,7 @@ export default async function MyTripsPage() {
 
                 <Link
                   href="/flights"
-                  className="inline-flex rounded-xl border border-slate-200 px-6 py-3 font-semibold text-slate-700 transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                  className="inline-flex rounded-xl border border-slate-200 px-6 py-3 font-semibold text-white transition hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
                 >
                   Book a flight
                 </Link>

@@ -289,15 +289,16 @@ export default function Header() {
             right-0
             z-[60]
             flex
-            w-[min(88vw,24rem)]
+            w-[min(86vw,22.5rem)]
             flex-col
             border-l
             border-slate-200
             bg-white
-            shadow-[-20px_0_60px_rgba(15,23,42,0.18)]
+            shadow-[-18px_0_45px_rgba(15,23,42,0.16)]
             transition-transform
             duration-300
             ease-out
+            sm:w-[22.5rem]
             lg:hidden
           `,
           menuOpen
@@ -306,11 +307,11 @@ export default function Header() {
         ].join(" ")}
       >
         {/* Drawer header */}
-        <div className="flex h-[72px] shrink-0 items-center justify-between border-b border-slate-200 px-5">
+        <div className="flex h-[68px] shrink-0 items-center justify-between border-b border-slate-200 px-5 sm:h-[72px] sm:px-6">
           <Link
             href="/"
             onClick={closeMenu}
-            className="font-american-sans text-2xl font-light tracking-[-0.025em] text-slate-950"
+            className="font-american-sans text-[1.7rem] font-light tracking-[-0.025em] text-slate-950 sm:text-2xl"
           >
             Five Stars
           </Link>
@@ -320,27 +321,20 @@ export default function Header() {
             type="button"
             onClick={closeMenu}
             className="
-              group
               inline-flex
               h-10
               w-10
               items-center
               justify-center
               rounded-xl
-             
-          
               text-slate-600
-             
               transition-all
               duration-200
-             
-              hover:bg-[#f4f9fd]
+              hover:bg-slate-100
               hover:text-[#0078D2]
-          
               focus-visible:outline-none
               focus-visible:ring-2
               focus-visible:ring-[#0078D2]/30
-              focus-visible:ring-offset-2
               active:scale-[0.96]
             "
             aria-label="Close navigation"
@@ -350,16 +344,16 @@ export default function Header() {
         </div>
 
         {/* Scrollable drawer body */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto overscroll-contain">
           {/* Navigation */}
-          <div className="px-4 py-6">
-            <p className="px-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+          <div className="px-4 py-5">
+            <p className="mb-2 px-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
               Explore
             </p>
 
             <nav
               aria-label="Mobile primary navigation"
-              className="mt-3 space-y-1"
+              className="space-y-1"
             >
               {navigation.map((item) => (
                 <Link
@@ -369,22 +363,22 @@ export default function Header() {
                   className="
                     group
                     flex
-                    min-h-[64px]
+                    min-h-[58px]
                     items-center
                     justify-between
-                    gap-4
+                    gap-3
                     rounded-xl
                     px-3
-                    py-3
+                    py-2.5
                     transition
-                    hover:bg-[#f4f9fd]
+                    hover:bg-[#f5faff]
                     focus-visible:outline-none
                     focus-visible:ring-2
                     focus-visible:ring-[#0078D2]/25
                   "
                 >
                   <span className="min-w-0">
-                    <span className="block text-[15px] font-semibold text-slate-900 transition group-hover:text-[#0078D2]">
+                    <span className="block text-[15px] font-semibold text-slate-950 transition group-hover:text-[#0078D2]">
                       {item.label}
                     </span>
 
@@ -402,15 +396,15 @@ export default function Header() {
           </div>
 
           {/* Account navigation */}
-          <div className="border-t border-slate-200 px-4 py-6">
-            <p className="px-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-400">
+          <div className="border-t border-slate-200 px-4 py-5">
+            <p className="mb-2 px-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
               Account
             </p>
 
             <div
               onClickCapture={closeMenu}
               className="
-                mt-3
+                mt-2
                 flex
                 flex-col
                 gap-1
@@ -441,7 +435,7 @@ export default function Header() {
         </div>
 
         {/* Bottom CTA */}
-        <div className="shrink-0 border-t border-slate-200 bg-white p-4">
+        <div className="shrink-0 border-t border-slate-200 bg-white px-4 pt-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
           <Link
             href="/flights"
             onClick={closeMenu}
@@ -451,7 +445,7 @@ export default function Header() {
               w-full
               items-center
               justify-center
-              rounded-lg
+              rounded-xl
               bg-[#0078D2]
               px-5
               text-sm
@@ -469,7 +463,7 @@ export default function Header() {
             Book a Flight
           </Link>
 
-          <p className="mt-3 text-center text-[11px] leading-4 text-slate-400">
+          <p className="mt-2.5 text-center text-[10.5px] leading-4 text-slate-400">
             Flights, cargo, and charter services between Haiti and the United
             States.
           </p>
