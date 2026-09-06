@@ -78,7 +78,7 @@ export default function RegisterPage() {
 
       <main className="min-h-screen bg-slate-50">
         <section className="fs-container flex justify-center fs-auth-shell">
-          <div className="fs-auth-card w-full max-w-md rounded-3xl border border-slate-200 bg-white shadow-sm">
+          <div className="fs-auth-card w-full max-w-md  border border-slate-200 bg-white shadow-sm">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
                 Create Account

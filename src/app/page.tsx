@@ -3,6 +3,7 @@ import Header from "../components/layout/Header";
 import HeroSection from "../components/home/HeroSection";
 import ServicesSection from "../components/home/ServicesSection";
 import FAQSection from "../components/layout/FAQSection";
+import HeroSearch from "../components/home/Hero/HeroSearch";
 
 export default function HomePage() {
   return (
@@ -10,7 +11,8 @@ export default function HomePage() {
       <Header />
 
       <main>
-        <HeroSection />
+      <HeroSearch />
+        {/* <HeroSection /> */}
         <ServicesSection />
         <FAQSection />
       </main>

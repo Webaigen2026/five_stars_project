@@ -15,6 +15,10 @@
   --text-primary: #0f172a;
   --text-secondary: #475569;
   --text-muted: #64748b;
+
+  /* Neumorphic shadow tokens (Hero card + TravelImageWall) */
+  --neu-highlight: #ffffff;
+  --neu-shadow: rgba(15, 23, 42, 0.16);
 }
 
 @theme inline {

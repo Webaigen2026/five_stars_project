@@ -98,7 +98,7 @@ function PassengerSummary({
   return (
     <span className="block sm:inline">
       Passengers:{" "}
-      <strong className="font-medium text-slate-900">{passengers}</strong>
+      <strong className="font-american-sans text-slate-900">{passengers}</strong>
       {summary ? (
         <span className="mt-1 block text-slate-600 sm:mt-0 sm:ml-2 sm:inline">
           {summary}
@@ -163,22 +163,21 @@ export default async function FlightResultsPage({ searchParams }: Props) {
       <>
         <Header />
 
-        <main className="min-h-screen bg-slate-50">
+        <main className="font-american-sans min-h-screen w-full max-w-screen-full mx-auto bg-white">
           <section className="border-b border-slate-200 bg-white">
             <div className="fs-container fs-section-y">
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
-                Flight Results
-              </p>
+              
 
-              <h1 className="mt-2 text-4xl font-semibold tracking-tight text-slate-950">
+              <h1 className="font-american-sans mt-3 text-4xl tracking-tight text-slate-950">
                 {formatAirportRoute(from, to)}
               </h1>
+         
 
-              <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1.5 text-sm text-slate-600">
+              <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2 text-sm text-slate-600">
                 {departure ? (
                   <span>
                     Departure:{" "}
-                    <strong className="font-medium text-slate-900">
+                    <strong className="font-american-sans text-slate-900">
                       {formatSearchDate(departure)}
                     </strong>
                   </span>
@@ -192,7 +191,7 @@ export default async function FlightResultsPage({ searchParams }: Props) {
 
               <Link
                 href={modifySearchHref}
-                className="mt-4 inline-flex text-sm font-semibold text-primary transition hover:text-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                className="mt-6 inline-flex text-sm font-american-sans text-primary transition hover:text-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
               >
                 ← Modify search
               </Link>
@@ -297,22 +296,22 @@ export default async function FlightResultsPage({ searchParams }: Props) {
     <>
       <Header />
 
-      <main className="min-h-screen bg-slate-50">
+      <main className="font-american-sans min-h-screen bg-slate-50">
         <section className="border-b border-slate-200 bg-white">
           <div className="fs-container fs-section-y">
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
+            <p className="text-sm font-american-sans uppercase tracking-[0.18em] text-primary">
               Round Trip
             </p>
 
-            <h1 className="mt-2 text-4xl font-semibold tracking-tight text-slate-950">
+            <h1 className="mt-3 text-4xl font-american-sans tracking-tight text-slate-950">
               {formatAirportRoute(from, to)}
             </h1>
 
-            <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1.5 text-sm text-slate-600">
+            <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2 text-sm text-slate-600">
               {departure ? (
                 <span>
                   Outbound:{" "}
-                  <strong className="font-medium text-slate-900">
+                  <strong className="font-american-sans text-slate-900">
                     {formatSearchDate(departure)}
                   </strong>
                 </span>
@@ -320,7 +319,7 @@ export default async function FlightResultsPage({ searchParams }: Props) {
               {returnDate ? (
                 <span>
                   Return:{" "}
-                  <strong className="font-medium text-slate-900">
+                  <strong className="font-american-sans text-slate-900">
                     {formatSearchDate(returnDate)}
                   </strong>
                 </span>
@@ -333,7 +332,7 @@ export default async function FlightResultsPage({ searchParams }: Props) {
 
             <Link
               href={modifySearchHref}
-              className="mt-4 inline-flex text-sm font-semibold text-primary transition hover:text-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+              className="mt-6 inline-flex text-sm font-american-sans text-primary transition hover:text-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
             >
               ← Modify search
             </Link>
@@ -344,10 +343,10 @@ export default async function FlightResultsPage({ searchParams }: Props) {
           {!selectedOutbound ? (
             <div>
               <div className="mb-6">
-                <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">
+                <p className="text-sm font-american-sans uppercase tracking-[0.14em] text-primary">
                   Step 1
                 </p>
-                <h2 className="mt-2 text-2xl font-semibold text-slate-950">
+                <h2 className="mt-2 text-2xl font-american-sans text-slate-950">
                   Choose your outbound flight
                 </h2>
                 <p className="mt-2 text-sm text-slate-600">
@@ -397,10 +396,10 @@ export default async function FlightResultsPage({ searchParams }: Props) {
               <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div>
-                    <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">
+                    <p className="text-sm font-american-sans uppercase tracking-[0.14em] text-primary">
                       Selected outbound
                     </p>
-                    <h2 className="mt-2 text-2xl font-semibold text-slate-950">
+                    <h2 className="mt-2 text-2xl font-american-sans text-slate-950">
                       {formatRoute(
                         selectedOutbound.originCode,
                         selectedOutbound.destinationCode
@@ -418,7 +417,7 @@ export default async function FlightResultsPage({ searchParams }: Props) {
 
                   <Link
                     href={changeOutboundHref}
-                    className="inline-flex rounded-xl border border-slate-300 px-4 py-2 text-sm font-semibold text-slate-800 transition hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                    className="inline-flex rounded-xl border border-slate-300 px-4 py-2 text-sm font-american-sans text-slate-800 transition hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
                   >
                     Change outbound
                   </Link>
@@ -427,10 +426,10 @@ export default async function FlightResultsPage({ searchParams }: Props) {
 
               <div>
                 <div className="mb-6">
-                  <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">
+                  <p className="text-sm font-american-sans uppercase tracking-[0.14em] text-primary">
                     Step 2
                   </p>
-                  <h2 className="mt-2 text-2xl font-semibold text-slate-950">
+                  <h2 className="mt-2 text-2xl font-american-sans text-slate-950">
                     Choose your return flight
                   </h2>
                   <p className="mt-2 text-sm text-slate-600">
@@ -440,17 +439,17 @@ export default async function FlightResultsPage({ searchParams }: Props) {
                 </div>
 
                 {!returnDateValidForOutbound ? (
-                  <div className="rounded-3xl border border-amber-200 bg-amber-50/80 p-5 sm:p-6">
-                    <h3 className="text-xl font-semibold text-slate-950">
+                  <div className="rounded-3xl border border-amber-200 bg-amber-50/80 p-8">
+                    <h3 className="text-xl font-american-sans text-slate-950">
                       Return date is no longer valid
                     </h3>
                     <p className="mt-3 text-sm leading-relaxed text-slate-700">
                       Your selected outbound departs on{" "}
-                      <strong className="font-medium text-slate-900">
+                      <strong className="font-american-sans text-slate-900">
                         {formatDepartureDateShort(selectedOutbound)}
                       </strong>
                       , which is after the requested return of{" "}
-                      <strong className="font-medium text-slate-900">
+                      <strong className="font-american-sans text-slate-900">
                         {formatSearchDate(returnDate)}
                       </strong>
                       . Choose a different outbound, or modify your search with
@@ -459,13 +458,13 @@ export default async function FlightResultsPage({ searchParams }: Props) {
                     <div className="mt-6 flex flex-wrap gap-3">
                       <Link
                         href={changeOutboundHref}
-                        className="inline-flex rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-800 transition hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                        className="inline-flex rounded-xl border border-slate-300 bg-white px-5 py-3 text-sm font-american-sans text-slate-800 transition hover:border-primary hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
                       >
                         Change outbound
                       </Link>
                       <Link
                         href={modifySearchHref}
-                        className="inline-flex rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                        className="inline-flex rounded-xl bg-primary px-5 py-3 text-sm font-american-sans text-white transition hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
                       >
                         Modify search
                       </Link>
@@ -533,8 +532,8 @@ function EmptyResults({
   aroundDate?: boolean;
 }) {
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-6 text-center sm:p-8">
-      <h2 className="text-2xl font-semibold text-slate-950">No flights found</h2>
+    <div className="rounded-3xl border border-slate-200 bg-white p-10 text-center">
+      <h2 className="text-2xl font-american-sans text-slate-950">No flights found</h2>
 
       <p className="mt-3 text-slate-600">
         {aroundDate
@@ -546,7 +545,7 @@ function EmptyResults({
 
       <Link
         href={modifySearchHref}
-        className="mt-6 inline-flex rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+        className="mt-6 inline-flex rounded-xl bg-primary px-5 py-3 text-sm font-american-sans text-white transition hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
       >
         Modify search
       </Link>

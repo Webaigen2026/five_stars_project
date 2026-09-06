@@ -64,7 +64,7 @@ export default function LoginContent() {
   }
 
   return (
-    <div className="fs-auth-card w-full max-w-md rounded-3xl border border-slate-200 bg-white shadow-sm">
+    <div className="fs-auth-card w-full max-w-md  border border-slate-200 bg-white shadow-sm">
       <div>
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
           Welcome Back
