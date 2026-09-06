@@ -47,7 +47,9 @@ export default function CharterRequestForm({
           departureDate: String(formData.get("departureDate") ?? ""),
           returnDate: String(formData.get("returnDate") ?? ""),
           passengerCount: Number(formData.get("passengerCount")),
-          aircraftPreference: String(formData.get("aircraftPreference") ?? ""),
+          aircraftPreference: String(
+            formData.get("aircraftPreference") ?? ""
+          ),
           budget: String(formData.get("budget") ?? ""),
           notes: String(formData.get("notes") ?? ""),
         }),
@@ -82,13 +84,20 @@ export default function CharterRequestForm({
         <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">
           Request received
         </p>
-        <h2 className="mt-2 text-2xl font-semibold text-slate-950">
-          {created.reference}
+
+        <h2 className="font-american-sans mt-2 text-2xl font-light tracking-[-0.015em] text-slate-950">
+          Charter request received
         </h2>
+
+        <p className="fs-nums mt-3 text-sm font-semibold text-slate-950">
+          Reference: {created.reference}
+        </p>
+
         <p className="mt-3 text-slate-600">
           We received your charter request from {created.origin} to{" "}
           {created.destination}. Keep this reference for follow-up.
         </p>
+
         <button
           type="button"
           onClick={() => setCreated(null)}
@@ -105,7 +114,10 @@ export default function CharterRequestForm({
       onSubmit={handleSubmit}
       className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm"
     >
-      <h2 className="text-2xl font-semibold text-slate-950">Charter request</h2>
+      <h2 className="font-american-sans text-2xl font-light tracking-[-0.015em] text-slate-950">
+        Charter request
+      </h2>
+
       <p className="mt-2 text-slate-600">
         You can submit this form without creating an account.
       </p>
@@ -120,6 +132,7 @@ export default function CharterRequestForm({
             className={inputClassName}
           />
         </Field>
+
         <Field label="Email" htmlFor="email">
           <input
             id="email"
@@ -130,9 +143,15 @@ export default function CharterRequestForm({
             className={inputClassName}
           />
         </Field>
+
         <Field label="Phone" htmlFor="phone">
-          <input id="phone" name="phone" className={inputClassName} />
+          <input
+            id="phone"
+            name="phone"
+            className={inputClassName}
+          />
         </Field>
+
         <Field label="Passenger count" htmlFor="passengerCount">
           <input
             id="passengerCount"
@@ -144,6 +163,7 @@ export default function CharterRequestForm({
             className={inputClassName}
           />
         </Field>
+
         <Field label="Origin" htmlFor="origin">
           <input
             id="origin"
@@ -153,6 +173,7 @@ export default function CharterRequestForm({
             className={inputClassName}
           />
         </Field>
+
         <Field label="Destination" htmlFor="destination">
           <input
             id="destination"
@@ -162,6 +183,7 @@ export default function CharterRequestForm({
             className={inputClassName}
           />
         </Field>
+
         <Field label="Departure date" htmlFor="departureDate">
           <input
             id="departureDate"
@@ -171,6 +193,7 @@ export default function CharterRequestForm({
             className={inputClassName}
           />
         </Field>
+
         <Field label="Return date" htmlFor="returnDate">
           <input
             id="returnDate"
@@ -179,6 +202,7 @@ export default function CharterRequestForm({
             className={inputClassName}
           />
         </Field>
+
         <Field label="Aircraft preference" htmlFor="aircraftPreference">
           <input
             id="aircraftPreference"
@@ -187,6 +211,7 @@ export default function CharterRequestForm({
             className={inputClassName}
           />
         </Field>
+
         <Field label="Budget" htmlFor="budget">
           <input
             id="budget"
@@ -195,6 +220,7 @@ export default function CharterRequestForm({
             className={inputClassName}
           />
         </Field>
+
         <div className="md:col-span-2">
           <Field label="Notes" htmlFor="notes">
             <textarea
@@ -208,7 +234,9 @@ export default function CharterRequestForm({
       </div>
 
       {error && (
-        <p className="mt-5 text-sm font-medium text-red-600">{error}</p>
+        <p className="mt-5 text-sm font-medium text-red-600" role="alert">
+          {error}
+        </p>
       )}
 
       <button
@@ -239,6 +267,7 @@ function Field({
       >
         {label}
       </label>
+
       {children}
     </div>
   );

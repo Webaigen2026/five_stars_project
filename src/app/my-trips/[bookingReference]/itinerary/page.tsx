@@ -97,7 +97,7 @@ export default async function ItineraryPage({ params }: ItineraryPageProps) {
       </div>
 
       <main className="min-h-screen bg-slate-50 print:min-h-0 print:bg-white">
-        <section className="print-itinerary mx-auto max-w-4xl px-6 py-12 print:max-w-none print:px-0 print:py-0">
+        <section className="print-itinerary mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-10 print:max-w-none print:px-0 print:py-0">
           <div className="print-hide mb-6 flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap gap-4">
               <Link

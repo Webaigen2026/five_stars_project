@@ -89,7 +89,7 @@ export default function PassengerPicker({
     <div ref={rootRef} className="relative">
       <label
         htmlFor="passenger-picker-trigger"
-        className="mb-2 block text-sm font-medium text-slate-700"
+        className="mb-1.5 block text-sm font-medium text-slate-700"
       >
         Passengers
       </label>

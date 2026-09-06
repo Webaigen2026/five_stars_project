@@ -35,8 +35,8 @@ function ConfirmationError({
     <>
       <Header />
       <main className="min-h-screen bg-slate-50">
-        <section className="mx-auto max-w-3xl px-6 py-20">
-          <div className="rounded-3xl border border-slate-200 bg-white p-10 text-center shadow-sm">
+        <section className="mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-16">
+          <div className="rounded-3xl border border-slate-200 bg-white p-6 text-center shadow-sm sm:p-8">
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
               Booking confirmation
             </p>
@@ -156,11 +156,11 @@ export default async function BookingConfirmationPage({ params }: Props) {
 
       <main className="min-h-screen bg-slate-50">
         <section className="border-b border-slate-200 bg-white">
-          <div className="mx-auto max-w-7xl px-6 py-12">
+          <div className="fs-container fs-section-y">
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
               {model.heroEyebrow}
             </p>
-            <h1 className="mt-3 text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
+            <h1 className="mt-2 text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
               {model.heroTitle}
             </h1>
             <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-600">
@@ -192,10 +192,10 @@ export default async function BookingConfirmationPage({ params }: Props) {
           </div>
         </section>
 
-        <section className="mx-auto max-w-7xl px-6 py-12">
-          <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
-            <div className="space-y-6">
-              <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <section className="fs-container fs-section-y">
+          <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
+            <div className="space-y-5">
+              <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
                 <h2 className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">
                   {model.isRoundTrip
                     ? "Round-trip itinerary"
@@ -203,7 +203,7 @@ export default async function BookingConfirmationPage({ params }: Props) {
                 </h2>
 
                 {legs.length > 0 ? (
-                  <div className="mt-5 space-y-5">
+                  <div className="mt-4 space-y-4">
                     {legs.map((leg) => (
                       <BookingLegSummary
                         key={`${leg.segmentType}-${leg.flightId}`}
@@ -218,7 +218,7 @@ export default async function BookingConfirmationPage({ params }: Props) {
                 )}
               </section>
 
-              <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+              <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
                 <h2 className="text-xl font-semibold text-slate-950">
                   Travelers
                 </h2>
@@ -229,7 +229,7 @@ export default async function BookingConfirmationPage({ params }: Props) {
                 </p>
 
                 {model.travelers.length > 0 ? (
-                  <ol className="mt-5 space-y-4">
+                  <ol className="mt-4 space-y-3">
                     {model.travelers.map((traveler, index) => (
                       <li
                         key={traveler.id}
@@ -260,11 +260,11 @@ export default async function BookingConfirmationPage({ params }: Props) {
               </section>
 
               {seatAssignments.length > 0 ? (
-                <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
                   <h2 className="text-xl font-semibold text-slate-950">
                     Selected seats
                   </h2>
-                  <div className="mt-5 space-y-5">
+                  <div className="mt-4 space-y-4">
                     {legs.map((leg) => {
                       const segment = segments.find(
                         (row) =>
@@ -345,7 +345,7 @@ export default async function BookingConfirmationPage({ params }: Props) {
 
             <aside>
               <div className="sticky top-6 space-y-4">
-                <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
                   <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">
                     Price summary
                   </p>
@@ -353,7 +353,7 @@ export default async function BookingConfirmationPage({ params }: Props) {
                     Your total
                   </h2>
 
-                  <div className="mt-6 space-y-4 text-sm">
+                  <div className="mt-5 space-y-3 text-sm">
                     {model.segments.map((segment) => (
                       <div
                         key={`${segment.segmentType}-${segment.flightCode}`}
@@ -375,7 +375,7 @@ export default async function BookingConfirmationPage({ params }: Props) {
                       </div>
                     ))}
 
-                    <div className="flex justify-between gap-4 border-t border-slate-100 pt-4">
+                    <div className="flex justify-between gap-4 border-t border-slate-100 pt-3">
                       <span className="text-slate-600">Flight subtotal</span>
                       <span className="font-medium text-slate-950">
                         {formatMoney(model.price.subtotal)}
@@ -395,7 +395,7 @@ export default async function BookingConfirmationPage({ params }: Props) {
                         </span>
                       </div>
                     ) : null}
-                    <div className="border-t border-slate-200 pt-4">
+                    <div className="border-t border-slate-200 pt-3">
                       <div className="flex items-end justify-between gap-4">
                         <span className="font-semibold text-slate-950">
                           Total

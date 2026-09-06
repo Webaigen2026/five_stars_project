@@ -109,7 +109,7 @@ export default async function BookingSeatsPage({
     <>
       <Header />
       <main className="min-h-screen bg-slate-50">
-        <section className="mx-auto max-w-7xl px-6 py-12">
+        <section className="fs-container fs-section-y">
           <SeatSelectionContent
             bookingReference={booking.bookingReference}
             editable={isPayableBookingStatus(booking.status)}

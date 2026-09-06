@@ -42,11 +42,11 @@ function PassengersFallback() {
   return (
     <>
       <section className="border-b border-slate-200 bg-white">
-        <div className="mx-auto max-w-7xl px-6 py-12">
+        <div className="fs-container fs-section-y">
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
             Passenger Details
           </p>
-          <h1 className="mt-3 text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
+          <h1 className="mt-2 text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
             Who is traveling?
           </h1>
           <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-600">

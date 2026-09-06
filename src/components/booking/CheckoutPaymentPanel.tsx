@@ -19,7 +19,7 @@ export default function CheckoutPaymentPanel({
     paymentAction === "ready" || paymentAction === "unavailable";
 
   return (
-    <div className="mt-6 space-y-4">
+    <div className="mt-5 space-y-3">
       <p className="text-sm text-slate-600">
         Seats are subject to availability until payment is confirmed.
       </p>

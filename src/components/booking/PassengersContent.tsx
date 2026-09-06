@@ -458,21 +458,21 @@ export default function PassengersContent({
   return (
     <>
       <section className="border-b border-slate-200 bg-white">
-        <div className="mx-auto max-w-7xl px-6 py-12">
+        <div className="fs-container fs-section-y">
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
             Passenger Details
           </p>
 
-          <h1 className="mt-3 text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
+          <h1 className="mt-2 text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
             Who is traveling?
           </h1>
 
-          <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-600">
+          <p className="mt-3 max-w-2xl text-lg leading-7 text-slate-600">
             Enter passenger information exactly as it appears on each
             traveler&apos;s travel documents.
           </p>
 
-          <div className="mt-6 flex flex-wrap gap-3">
+          <div className="mt-4 flex flex-wrap gap-3">
             {!isRoundTrip && flightId ? (
               <div className="rounded-full border border-slate-200 bg-slate-50 px-4 py-2 text-sm text-slate-700">
                 Flight{" "}
@@ -506,9 +506,9 @@ export default function PassengersContent({
         </div>
       </section>
 
-      <section className="mx-auto max-w-5xl px-6 py-12">
+      <section className="fs-container-narrow fs-section-y">
         {isRoundTrip ? (
-          <div className="mb-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="mb-6 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
             <h2 className="text-lg font-semibold text-slate-950">Trip summary</h2>
 
             {roundTripInvalid || !roundTripOutbound || !roundTripReturn ? (
@@ -596,9 +596,9 @@ export default function PassengersContent({
           </p>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-5">
           {!isSignedIn ? (
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
               <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">
                 Contact
               </p>
@@ -622,7 +622,7 @@ export default function PassengersContent({
                 required
                 autoComplete="email"
                 placeholder="you@example.com"
-                className="mt-2 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                className="mt-1.5 w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
               />
               <p className="mt-3 text-sm text-slate-500">
                 Already have an account?{" "}
@@ -646,7 +646,7 @@ export default function PassengersContent({
             return (
               <div key={`${slot.key}-${index}`} className="space-y-3">
                 {showTravelerControls && (
-                  <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                  <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
                     <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">
                       Passenger {index + 1}
                     </p>
@@ -668,7 +668,7 @@ export default function PassengersContent({
                       onChange={(event) =>
                         handleSelectionChange(index, event.target.value)
                       }
-                      className="mt-2 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+                      className="mt-1.5 w-full rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
                     >
                       <option value="">Select traveler</option>
                       <option
@@ -751,7 +751,7 @@ export default function PassengersContent({
             );
           })}
 
-          <div className="rounded-3xl border border-slate-200 bg-white p-6">
+          <div className="rounded-3xl border border-slate-200 bg-white p-5 sm:p-6">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h2 className="text-lg font-semibold text-slate-950">

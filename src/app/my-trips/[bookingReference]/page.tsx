@@ -82,16 +82,16 @@ export default async function TripDetailPage({
 
       <main className="min-h-screen bg-slate-50">
         <section className="border-b border-slate-200 bg-white">
-          <div className="mx-auto max-w-7xl px-6 py-12">
+          <div className="fs-container fs-section-y">
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
               My Trip
             </p>
 
-            <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
+            <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
               {model.routeHeading}
             </h1>
 
-            <p className="mt-4 text-base text-slate-600 sm:text-lg">
+            <p className="mt-3 text-base text-slate-600 sm:text-lg">
               {model.tripTypeLabel}
               <span className="mx-2 text-slate-300" aria-hidden="true">
                 ·
@@ -107,7 +107,7 @@ export default async function TripDetailPage({
               ) : null}
             </p>
 
-            <div className="mt-8 flex flex-wrap items-end gap-4">
+            <div className="mt-5 flex flex-wrap items-end gap-3">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
                   Booking reference
@@ -132,7 +132,7 @@ export default async function TripDetailPage({
           </div>
         </section>
 
-        <section className="mx-auto max-w-7xl px-6 py-12">
+        <section className="fs-container fs-section-y">
           <p className="mb-6">
             <Link
               href={model.myTripsHref}
@@ -143,7 +143,7 @@ export default async function TripDetailPage({
           </p>
 
           {legs.length === 0 ? (
-            <div className="rounded-3xl border border-slate-200 bg-white p-10 text-center shadow-sm">
+            <div className="rounded-3xl border border-slate-200 bg-white p-6 text-center shadow-sm sm:p-8">
               <h2 className="text-2xl font-semibold text-slate-950">
                 Trip details unavailable
               </h2>
@@ -166,10 +166,10 @@ export default async function TripDetailPage({
               </div>
             </div>
           ) : (
-            <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px]">
+            <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
               <div className="space-y-6">
                 <section
-                  className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm"
+                  className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"
                   aria-labelledby="trip-itinerary-heading"
                 >
                   <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">
@@ -184,7 +184,7 @@ export default async function TripDetailPage({
                       : "Flight itinerary"}
                   </h2>
 
-                  <div className="mt-6 space-y-5">
+                  <div className="mt-4 space-y-4">
                     {legs.map((leg) => (
                       <BookingLegSummary
                         key={`${leg.segmentType}-${leg.flightId}`}
@@ -195,7 +195,7 @@ export default async function TripDetailPage({
                 </section>
 
                 <section
-                  className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm"
+                  className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"
                   aria-labelledby="trip-travelers-heading"
                 >
                   <h2
@@ -238,7 +238,7 @@ export default async function TripDetailPage({
                 </section>
 
                 <section
-                  className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm"
+                  className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"
                   aria-labelledby="trip-seats-heading"
                 >
                   <h2
@@ -301,7 +301,7 @@ export default async function TripDetailPage({
                 </section>
 
                 <section
-                  className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm"
+                  className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"
                   aria-labelledby="trip-status-heading"
                 >
                   <h2
@@ -320,7 +320,7 @@ export default async function TripDetailPage({
               </div>
 
               <aside className="space-y-6">
-                <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+                <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
                   <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">
                     Price summary
                   </p>
@@ -328,7 +328,7 @@ export default async function TripDetailPage({
                     Your total
                   </h2>
 
-                  <div className="mt-6 space-y-4 text-sm">
+                  <div className="mt-5 space-y-3 text-sm">
                     {model.priceLines.map((line) => (
                       <div
                         key={line.key}
@@ -341,7 +341,7 @@ export default async function TripDetailPage({
                       </div>
                     ))}
 
-                    <div className="flex justify-between gap-4 border-t border-slate-100 pt-4">
+                    <div className="flex justify-between gap-4 border-t border-slate-100 pt-3">
                       <span className="text-slate-600">Flight subtotal</span>
                       <span className="font-medium text-slate-950">
                         {formatMoney(model.subtotal)}
@@ -361,7 +361,7 @@ export default async function TripDetailPage({
                         </span>
                       </div>
                     ) : null}
-                    <div className="border-t border-slate-200 pt-4">
+                    <div className="border-t border-slate-200 pt-3">
                       <div className="flex items-end justify-between gap-4">
                         <span className="font-semibold text-slate-950">
                           Total
@@ -408,7 +408,7 @@ export default async function TripDetailPage({
                 ) : null}
 
                 <section
-                  className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm"
+                  className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"
                   aria-labelledby="trip-actions-heading"
                 >
                   <h2
@@ -418,7 +418,7 @@ export default async function TripDetailPage({
                     Actions
                   </h2>
                   <nav
-                    className="mt-4 flex flex-col gap-3"
+                    className="mt-3 flex flex-col gap-2.5"
                     aria-label="Trip actions"
                   >
                     <Link

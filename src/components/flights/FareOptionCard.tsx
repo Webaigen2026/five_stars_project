@@ -69,12 +69,12 @@ export default function FareOptionCard({
 }: FareOptionCardProps) {
   const selectLabel = `Select ${getFareFamilyLabel(option.family).replace("Five Stars ", "")}`;
   const buttonClassName = option.highlighted
-    ? "mt-5 inline-flex w-full justify-center rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-60"
-    : "mt-5 inline-flex w-full justify-center rounded-xl border border-primary/30 bg-sky-50 px-5 py-3 text-sm font-semibold text-primary transition hover:border-primary hover:bg-sky-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-60";
+    ? "mt-4 inline-flex w-full justify-center rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-60"
+    : "mt-4 inline-flex w-full justify-center rounded-xl border border-primary/30 bg-sky-50 px-5 py-3 text-sm font-semibold text-primary transition hover:border-primary hover:bg-sky-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-60";
 
   return (
     <article
-      className={`relative flex h-full flex-col rounded-3xl border bg-white p-5 pt-9 shadow-sm sm:p-6 sm:pt-10 ${
+      className={`relative flex h-full flex-col rounded-3xl border bg-white p-4 pt-8 shadow-sm sm:p-5 sm:pt-9 ${
         option.highlighted
           ? "border-primary ring-2 ring-primary/15"
           : "border-slate-200"
@@ -86,7 +86,7 @@ export default function FareOptionCard({
         </span>
       ) : null}
 
-      <div className={option.highlighted ? "min-h-14 pr-20 sm:pr-24" : "min-h-14"}>
+      <div className={option.highlighted ? "min-h-12 pr-20 sm:pr-24" : "min-h-12"}>
         <h2 className="text-xl font-semibold tracking-tight text-slate-950 sm:text-2xl">
           {option.label}
         </h2>
@@ -95,7 +95,7 @@ export default function FareOptionCard({
         </p>
       </div>
 
-      <ul className="mt-5 flex-1 space-y-2.5 text-sm leading-6 text-slate-600">
+      <ul className="mt-4 flex-1 space-y-2 text-sm leading-6 text-slate-600">
         {option.benefits.map((benefit) => {
           const positive = !RESTRICTED_BENEFIT_COPY.has(benefit);
           return (
@@ -107,11 +107,11 @@ export default function FareOptionCard({
         })}
       </ul>
 
-      <div className="mt-6 border-t border-slate-100 pt-5">
+      <div className="mt-5 border-t border-slate-100 pt-4">
         <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
           From
         </p>
-        <p className="mt-1 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">
+        <p className="fs-nums mt-1 text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">
           {formatMoney(option.priceCents)}
         </p>
         <p className="mt-1 text-xs text-slate-500">per passenger</p>

@@ -55,7 +55,7 @@ function FareMissing() {
     <>
       <Header />
       <main className="min-h-screen bg-slate-50">
-        <section className="mx-auto max-w-3xl px-6 py-20 text-center">
+        <section className="mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-16 text-center">
           <h1 className="text-3xl font-semibold text-slate-950">
             Flight not found
           </h1>
@@ -160,7 +160,7 @@ export default async function FareSelectionPage({ searchParams }: Props) {
 
       <main className="min-h-screen bg-slate-50">
         <section className="border-b border-slate-200 bg-white">
-          <div className="mx-auto max-w-7xl px-6 py-12">
+          <div className="fs-container fs-section-y">
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
               Choose your fare
             </p>
@@ -198,7 +198,7 @@ export default async function FareSelectionPage({ searchParams }: Props) {
           </div>
         </section>
 
-        <section className="mx-auto max-w-7xl px-6 py-12">
+        <section className="fs-container fs-section-y">
           <div className="grid gap-6 lg:grid-cols-3 lg:items-stretch">
             {listFareFamilyOptions(flight.price).map((option) => (
               <FareOptionCard

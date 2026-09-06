@@ -193,17 +193,17 @@ export default function ForgotPasswordVerifyContent() {
   }
 
   return (
-    <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+    <div className="fs-auth-card w-full max-w-md rounded-3xl border border-slate-200 bg-white shadow-sm">
       <div>
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
           Five Stars
         </p>
 
-        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
+        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">
           Enter verification code
         </h1>
 
-        <p className="mt-3 text-slate-600">
+        <p className="mt-2 text-slate-600">
           We sent a six-digit code to:{" "}
           <span className="font-medium text-slate-900">{maskedEmail}</span>
         </p>
@@ -211,7 +211,7 @@ export default function ForgotPasswordVerifyContent() {
         {info && <p className="mt-2 text-sm text-slate-500">{info}</p>}
       </div>
 
-      <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+      <form onSubmit={handleSubmit} className="mt-6 space-y-4">
         <div>
           <label htmlFor={inputId} className="sr-only">
             Six-digit verification code

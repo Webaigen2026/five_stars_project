@@ -2,12 +2,12 @@ import Link from "next/link";
 
 export default function ForgotPasswordSuccessContent() {
   return (
-    <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+    <div className="fs-auth-card w-full max-w-md rounded-3xl border border-slate-200 bg-white text-center shadow-sm">
       <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
         Five Stars
       </p>
 
-      <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
+      <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">
         Password updated
       </h1>
 
@@ -21,7 +21,7 @@ export default function ForgotPasswordSuccessContent() {
 
       <Link
         href="/login"
-        className="mt-8 inline-flex w-full items-center justify-center rounded-xl bg-primary px-5 py-3 font-semibold text-white transition hover:bg-primary-hover"
+        className="mt-6 inline-flex w-full items-center justify-center rounded-xl bg-primary px-5 py-3 font-semibold text-white transition hover:bg-primary-hover"
       >
         Sign in
       </Link>

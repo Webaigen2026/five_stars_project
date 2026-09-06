@@ -8,7 +8,7 @@ export default function ForgotPasswordSuccessPage() {
       <Header />
 
       <main className="min-h-screen bg-slate-50">
-        <section className="mx-auto flex max-w-7xl justify-center px-6 py-20">
+        <section className="fs-container flex justify-center fs-auth-shell">
           <ForgotPasswordSuccessContent />
         </section>
       </main>

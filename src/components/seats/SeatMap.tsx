@@ -71,7 +71,7 @@ export default function SeatMap({ rows, onSelectSeat, busy = false }: SeatMapPro
               key={row}
               className="grid grid-cols-[2rem_repeat(7,2.5rem)] gap-1 items-center"
             >
-              <span className="text-center text-xs font-semibold text-slate-500">
+              <span className="fs-nums text-center text-xs font-semibold text-slate-500">
                 {row}
               </span>
               {cells.map((cell, index) =>
@@ -106,7 +106,7 @@ export default function SeatMap({ rows, onSelectSeat, busy = false }: SeatMapPro
         </div>
       </div>
 
-      <ul className="mt-6 flex flex-wrap gap-4 text-xs text-slate-600">
+      <ul className="mt-4 flex flex-wrap gap-3 text-xs text-slate-600">
         <li className="inline-flex items-center gap-2">
           <span className="inline-flex h-5 w-5 items-center justify-center rounded border border-slate-300 bg-white text-[9px] font-semibold">
             A

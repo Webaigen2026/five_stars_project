@@ -247,8 +247,8 @@ export default function SeatSelectionContent({
   }
 
   return (
-    <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
-      <div className="space-y-6">
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_20rem]">
+      <div className="space-y-5">
         <header>
           <p className="text-sm font-semibold uppercase tracking-[0.16em] text-primary">
             {segment.segmentLabel}
@@ -283,11 +283,11 @@ export default function SeatSelectionContent({
       </div>
 
       <aside className="space-y-4 lg:sticky lg:top-6 lg:self-start">
-        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
             Travelers
           </p>
-          <ul className="mt-4 space-y-3">
+          <ul className="mt-3 space-y-2.5">
             {segment.passengers.map((row, index) => (
               <li key={row.id}>
                 <button
@@ -314,7 +314,7 @@ export default function SeatSelectionContent({
           </ul>
         </div>
 
-        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm sm:p-5">
           <p className="text-sm text-slate-600">Selecting for</p>
           <p className="mt-1 text-lg font-semibold text-slate-950">
             {passenger.displayName}
@@ -338,7 +338,7 @@ export default function SeatSelectionContent({
             </span>
           </p>
 
-          <div className="mt-5 flex flex-col gap-3">
+          <div className="mt-4 flex flex-col gap-2.5">
             <button
               type="button"
               onClick={goNext}

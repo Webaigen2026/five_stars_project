@@ -21,6 +21,7 @@ export default function HeaderAccountNav() {
     async function loadUser() {
       try {
         const response = await fetch("/api/auth/me");
+
         const payload = (await response.json().catch(() => null)) as
           | { user?: HeaderUser }
           | null;

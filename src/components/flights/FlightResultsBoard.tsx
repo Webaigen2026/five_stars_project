@@ -281,10 +281,10 @@ function FlightResultsFiltersBar({
   }
 
   return (
-    <div className="mb-8">
-      <div className="hidden rounded-3xl border border-slate-200 bg-white p-5 shadow-sm min-[900px]:block">
+    <div className="mb-6">
+      <div className="hidden rounded-3xl border border-slate-200 bg-white p-4 shadow-sm min-[900px]:block sm:p-5">
         <p className="text-sm font-semibold text-slate-950">Filters</p>
-        <div className="mt-4">
+        <div className="mt-3">
           <FilterControls
             idPrefix={desktopId}
             variant="bar"
@@ -503,7 +503,7 @@ function FlightResultsBoardInner({
 
   function renderCards(flights: BoardFlight[]) {
     return (
-      <div className="space-y-5">
+      <div className="space-y-4">
         {flights.map((flight) => (
           <FlightResultCard
             key={flight.id}
@@ -526,24 +526,24 @@ function FlightResultsBoardInner({
       />
 
       {allHidden ? (
-        <div className="rounded-3xl border border-slate-200 bg-white p-10 text-center">
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 text-center sm:p-8">
           <h3 className="text-2xl font-semibold text-slate-950">
             No flights match your filters.
           </h3>
-          <p className="mt-3 text-slate-600">
+          <p className="mt-2 text-slate-600">
             Try adjusting departure time, price, or sort options.
           </p>
           <button
             type="button"
             onClick={reset}
-            className="mt-6 inline-flex rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+            className="mt-5 inline-flex rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
           >
             Reset filters
           </button>
         </div>
       ) : (
         <>
-          <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+          <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
             <div>
               {headingMode === "available" ? (
                 <h2 className="text-2xl font-semibold text-slate-950">
@@ -551,7 +551,7 @@ function FlightResultsBoardInner({
                 </h2>
               ) : null}
               {filtered.exactCount > 0 && requestedDate ? (
-                <p className="mb-0 mt-2 text-sm font-medium text-slate-600">
+                <p className="mb-0 mt-1.5 text-sm font-medium text-slate-600">
                   {formatSearchDateLong(requestedDate)}
                 </p>
               ) : null}
@@ -590,20 +590,20 @@ function FlightResultsBoardInner({
           ) : null}
 
           {filtered.alternateGroups.length > 0 ? (
-            <div className="mt-12 border-t border-slate-200 pt-10">
-              <div className="mb-6">
+            <div className="mt-8 border-t border-slate-200 pt-8 sm:mt-10 sm:pt-8">
+              <div className="mb-5">
                 <h2 className="text-2xl font-semibold text-slate-950">
                   Other available flights
                 </h2>
-                <p className="mt-2 text-sm text-slate-600">
+                <p className="mt-1.5 text-sm text-slate-600">
                   Nearby dates on the same route with enough seats.
                 </p>
               </div>
 
-              <div className="space-y-10">
+              <div className="space-y-8">
                 {filtered.alternateGroups.map((group) => (
                   <div key={group.date}>
-                    <p className="mb-4 text-xs font-semibold uppercase tracking-[0.16em] text-primary">
+                    <p className="mb-3 text-xs font-semibold uppercase tracking-[0.16em] text-primary">
                       {formatSearchDateLong(group.date)}
                     </p>
                     {renderCards(group.flights)}

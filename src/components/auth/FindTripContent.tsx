@@ -6,20 +6,26 @@ import { useRouter } from "next/navigation";
 
 export default function FindTripContent() {
   const router = useRouter();
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
     if (isSubmitting) {
       return;
     }
 
     const formData = new FormData(event.currentTarget);
+
     const bookingReference = String(
       formData.get("bookingReference") ?? ""
     ).trim();
-    const email = String(formData.get("email") ?? "").trim().toLowerCase();
+
+    const email = String(formData.get("email") ?? "")
+      .trim()
+      .toLowerCase();
 
     setError(null);
     setIsSubmitting(true);
@@ -44,6 +50,7 @@ export default function FindTripContent() {
         ref: bookingReference.toUpperCase(),
         email,
       });
+
       router.push(`/find-trip/verify?${params.toString()}`);
     } catch {
       setError("Unable to continue. Please try again.");
@@ -53,27 +60,30 @@ export default function FindTripContent() {
   }
 
   return (
-    <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+    <div className="fs-auth-card w-full max-w-md rounded-3xl border border-slate-200 bg-white shadow-sm">
       <div>
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
           Five Stars
         </p>
-        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
+
+        <h1 className="font-american-sans mt-2 text-3xl font-light tracking-[-0.02em] text-slate-950">
           Find your trip
         </h1>
-        <p className="mt-3 text-slate-600">
+
+        <p className="mt-2 font-normal leading-6 text-slate-600">
           Enter your booking reference and the email used for the reservation.
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+      <form onSubmit={handleSubmit} className="mt-6 space-y-4">
         <div>
           <label
             htmlFor="bookingReference"
-            className="mb-2 block text-sm font-medium text-slate-700"
+            className="mb-1.5 block text-sm font-medium text-slate-700"
           >
             Booking reference
           </label>
+
           <input
             id="bookingReference"
             name="bookingReference"
@@ -81,17 +91,18 @@ export default function FindTripContent() {
             required
             autoComplete="off"
             placeholder="SJ-XXXXXX"
-            className="w-full rounded-xl border border-slate-300 px-4 py-3 uppercase outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
+            className="fs-nums w-full rounded-xl border border-slate-300 px-4 py-3 font-medium uppercase outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
           />
         </div>
 
         <div>
           <label
             htmlFor="email"
-            className="mb-2 block text-sm font-medium text-slate-700"
+            className="mb-1.5 block text-sm font-medium text-slate-700"
           >
             Email
           </label>
+
           <input
             id="email"
             name="email"
@@ -118,7 +129,7 @@ export default function FindTripContent() {
         </button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-slate-600">
+      <p className="mt-5 text-center text-sm text-slate-600">
         Have an account?{" "}
         <Link href="/login" className="font-semibold text-primary">
           Sign in

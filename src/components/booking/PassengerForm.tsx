@@ -96,7 +96,7 @@ export default function PassengerForm({
   const shownError = dateOfBirthError ?? null;
 
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+    <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
       <div className="mb-6">
         <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">
           Passenger {passengerNumber}
@@ -118,11 +118,11 @@ export default function PassengerForm({
         )}
       </div>
 
-      <div className="grid gap-5 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-2">
         <div>
           <label
             htmlFor={`firstName-${index}`}
-            className="mb-2 block text-sm font-medium text-slate-700"
+            className="mb-1.5 block text-sm font-medium text-slate-700"
           >
             First name
           </label>
@@ -141,7 +141,7 @@ export default function PassengerForm({
         <div>
           <label
             htmlFor={`lastName-${index}`}
-            className="mb-2 block text-sm font-medium text-slate-700"
+            className="mb-1.5 block text-sm font-medium text-slate-700"
           >
             Last name
           </label>
@@ -160,7 +160,7 @@ export default function PassengerForm({
         <div>
           <label
             htmlFor={`dateOfBirth-${index}`}
-            className="mb-2 block text-sm font-medium text-slate-700"
+            className="mb-1.5 block text-sm font-medium text-slate-700"
           >
             Date of birth
           </label>
@@ -198,7 +198,7 @@ export default function PassengerForm({
         <div>
           <label
             htmlFor={`gender-${index}`}
-            className="mb-2 block text-sm font-medium text-slate-700"
+            className="mb-1.5 block text-sm font-medium text-slate-700"
           >
             Gender
           </label>
@@ -223,7 +223,7 @@ export default function PassengerForm({
         <div>
           <label
             htmlFor={`nationality-${index}`}
-            className="mb-2 block text-sm font-medium text-slate-700"
+            className="mb-1.5 block text-sm font-medium text-slate-700"
           >
             Nationality
           </label>
@@ -242,7 +242,7 @@ export default function PassengerForm({
         <div>
           <label
             htmlFor={`passportNumber-${index}`}
-            className="mb-2 block text-sm font-medium text-slate-700"
+            className="mb-1.5 block text-sm font-medium text-slate-700"
           >
             Passport number
           </label>
@@ -262,7 +262,7 @@ export default function PassengerForm({
         <div>
           <label
             htmlFor={`passportCountry-${index}`}
-            className="mb-2 block text-sm font-medium text-slate-700"
+            className="mb-1.5 block text-sm font-medium text-slate-700"
           >
             Passport issuing country
           </label>
@@ -281,7 +281,7 @@ export default function PassengerForm({
         <div>
           <label
             htmlFor={`passportExpiry-${index}`}
-            className="mb-2 block text-sm font-medium text-slate-700"
+            className="mb-1.5 block text-sm font-medium text-slate-700"
           >
             Passport expiration
           </label>

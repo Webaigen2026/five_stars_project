@@ -27,11 +27,11 @@ export default async function DashboardPage() {
               Account
             </p>
 
-            <h1 className="mt-3 break-words text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
+            <h1 className="font-american-sans mt-3 break-words text-4xl font-light tracking-[-0.025em] text-slate-950 sm:text-5xl">
               Welcome, {welcomeName}
             </h1>
 
-            <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-600">
+            <p className="mt-4 max-w-2xl text-lg font-normal leading-8 text-slate-600">
               Manage your Five Stars trips, saved travelers, cargo requests, and
               charter requests from one place.
             </p>
@@ -48,9 +48,11 @@ export default async function DashboardPage() {
                 <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">
                   Travel
                 </p>
-                <h2 className="mt-2 text-2xl font-semibold text-slate-950">
+
+                <h2 className="font-american-sans mt-2 text-2xl font-light tracking-[-0.015em] text-slate-950">
                   My Trips
                 </h2>
+
                 <p className="mt-2 text-sm text-slate-600">
                   View and continue your flight bookings.
                 </p>
@@ -63,9 +65,11 @@ export default async function DashboardPage() {
                 <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">
                   Travel
                 </p>
-                <h2 className="mt-2 text-2xl font-semibold text-slate-950">
+
+                <h2 className="font-american-sans mt-2 text-2xl font-light tracking-[-0.015em] text-slate-950">
                   Saved Travelers
                 </h2>
+
                 <p className="mt-2 text-sm text-slate-600">
                   Manage traveler profiles and reuse details for faster
                   bookings.
@@ -79,9 +83,11 @@ export default async function DashboardPage() {
                 <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">
                   Shipping
                 </p>
-                <h2 className="mt-2 text-2xl font-semibold text-slate-950">
+
+                <h2 className="font-american-sans mt-2 text-2xl font-light tracking-[-0.015em] text-slate-950">
                   My Cargo
                 </h2>
+
                 <p className="mt-2 text-sm text-slate-600">
                   Track cargo requests submitted from your account.
                 </p>
@@ -94,9 +100,11 @@ export default async function DashboardPage() {
                 <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">
                   Private
                 </p>
-                <h2 className="mt-2 text-2xl font-semibold text-slate-950">
+
+                <h2 className="font-american-sans mt-2 text-2xl font-light tracking-[-0.015em] text-slate-950">
                   My Charter
                 </h2>
+
                 <p className="mt-2 text-sm text-slate-600">
                   Track charter requests submitted from your account.
                 </p>
@@ -109,9 +117,11 @@ export default async function DashboardPage() {
                 <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">
                   Support
                 </p>
-                <h2 className="mt-2 text-2xl font-semibold text-slate-950">
+
+                <h2 className="font-american-sans mt-2 text-2xl font-light tracking-[-0.015em] text-slate-950">
                   My Messages
                 </h2>
+
                 <p className="mt-2 text-sm text-slate-600">
                   Track contact messages submitted from your account.
                 </p>
@@ -124,9 +134,11 @@ export default async function DashboardPage() {
                 <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">
                   Account
                 </p>
-                <h2 className="mt-2 text-2xl font-semibold text-slate-950">
+
+                <h2 className="font-american-sans mt-2 text-2xl font-light tracking-[-0.015em] text-slate-950">
                   Profile
                 </h2>
+
                 <p className="mt-2 text-sm text-slate-600">
                   Update your personal details and password.
                 </p>
@@ -160,12 +172,14 @@ export default async function DashboardPage() {
                       ? "Verified"
                       : "Not verified (optional)"}
                   </dd>
+
                   {!user.emailVerified && (
                     <>
                       <p className="mt-2 text-xs text-slate-500">
                         Confirm your email so we know we can reach you. You can
                         keep using your account either way.
                       </p>
+
                       <ResendVerificationButton email={user.email} />
                     </>
                   )}

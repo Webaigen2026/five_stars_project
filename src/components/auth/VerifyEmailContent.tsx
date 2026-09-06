@@ -68,14 +68,14 @@ export default function VerifyEmailContent() {
   }, [token]);
 
   return (
-    <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 text-center shadow-sm">
+    <div className="fs-auth-card w-full max-w-md rounded-3xl border border-slate-200 bg-white text-center shadow-sm">
       <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
         Email Verification
       </p>
 
       {state === "verifying" && (
         <>
-          <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">
             Verifying your email
           </h1>
           <p className="mt-4 text-slate-600">
@@ -86,7 +86,7 @@ export default function VerifyEmailContent() {
 
       {state === "success" && (
         <>
-          <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">
             Email verified successfully.
           </h1>
           <p className="mt-4 text-slate-600">
@@ -112,7 +112,7 @@ export default function VerifyEmailContent() {
 
       {state === "error" && (
         <>
-          <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">
             Verification failed
           </h1>
           <p className="mt-4 text-slate-600">{error}</p>

@@ -10,15 +10,15 @@ export default function Header() {
 
   return (
     <header className="border-b border-slate-200 bg-white">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5">
+      <div className="fs-container flex items-center justify-between py-4">
         <Link
           href="/"
-          className="text-2xl font-bold tracking-tight text-slate-950"
+          className="font-american-sans text-2xl font-light tracking-[-0.02em] text-slate-950"
         >
           Five Stars
         </Link>
 
-        <nav className="hidden items-center gap-6 text-sm font-medium md:flex">
+        <nav className="hidden items-center gap-5 text-sm font-medium md:flex">
           <Link
             href="/flights"
             className="text-slate-700 transition hover:text-primary"
@@ -83,7 +83,7 @@ export default function Header() {
 
       {menuOpen && (
         <div className="border-t border-slate-200 bg-white md:hidden">
-          <div className="mx-auto flex max-w-7xl flex-col px-6 py-4">
+          <div className="fs-container flex flex-col py-3">
             <Link
               href="/flights"
               onClick={() => setMenuOpen(false)}

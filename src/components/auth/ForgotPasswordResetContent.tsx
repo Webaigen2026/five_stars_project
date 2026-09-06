@@ -62,27 +62,27 @@ export default function ForgotPasswordResetContent() {
   }
 
   return (
-    <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+    <div className="fs-auth-card w-full max-w-md rounded-3xl border border-slate-200 bg-white shadow-sm">
       <div>
         <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
           Five Stars
         </p>
 
-        <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
+        <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">
           Create a new password
         </h1>
 
-        <p className="mt-3 text-slate-600">
+        <p className="mt-2 text-slate-600">
           Choose a new password for your Five Stars account. Passwords must be
           at least 8 characters.
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+      <form onSubmit={handleSubmit} className="mt-6 space-y-4">
         <div>
           <label
             htmlFor="newPassword"
-            className="mb-2 block text-sm font-medium text-slate-700"
+            className="mb-1.5 block text-sm font-medium text-slate-700"
           >
             New password
           </label>
@@ -101,7 +101,7 @@ export default function ForgotPasswordResetContent() {
         <div>
           <label
             htmlFor="confirmPassword"
-            className="mb-2 block text-sm font-medium text-slate-700"
+            className="mb-1.5 block text-sm font-medium text-slate-700"
           >
             Confirm new password
           </label>
@@ -136,7 +136,7 @@ export default function ForgotPasswordResetContent() {
         </button>
       </form>
 
-      <p className="mt-6 text-center text-sm text-slate-600">
+      <p className="mt-5 text-center text-sm text-slate-600">
         <Link href="/forgot-password" className="font-semibold text-primary">
           Start over
         </Link>

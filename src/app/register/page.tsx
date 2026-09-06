@@ -1,7 +1,9 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+
 import Link from "next/link";
+
 import { useRouter } from "next/navigation";
 
 import Footer from "../../components/layout/Footer";
@@ -9,6 +11,7 @@ import Header from "../../components/layout/Header";
 
 export default function RegisterPage() {
   const router = useRouter();
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -20,6 +23,7 @@ export default function RegisterPage() {
     }
 
     const formData = new FormData(event.currentTarget);
+
     const firstName = String(formData.get("firstName") ?? "").trim();
     const lastName = String(formData.get("lastName") ?? "").trim();
     const email = String(formData.get("email") ?? "").trim();
@@ -73,28 +77,28 @@ export default function RegisterPage() {
       <Header />
 
       <main className="min-h-screen bg-slate-50">
-        <section className="mx-auto flex max-w-7xl justify-center px-6 py-20">
-          <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
+        <section className="fs-container flex justify-center fs-auth-shell">
+          <div className="fs-auth-card w-full max-w-md rounded-3xl border border-slate-200 bg-white shadow-sm">
             <div>
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
                 Create Account
               </p>
 
-              <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
+              <h1 className="font-american-sans mt-3 text-3xl font-light tracking-[-0.02em] text-slate-950">
                 Join Five Stars
               </h1>
 
-              <p className="mt-3 text-slate-600">
+              <p className="mt-3 font-normal leading-6 text-slate-600">
                 Create your account to manage flights, cargo, and charter
                 requests.
               </p>
             </div>
 
-            <form onSubmit={handleSubmit} className="mt-8 space-y-5">
+            <form onSubmit={handleSubmit} className="mt-6 space-y-4">
               <div>
                 <label
                   htmlFor="firstName"
-                  className="mb-2 block text-sm font-medium text-slate-700"
+                  className="mb-1.5 block text-sm font-medium text-slate-700"
                 >
                   First name
                 </label>
@@ -112,7 +116,7 @@ export default function RegisterPage() {
               <div>
                 <label
                   htmlFor="lastName"
-                  className="mb-2 block text-sm font-medium text-slate-700"
+                  className="mb-1.5 block text-sm font-medium text-slate-700"
                 >
                   Last name
                 </label>
@@ -130,7 +134,7 @@ export default function RegisterPage() {
               <div>
                 <label
                   htmlFor="email"
-                  className="mb-2 block text-sm font-medium text-slate-700"
+                  className="mb-1.5 block text-sm font-medium text-slate-700"
                 >
                   Email
                 </label>
@@ -148,7 +152,7 @@ export default function RegisterPage() {
               <div>
                 <label
                   htmlFor="password"
-                  className="mb-2 block text-sm font-medium text-slate-700"
+                  className="mb-1.5 block text-sm font-medium text-slate-700"
                 >
                   Password
                 </label>
@@ -167,7 +171,7 @@ export default function RegisterPage() {
               <div>
                 <label
                   htmlFor="confirmPassword"
-                  className="mb-2 block text-sm font-medium text-slate-700"
+                  className="mb-1.5 block text-sm font-medium text-slate-700"
                 >
                   Confirm password
                 </label>
@@ -184,7 +188,9 @@ export default function RegisterPage() {
               </div>
 
               {error && (
-                <p className="text-sm font-medium text-red-600">{error}</p>
+                <p className="text-sm font-medium text-red-600" role="alert">
+                  {error}
+                </p>
               )}
 
               <button

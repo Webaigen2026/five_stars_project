@@ -35,7 +35,7 @@ export default function AirportSelect({
     <div>
       <label
         htmlFor={id}
-        className="mb-2 block text-sm font-medium text-slate-700"
+        className="mb-1.5 block text-sm font-medium text-slate-700"
       >
         {label}
       </label>

@@ -78,7 +78,10 @@ export default function BookingLegSummary({
           </p>
           {showFare ? (
             <p className="mt-2 text-sm font-medium text-slate-800">
-              {getFareFamilyLabel(fareFamily)} · {formatMoney(farePriceCents)}{" "}
+              {getFareFamilyLabel(fareFamily)} ·{" "}
+              <span className="fs-nums font-semibold">
+                {formatMoney(farePriceCents)}
+              </span>{" "}
               per passenger
             </p>
           ) : null}
@@ -90,11 +93,12 @@ export default function BookingLegSummary({
 
       <div className="mt-5 grid gap-4 sm:grid-cols-[1fr_auto_1fr] sm:items-center">
         <div>
-          <p className="text-2xl font-semibold text-slate-950">
+          <p className="fs-nums text-2xl font-semibold tracking-tight text-slate-950">
             {formatDepartureTime(flight)}
           </p>
           <p className="mt-1 text-sm font-semibold text-slate-900">
-            {flight.origin} ({flight.originCode})
+            {flight.origin}{" "}
+            <span className="font-bold tracking-wide">{flight.originCode}</span>
           </p>
           <p className="mt-1 text-sm text-slate-600">
             {formatDepartureDate(flight)}
@@ -102,7 +106,7 @@ export default function BookingLegSummary({
         </div>
 
         <div className="min-w-0 text-left sm:min-w-28 sm:text-center">
-          <p className="text-xs font-medium uppercase tracking-wider text-slate-400">
+          <p className="fs-nums text-xs font-medium uppercase tracking-wider text-slate-400">
             {formatDuration(flight.durationMinutes)}
           </p>
           <div className="my-2 h-px bg-slate-300" />
@@ -110,11 +114,14 @@ export default function BookingLegSummary({
         </div>
 
         <div className="sm:text-right">
-          <p className="text-2xl font-semibold text-slate-950">
+          <p className="fs-nums text-2xl font-semibold tracking-tight text-slate-950">
             {formatArrivalTime(flight)}
           </p>
           <p className="mt-1 text-sm font-semibold text-slate-900">
-            {flight.destination} ({flight.destinationCode})
+            {flight.destination}{" "}
+            <span className="font-bold tracking-wide">
+              {flight.destinationCode}
+            </span>
           </p>
           <p className="mt-1 text-sm text-slate-600">
             {formatArrivalDate(flight)}

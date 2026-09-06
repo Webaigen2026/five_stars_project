@@ -5,6 +5,7 @@ import { getCurrentUser } from "../../lib/auth";
 
 export default async function CharterPage() {
   const user = await getCurrentUser();
+
   const defaultFullName = [user?.firstName, user?.lastName]
     .filter((value) => Boolean(value?.trim()))
     .join(" ")
@@ -21,11 +22,11 @@ export default async function CharterPage() {
               Charter
             </p>
 
-            <h1 className="mt-3 text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
+            <h1 className="font-american-sans mt-3 text-4xl font-light tracking-[-0.025em] text-slate-950 sm:text-5xl">
               Private charter requests
             </h1>
 
-            <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-600">
+            <p className="mt-4 max-w-2xl text-lg font-normal leading-8 text-slate-600">
               Request customized private air travel based on your schedule,
               route, passenger count, and aircraft preferences.
             </p>

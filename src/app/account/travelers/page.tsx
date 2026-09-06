@@ -8,6 +8,7 @@ import { listTravelersForUser } from "../../../lib/travelers";
 
 export default async function AccountTravelersPage() {
   const currentUser = await requireUser();
+
   const travelers = await listTravelersForUser(currentUser.id);
 
   return (
@@ -20,17 +21,21 @@ export default async function AccountTravelersPage() {
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
               Account
             </p>
-            <h1 className="mt-3 text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
+
+            <h1 className="font-american-sans mt-3 text-4xl font-light tracking-[-0.025em] text-slate-950 sm:text-5xl">
               Saved travelers
             </h1>
-            <p className="mt-4 max-w-2xl text-lg leading-8 text-slate-600">
+
+            <p className="mt-4 max-w-2xl text-lg font-normal leading-8 text-slate-600">
               Keep traveler details on file so you don&apos;t have to retype
               them for every booking.
             </p>
+
             <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600">
               Your primary traveler is used for the &quot;Myself&quot; option
               during booking.
             </p>
+
             <p className="mt-6">
               <Link
                 href="/account"

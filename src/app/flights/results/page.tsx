@@ -165,16 +165,16 @@ export default async function FlightResultsPage({ searchParams }: Props) {
 
         <main className="min-h-screen bg-slate-50">
           <section className="border-b border-slate-200 bg-white">
-            <div className="mx-auto max-w-7xl px-6 py-12">
+            <div className="fs-container fs-section-y">
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
                 Flight Results
               </p>
 
-              <h1 className="mt-3 text-4xl font-semibold tracking-tight text-slate-950">
+              <h1 className="mt-2 text-4xl font-semibold tracking-tight text-slate-950">
                 {formatAirportRoute(from, to)}
               </h1>
 
-              <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2 text-sm text-slate-600">
+              <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1.5 text-sm text-slate-600">
                 {departure ? (
                   <span>
                     Departure:{" "}
@@ -192,14 +192,14 @@ export default async function FlightResultsPage({ searchParams }: Props) {
 
               <Link
                 href={modifySearchHref}
-                className="mt-6 inline-flex text-sm font-semibold text-primary transition hover:text-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                className="mt-4 inline-flex text-sm font-semibold text-primary transition hover:text-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
               >
                 ← Modify search
               </Link>
             </div>
           </section>
 
-          <section className="mx-auto max-w-7xl px-6 py-12">
+          <section className="fs-container fs-section-y">
             {!hasExact && !hasAlternates ? (
               <EmptyResults
                 from={from}
@@ -299,16 +299,16 @@ export default async function FlightResultsPage({ searchParams }: Props) {
 
       <main className="min-h-screen bg-slate-50">
         <section className="border-b border-slate-200 bg-white">
-          <div className="mx-auto max-w-7xl px-6 py-12">
+          <div className="fs-container fs-section-y">
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
               Round Trip
             </p>
 
-            <h1 className="mt-3 text-4xl font-semibold tracking-tight text-slate-950">
+            <h1 className="mt-2 text-4xl font-semibold tracking-tight text-slate-950">
               {formatAirportRoute(from, to)}
             </h1>
 
-            <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2 text-sm text-slate-600">
+            <div className="mt-3 flex flex-wrap gap-x-5 gap-y-1.5 text-sm text-slate-600">
               {departure ? (
                 <span>
                   Outbound:{" "}
@@ -333,14 +333,14 @@ export default async function FlightResultsPage({ searchParams }: Props) {
 
             <Link
               href={modifySearchHref}
-              className="mt-6 inline-flex text-sm font-semibold text-primary transition hover:text-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+              className="mt-4 inline-flex text-sm font-semibold text-primary transition hover:text-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
             >
               ← Modify search
             </Link>
           </div>
         </section>
 
-        <section className="mx-auto max-w-7xl px-6 py-12 space-y-10">
+        <section className="fs-container fs-section-y space-y-8">
           {!selectedOutbound ? (
             <div>
               <div className="mb-6">
@@ -440,7 +440,7 @@ export default async function FlightResultsPage({ searchParams }: Props) {
                 </div>
 
                 {!returnDateValidForOutbound ? (
-                  <div className="rounded-3xl border border-amber-200 bg-amber-50/80 p-8">
+                  <div className="rounded-3xl border border-amber-200 bg-amber-50/80 p-5 sm:p-6">
                     <h3 className="text-xl font-semibold text-slate-950">
                       Return date is no longer valid
                     </h3>
@@ -533,7 +533,7 @@ function EmptyResults({
   aroundDate?: boolean;
 }) {
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-10 text-center">
+    <div className="rounded-3xl border border-slate-200 bg-white p-6 text-center sm:p-8">
       <h2 className="text-2xl font-semibold text-slate-950">No flights found</h2>
 
       <p className="mt-3 text-slate-600">

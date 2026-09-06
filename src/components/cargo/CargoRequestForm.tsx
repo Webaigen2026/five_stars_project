@@ -82,13 +82,20 @@ export default function CargoRequestForm({
         <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">
           Request received
         </p>
-        <h2 className="mt-2 text-2xl font-semibold text-slate-950">
-          {created.reference}
+
+        <h2 className="font-american-sans mt-2 text-2xl font-light tracking-[-0.015em] text-slate-950">
+          Cargo request received
         </h2>
+
+        <p className="fs-nums mt-3 text-sm font-semibold text-slate-950">
+          Reference: {created.reference}
+        </p>
+
         <p className="mt-3 text-slate-600">
           We received your cargo request from {created.origin} to{" "}
           {created.destination}. Keep this reference for follow-up.
         </p>
+
         <button
           type="button"
           onClick={() => setCreated(null)}
@@ -105,7 +112,10 @@ export default function CargoRequestForm({
       onSubmit={handleSubmit}
       className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm"
     >
-      <h2 className="text-2xl font-semibold text-slate-950">Cargo request</h2>
+      <h2 className="font-american-sans text-2xl font-light tracking-[-0.015em] text-slate-950">
+        Cargo request
+      </h2>
+
       <p className="mt-2 text-slate-600">
         You can submit this form without creating an account.
       </p>
@@ -120,6 +130,7 @@ export default function CargoRequestForm({
             className={inputClassName}
           />
         </Field>
+
         <Field label="Email" htmlFor="email">
           <input
             id="email"
@@ -130,9 +141,15 @@ export default function CargoRequestForm({
             className={inputClassName}
           />
         </Field>
+
         <Field label="Phone" htmlFor="phone">
-          <input id="phone" name="phone" className={inputClassName} />
+          <input
+            id="phone"
+            name="phone"
+            className={inputClassName}
+          />
         </Field>
+
         <Field label="Cargo type" htmlFor="cargoType">
           <select
             id="cargoType"
@@ -148,6 +165,7 @@ export default function CargoRequestForm({
             ))}
           </select>
         </Field>
+
         <Field label="Origin" htmlFor="origin">
           <input
             id="origin"
@@ -157,6 +175,7 @@ export default function CargoRequestForm({
             className={inputClassName}
           />
         </Field>
+
         <Field label="Destination" htmlFor="destination">
           <input
             id="destination"
@@ -166,6 +185,7 @@ export default function CargoRequestForm({
             className={inputClassName}
           />
         </Field>
+
         <Field label="Quantity" htmlFor="quantity">
           <input
             id="quantity"
@@ -175,6 +195,7 @@ export default function CargoRequestForm({
             className={inputClassName}
           />
         </Field>
+
         <Field label="Weight" htmlFor="weight">
           <input
             id="weight"
@@ -183,6 +204,7 @@ export default function CargoRequestForm({
             className={inputClassName}
           />
         </Field>
+
         <Field label="Preferred date" htmlFor="preferredDate">
           <input
             id="preferredDate"
@@ -191,6 +213,7 @@ export default function CargoRequestForm({
             className={inputClassName}
           />
         </Field>
+
         <div className="md:col-span-2">
           <Field label="Description" htmlFor="description">
             <textarea
@@ -204,7 +227,9 @@ export default function CargoRequestForm({
       </div>
 
       {error && (
-        <p className="mt-5 text-sm font-medium text-red-600">{error}</p>
+        <p className="mt-5 text-sm font-medium text-red-600" role="alert">
+          {error}
+        </p>
       )}
 
       <button
@@ -235,6 +260,7 @@ function Field({
       >
         {label}
       </label>
+
       {children}
     </div>
   );
