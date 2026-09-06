@@ -11,7 +11,6 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { ChevronsUpDown, MapPin } from "lucide-react";
-
 import {
   getAirportByCode,
   getAirportsByCountry,
@@ -37,6 +36,7 @@ function cn(
 
 function airportMatchesQuery(airport: AirportOption, query: string) {
   const normalized = query.trim().toLowerCase();
+
   if (!normalized) {
     return true;
   }
@@ -65,6 +65,7 @@ export default function AirportSelect({
 }: AirportSelectProps) {
   const listboxId = useId();
   const searchId = useId();
+
   const rootRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
@@ -73,6 +74,7 @@ export default function AirportSelect({
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [activeIndex, setActiveIndex] = useState(0);
+
   const [menuPos, setMenuPos] = useState<{
     top: number;
     left: number;
@@ -84,6 +86,7 @@ export default function AirportSelect({
 
   const flatOptions = useMemo(() => {
     const options: AirportOption[] = [];
+
     for (const [, airports] of groups) {
       for (const airport of airports) {
         if (airportMatchesQuery(airport, query)) {
@@ -91,6 +94,7 @@ export default function AirportSelect({
         }
       }
     }
+
     return options;
   }, [groups, query]);
 
@@ -102,15 +106,21 @@ export default function AirportSelect({
     setQuery("");
 
     const options: AirportOption[] = [];
+
     for (const [, airports] of groups) {
       options.push(...airports);
     }
-    const selectedIndex = options.findIndex((airport) => airport.code === value);
+
+    const selectedIndex = options.findIndex(
+      (airport) => airport.code === value
+    );
+
     setActiveIndex(selectedIndex >= 0 ? selectedIndex : 0);
 
     const frame = window.requestAnimationFrame(() => {
       searchRef.current?.focus();
     });
+
     return () => window.cancelAnimationFrame(frame);
   }, [open, groups, value]);
 
@@ -118,10 +128,12 @@ export default function AirportSelect({
     if (!open) {
       return;
     }
+
     setActiveIndex((current) => {
       if (flatOptions.length === 0) {
         return 0;
       }
+
       return Math.min(current, flatOptions.length - 1);
     });
   }, [flatOptions, open]);
@@ -134,12 +146,14 @@ export default function AirportSelect({
 
     function updatePosition() {
       const trigger = triggerRef.current;
+
       if (!trigger) {
         return;
       }
 
       const rect = trigger.getBoundingClientRect();
       const width = Math.min(rect.width, window.innerWidth - 16);
+
       const left = Math.min(
         Math.max(8, rect.left),
         Math.max(8, window.innerWidth - width - 8)
@@ -153,8 +167,10 @@ export default function AirportSelect({
     }
 
     updatePosition();
+
     window.addEventListener("resize", updatePosition);
     window.addEventListener("scroll", updatePosition, true);
+
     return () => {
       window.removeEventListener("resize", updatePosition);
       window.removeEventListener("scroll", updatePosition, true);
@@ -168,15 +184,19 @@ export default function AirportSelect({
 
     function handlePointerDown(event: MouseEvent) {
       const target = event.target as Node | null;
+
       if (!target) {
         return;
       }
+
       if (rootRef.current?.contains(target)) {
         return;
       }
+
       if (listRef.current?.contains(target)) {
         return;
       }
+
       setOpen(false);
     }
 
@@ -190,6 +210,7 @@ export default function AirportSelect({
 
     document.addEventListener("mousedown", handlePointerDown);
     document.addEventListener("keydown", handleKeyDown);
+
     return () => {
       document.removeEventListener("mousedown", handlePointerDown);
       document.removeEventListener("keydown", handleKeyDown);
@@ -200,9 +221,11 @@ export default function AirportSelect({
     if (!open) {
       return;
     }
+
     const active = listRef.current?.querySelector<HTMLElement>(
       `[data-airport-index="${activeIndex}"]`
     );
+
     active?.scrollIntoView({ block: "nearest" });
   }, [activeIndex, open]);
 
@@ -210,6 +233,7 @@ export default function AirportSelect({
     if (code === excludeCode) {
       return;
     }
+
     onChange(code);
     setOpen(false);
     triggerRef.current?.focus();
@@ -219,38 +243,55 @@ export default function AirportSelect({
     if (flatOptions.length === 0) {
       return;
     }
+
     setActiveIndex((current) => {
-      const next = (current + delta + flatOptions.length) % flatOptions.length;
-      return next;
+      return (
+        (current + delta + flatOptions.length) %
+        flatOptions.length
+      );
     });
   }
 
-  function handleTriggerKeyDown(event: ReactKeyboardEvent<HTMLButtonElement>) {
-    if (event.key === "ArrowDown" || event.key === "Enter" || event.key === " ") {
+  function handleTriggerKeyDown(
+    event: ReactKeyboardEvent<HTMLButtonElement>
+  ) {
+    if (
+      event.key === "ArrowDown" ||
+      event.key === "Enter" ||
+      event.key === " "
+    ) {
       event.preventDefault();
       setOpen(true);
     }
   }
 
-  function handleSearchKeyDown(event: ReactKeyboardEvent<HTMLInputElement>) {
+  function handleSearchKeyDown(
+    event: ReactKeyboardEvent<HTMLInputElement>
+  ) {
     if (event.key === "ArrowDown") {
       event.preventDefault();
       moveActive(1);
       return;
     }
+
     if (event.key === "ArrowUp") {
       event.preventDefault();
       moveActive(-1);
       return;
     }
+
     if (event.key === "Enter") {
       event.preventDefault();
+
       const option = flatOptions[activeIndex];
+
       if (option && option.code !== excludeCode) {
         selectAirport(option.code);
       }
+
       return;
     }
+
     if (event.key === "Escape") {
       event.preventDefault();
       setOpen(false);
@@ -259,6 +300,7 @@ export default function AirportSelect({
   }
 
   const activeOption = flatOptions[activeIndex];
+
   const activeDescendantId = activeOption
     ? `${listboxId}-option-${activeOption.code}`
     : undefined;
@@ -278,17 +320,19 @@ export default function AirportSelect({
               width: menuPos.width,
               zIndex: 80,
             }}
-            className="overflow-hidden  border border-slate-200 bg-white shadow-lg shadow-slate-900/10"
+            className="overflow-hidden border border-slate-200 bg-white shadow-lg shadow-slate-900/10"
           >
             <div className="border-b border-slate-100 p-2">
               <label htmlFor={searchId} className="sr-only">
                 Search airports
               </label>
-              <div className="flex items-center gap-2  border border-slate-200 bg-slate-50 px-3 py-2">
+
+              <div className="flex items-center gap-2 border border-slate-200 bg-slate-50 px-3 py-2">
                 <MapPin
                   className="h-4 w-4 shrink-0 text-slate-400"
                   aria-hidden="true"
                 />
+
                 <input
                   ref={searchRef}
                   id={searchId}
@@ -314,6 +358,7 @@ export default function AirportSelect({
                   const visible = airports.filter((airport) =>
                     airportMatchesQuery(airport, query)
                   );
+
                   if (visible.length === 0) {
                     return null;
                   }
@@ -323,13 +368,20 @@ export default function AirportSelect({
                       <p className="px-4 pb-1 pt-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
                         {country}
                       </p>
+
                       {visible.map((airport) => {
                         const index = flatOptions.findIndex(
                           (item) => item.code === airport.code
                         );
-                        const excluded = airport.code === excludeCode;
-                        const isSelected = airport.code === value;
-                        const isActive = index === activeIndex;
+
+                        const excluded =
+                          airport.code === excludeCode;
+
+                        const isSelected =
+                          airport.code === value;
+
+                        const isActive =
+                          index === activeIndex;
 
                         return (
                           <button
@@ -340,28 +392,40 @@ export default function AirportSelect({
                             data-airport-index={index}
                             aria-selected={isSelected}
                             disabled={excluded}
-                            onMouseEnter={() => setActiveIndex(index)}
-                            onClick={() => selectAirport(airport.code)}
+                            onMouseEnter={() =>
+                              setActiveIndex(index)
+                            }
+                            onClick={() =>
+                              selectAirport(airport.code)
+                            }
                             className={cn(
                               "flex w-full items-start gap-3 px-4 py-3 text-left transition",
-                              excluded && "cursor-not-allowed opacity-40",
-                              !excluded && isActive && "bg-sky-50",
-                              !excluded && !isActive && "hover:bg-slate-50",
+                              excluded &&
+                                "cursor-not-allowed opacity-40",
+                              !excluded &&
+                                isActive &&
+                                "bg-sky-50",
+                              !excluded &&
+                                !isActive &&
+                                "hover:bg-slate-50",
                               isSelected && "bg-[#0078D2]/8"
                             )}
                           >
                             <span
                               className={cn(
                                 "w-12 shrink-0 text-base font-semibold tracking-wide text-slate-950",
-                                isSelected && "text-[#0078D2]"
+                                isSelected &&
+                                  "text-[#0078D2]"
                               )}
                             >
                               {airport.code}
                             </span>
+
                             <span className="min-w-0 flex-1">
                               <span className="block truncate text-sm font-medium text-slate-800">
                                 {airport.city}
                               </span>
+
                               <span className="mt-0.5 block truncate text-xs text-slate-500">
                                 {airport.name}
                               </span>
@@ -381,9 +445,17 @@ export default function AirportSelect({
 
   return (
     <div ref={rootRef} className="min-w-0">
-      <input type="hidden" name={name} value={value} readOnly />
+      <input
+        type="hidden"
+        name={name}
+        value={value}
+        readOnly
+      />
 
-      <span id={`${id}-label`} className="sr-only">
+      <span
+        id={`${id}-label`}
+        className="sr-only"
+      >
         {label}
       </span>
 
@@ -396,38 +468,42 @@ export default function AirportSelect({
         aria-controls={listboxId}
         aria-required={required || undefined}
         aria-describedby={describedBy}
-        onClick={() => setOpen((current) => !current)}
+        onClick={() =>
+          setOpen((current) => !current)
+        }
         onKeyDown={handleTriggerKeyDown}
         className={cn(
-          "flex h-[86px] w-full items-center gap-3 rounded-lg border bg-white px-3.5 py-2.5 text-left transition",
+          "flex h-[76px] w-full items-center gap-3 rounded-md border bg-white px-3.5 py-2 text-left transition",
           "border-slate-300 hover:border-slate-400",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0078D2]/30",
-          open && "border-[#0078D2] ring-2 ring-[#0078D2]/25"
+          open &&
+            "border-[#0078D2] ring-2 ring-[#0078D2]/25"
         )}
       >
         <span className="min-w-0 flex-1">
-          <span className="block text-sm font-semibold leading-4 text-slate-500">
+          <span className="block text-xs font-semibold leading-4 text-slate-500">
             {label}
           </span>
 
           {selected ? (
             <>
-              <span className="mt-1 block truncate text-xl font-semibold leading-6 tracking-wide text-slate-950 sm:text-2xl sm:leading-7">
+              <span className="mt-1 block truncate text-lg font-semibold leading-5 tracking-wide text-slate-950">
                 {selected.code}
               </span>
-              <span className="mt-0.5 block truncate text-sm leading-4 text-slate-600">
+
+              <span className="mt-0.5 block truncate text-xs leading-4 text-slate-500">
                 {secondaryLine(selected)}
               </span>
             </>
           ) : (
-            <span className="mt-2 block truncate text-base font-medium leading-6 text-slate-400">
+            <span className="mt-1 block truncate text-base font-medium leading-6 text-slate-400">
               City or airport
             </span>
           )}
         </span>
 
         <ChevronsUpDown
-          className="h-5 w-5 shrink-0 text-slate-400"
+          className="h-4 w-4 shrink-0 text-slate-400"
           aria-hidden="true"
         />
       </button>

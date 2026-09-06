@@ -1,10 +1,8 @@
 "use client";
 
 import { useState } from "react";
-
 import Link from "next/link";
-
-import { ChevronDown } from "lucide-react";
+import { ArrowRight, Plus, Minus } from "lucide-react";
 
 interface FAQItem {
   id: string;
@@ -55,141 +53,107 @@ export default function FAQSection() {
   const [openItemId, setOpenItemId] = useState<string | null>(null);
 
   function toggleItem(id: string) {
-    setOpenItemId((currentId) =>
-      currentId === id ? null : id
-    );
+    setOpenItemId((currentId) => (currentId === id ? null : id));
   }
 
   return (
     <section className="border-t border-slate-200 bg-white py-14 sm:py-16 lg:py-20">
       <div className="fs-container">
-        {/* Section heading */}
-        <div className="mb-10 sm:mb-12">
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
-            <div className="max-w-3xl">
-              <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#0078D2]">
-                Help & Support
-              </p>
+        <div className="grid gap-10 lg:grid-cols-[320px_minmax(0,1fr)] lg:gap-20">
+          {/* Left side */}
+          <div>
+            <h2 className="font-american-sans text-[30px] font-light leading-[1.15] tracking-[-0.025em] text-slate-950 sm:text-[34px]">
+              Questions about
+              <br className="hidden lg:block" /> your trip?
+            </h2>
 
-              <h2 className="font-american-sans mt-2 text-3xl font-light tracking-[-0.025em] text-slate-950 sm:text-4xl">
-                Frequently asked questions
-              </h2>
-
-              <p className="mt-3 max-w-2xl text-base leading-7 text-slate-600">
-                Find quick answers about flights, bookings, cargo,
-                charter services, and managing your trip with Five Stars.
-              </p>
-            </div>
+            <p className="mt-4 max-w-[300px] text-[14px] leading-6 text-slate-600">
+              Find answers about reservations, managing your trip, cargo,
+              charter services, and baggage.
+            </p>
 
             <Link
               href="/contact"
-              className="
-                inline-flex
-                w-fit
-                items-center
-                text-sm
-                font-semibold
-                text-[#0078D2]
-                transition
-                hover:text-[#005a9e]
-                hover:underline
-                focus-visible:outline-none
-                focus-visible:ring-2
-                focus-visible:ring-[#0078D2]/30
-                focus-visible:ring-offset-4
-              "
+              className="group mt-6 inline-flex items-center gap-2 text-[14px] font-semibold text-slate-950 transition-colors hover:text-[#0078D2]"
             >
               Contact support
+              <ArrowRight
+                size={15}
+                strokeWidth={1.8}
+                className="transition-transform duration-200 group-hover:translate-x-1"
+              />
             </Link>
           </div>
-        </div>
 
-        {/* FAQ grid */}
-        <div className="grid gap-x-10 lg:grid-cols-2">
-          {faqItems.map((item) => {
-            const isOpen = openItemId === item.id;
+          {/* FAQ list */}
+          <div className="border-t border-slate-200">
+            {faqItems.map((item) => {
+              const isOpen = openItemId === item.id;
+              const buttonId = `faq-button-${item.id}`;
+              const panelId = `faq-panel-${item.id}`;
 
-            const buttonId = `faq-button-${item.id}`;
-            const panelId = `faq-panel-${item.id}`;
+              return (
+                <div key={item.id} className="border-b border-slate-200">
+                  <h3>
+                    <button
+                      id={buttonId}
+                      type="button"
+                      aria-expanded={isOpen}
+                      aria-controls={panelId}
+                      onClick={() => toggleItem(item.id)}
+                      className="group flex w-full items-center justify-between gap-8 py-5 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#0078D2]/30 sm:py-[22px]"
+                    >
+                      <span
+                        className={[
+                          "text-[15px] font-medium leading-6 transition-colors",
+                          isOpen
+                            ? "text-[#0078D2]"
+                            : "text-slate-950 group-hover:text-[#0078D2]",
+                        ].join(" ")}
+                      >
+                        {item.question}
+                      </span>
 
-            return (
-              <article
-                key={item.id}
-                className="border-b border-slate-200"
-              >
-                <h3>
-                  <button
-                    id={buttonId}
-                    type="button"
-                    aria-expanded={isOpen}
-                    aria-controls={panelId}
-                    onClick={() => toggleItem(item.id)}
-                    className="
-                      group
-                      flex
-                      w-full
-                      items-center
-                      justify-between
-                      gap-5
-                      py-5
-                      text-left
-                      focus-visible:outline-none
-                      focus-visible:ring-2
-                      focus-visible:ring-inset
-                      focus-visible:ring-[#0078D2]/40
-                      sm:py-6
-                    "
+                      <span className="flex h-7 w-7 shrink-0 items-center justify-center text-slate-500 transition-colors group-hover:text-[#0078D2]">
+                        {isOpen ? (
+                          <Minus
+                            size={18}
+                            strokeWidth={1.6}
+                            aria-hidden="true"
+                          />
+                        ) : (
+                          <Plus
+                            size={18}
+                            strokeWidth={1.6}
+                            aria-hidden="true"
+                          />
+                        )}
+                      </span>
+                    </button>
+                  </h3>
+
+                  <div
+                    id={panelId}
+                    role="region"
+                    aria-labelledby={buttonId}
+                    className={[
+                      "grid transition-[grid-template-rows,opacity] duration-300 ease-out",
+                      isOpen
+                        ? "grid-rows-[1fr] opacity-100"
+                        : "grid-rows-[0fr] opacity-0",
+                    ].join(" ")}
                   >
-                    <span
-                      className={[
-                        "text-[15px] font-semibold leading-6 transition-colors duration-200 sm:text-base",
-                        isOpen
-                          ? "text-[#0078D2]"
-                          : "text-slate-950 group-hover:text-[#0078D2]",
-                      ].join(" ")}
-                    >
-                      {item.question}
-                    </span>
-
-                    <span
-                      className={[
-                        "inline-flex h-9 w-9 shrink-0 items-center justify-center  transition-all duration-300",
-                        isOpen
-                          ? "rotate-180  text-[#0078D2]"
-                          : "bg-transparent text-slate-400 group-hover:bg-[#f4f9fd] group-hover:text-[#0078D2]",
-                      ].join(" ")}
-                    >
-                      <ChevronDown
-                        className="h-5 w-5"
-                        aria-hidden="true"
-                      />
-                    </span>
-                  </button>
-                </h3>
-
-                <div
-                  id={panelId}
-                  role="region"
-                  aria-labelledby={buttonId}
-                  className={[
-                    "grid transition-all duration-300 ease-in-out",
-                    isOpen
-                      ? "grid-rows-[1fr] opacity-100"
-                      : "grid-rows-[0fr] opacity-0",
-                  ].join(" ")}
-                >
-                  <div className="overflow-hidden">
-                    <p className="max-w-xl pb-6 pr-10 text-sm leading-7 text-slate-600 sm:text-[15px]">
-                      {item.answer}
-                    </p>
+                    <div className="overflow-hidden">
+                      <p className="max-w-2xl pb-6 pr-12 text-[14px] leading-6 text-slate-600">
+                        {item.answer}
+                      </p>
+                    </div>
                   </div>
                 </div>
-              </article>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
-
-      
       </div>
     </section>
   );

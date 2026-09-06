@@ -10,10 +10,17 @@ import {
   type SVGProps,
 } from "react";
 import { createPortal } from "react-dom";
-import { format, isValid, parse, startOfDay } from "date-fns";
-import { DayPicker, type DateRange } from "react-day-picker";
+import {
+  format,
+  isValid,
+  parse,
+  startOfDay,
+} from "date-fns";
+import {
+  DayPicker,
+  type DateRange,
+} from "react-day-picker";
 import "react-day-picker/style.css";
-
 import type { TripType } from "../../lib/flight-search";
 
 type FlightDateRangePickerProps = {
@@ -46,38 +53,49 @@ function cn(
   return classes.filter(Boolean).join(" ");
 }
 
-/** Parse YYYY-MM-DD to a local Date without UTC day-shift. */
-function ymdToLocalDate(value: string): Date | undefined {
+function ymdToLocalDate(
+  value: string
+): Date | undefined {
   const trimmed = value.trim();
+
   if (!YMD_PATTERN.test(trimmed)) {
     return undefined;
   }
 
-  const parsed = parse(trimmed, "yyyy-MM-dd", new Date());
+  const parsed = parse(
+    trimmed,
+    "yyyy-MM-dd",
+    new Date()
+  );
+
   if (!isValid(parsed)) {
     return undefined;
   }
 
-  // Confirm calendar parts match (rejects impossible dates).
-  if (format(parsed, "yyyy-MM-dd") !== trimmed) {
+  if (
+    format(parsed, "yyyy-MM-dd") !== trimmed
+  ) {
     return undefined;
   }
 
   return parsed;
 }
 
-/** Format a local Date as YYYY-MM-DD for search state. */
 function localDateToYmd(date: Date): string {
   return format(date, "yyyy-MM-dd");
 }
 
-/** Display format yyyy/MM/dd from internal YYYY-MM-DD. */
 function formatDisplayYmd(value: string): string {
   const date = ymdToLocalDate(value);
-  return date ? format(date, "yyyy/MM/dd") : "";
+
+  return date
+    ? format(date, "yyyy/MM/dd")
+    : "";
 }
 
-function CalendarIcon(props: SVGProps<SVGSVGElement>) {
+function CalendarIcon(
+  props: SVGProps<SVGSVGElement>
+) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -89,7 +107,13 @@ function CalendarIcon(props: SVGProps<SVGSVGElement>) {
       aria-hidden="true"
       {...props}
     >
-      <rect x="3" y="5" width="18" height="16" rx="2" />
+      <rect
+        x="3"
+        y="5"
+        width="18"
+        height="16"
+        rx="2"
+      />
       <path d="M8 3v4M16 3v4M3 11h18" />
     </svg>
   );
@@ -123,26 +147,31 @@ function DateFieldButton({
       aria-haspopup="dialog"
       aria-controls={controlsId}
       className={cn(
-        "flex w-full items-center gap-3 rounded-lg border bg-white px-3 py-2.5 text-left transition",
+        "flex h-[76px] w-full items-center gap-3 rounded-md border bg-white px-3.5 py-2 text-left transition",
         "border-slate-300 hover:border-slate-400",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0078D2]/30",
-        expanded && "border-[#0078D2] ring-2 ring-[#0078D2]/25"
+        expanded &&
+          "border-[#0078D2] ring-2 ring-[#0078D2]/25"
       )}
     >
       <span className="min-w-0 flex-1">
-        <span className="block text-[11px] font-medium leading-4 text-slate-500">
+        <span className="block text-xs font-semibold leading-4 text-slate-500">
           {label}
         </span>
+
         <span
           className={cn(
-            "mt-0.5 block truncate text-base font-medium leading-6",
-            display ? "text-slate-950" : "text-slate-400"
+            "mt-1 block truncate text-base font-medium leading-6",
+            display
+              ? "text-slate-950"
+              : "text-slate-400"
           )}
         >
           {display || placeholder}
         </span>
       </span>
-      <CalendarIcon className="h-5 w-5 shrink-0 text-slate-500" />
+
+      <CalendarIcon className="h-4 w-4 shrink-0 text-slate-500" />
     </button>
   );
 }
@@ -155,25 +184,44 @@ export default function FlightDateRangePicker({
   onReturnChange,
 }: FlightDateRangePickerProps) {
   const popoverId = useId();
-  const rootRef = useRef<HTMLDivElement>(null);
-  const popoverRef = useRef<HTMLDivElement>(null);
-  const [open, setOpen] = useState(false);
-  const [activeField, setActiveField] = useState<"departure" | "return">(
-    "departure"
-  );
-  const [isWide, setIsWide] = useState(false);
-  const [popoverPos, setPopoverPos] = useState<{
-    top: number;
-    left: number;
-    width: number;
-  } | null>(null);
 
-  const isRoundTrip = tripType === "round-trip";
-  const departureDate = ymdToLocalDate(departure);
-  const returnLocalDate = ymdToLocalDate(returnDate);
+  const rootRef =
+    useRef<HTMLDivElement>(null);
+
+  const popoverRef =
+    useRef<HTMLDivElement>(null);
+
+  const [open, setOpen] = useState(false);
+
+  const [activeField, setActiveField] =
+    useState<"departure" | "return">(
+      "departure"
+    );
+
+  const [isWide, setIsWide] =
+    useState(false);
+
+  const [popoverPos, setPopoverPos] =
+    useState<{
+      top: number;
+      left: number;
+      width: number;
+    } | null>(null);
+
+  const isRoundTrip =
+    tripType === "round-trip";
+
+  const departureDate =
+    ymdToLocalDate(departure);
+
+  const returnLocalDate =
+    ymdToLocalDate(returnDate);
+
   const today = startOfDay(new Date());
 
-  const selectedRange: DateRange | undefined = isRoundTrip
+  const selectedRange:
+    | DateRange
+    | undefined = isRoundTrip
     ? {
         from: departureDate,
         to: returnLocalDate,
@@ -181,11 +229,25 @@ export default function FlightDateRangePicker({
     : undefined;
 
   useEffect(() => {
-    const media = window.matchMedia("(min-width: 768px)");
-    const sync = () => setIsWide(media.matches);
+    const media = window.matchMedia(
+      "(min-width: 768px)"
+    );
+
+    const sync = () =>
+      setIsWide(media.matches);
+
     sync();
-    media.addEventListener("change", sync);
-    return () => media.removeEventListener("change", sync);
+
+    media.addEventListener(
+      "change",
+      sync
+    );
+
+    return () =>
+      media.removeEventListener(
+        "change",
+        sync
+      );
   }, []);
 
   useLayoutEffect(() => {
@@ -196,18 +258,33 @@ export default function FlightDateRangePicker({
 
     function updatePosition() {
       const anchor = rootRef.current;
+
       if (!anchor) {
         return;
       }
 
-      const rect = anchor.getBoundingClientRect();
+      const rect =
+        anchor.getBoundingClientRect();
+
       const preferredWidth =
         isRoundTrip && isWide
-          ? Math.min(640, window.innerWidth - 16)
-          : Math.min(352, window.innerWidth - 16);
+          ? Math.min(
+              640,
+              window.innerWidth - 16
+            )
+          : Math.min(
+              352,
+              window.innerWidth - 16
+            );
+
       const left = Math.min(
         Math.max(8, rect.left),
-        Math.max(8, window.innerWidth - preferredWidth - 8)
+        Math.max(
+          8,
+          window.innerWidth -
+            preferredWidth -
+            8
+        )
       );
 
       setPopoverPos({
@@ -218,11 +295,29 @@ export default function FlightDateRangePicker({
     }
 
     updatePosition();
-    window.addEventListener("resize", updatePosition);
-    window.addEventListener("scroll", updatePosition, true);
+
+    window.addEventListener(
+      "resize",
+      updatePosition
+    );
+
+    window.addEventListener(
+      "scroll",
+      updatePosition,
+      true
+    );
+
     return () => {
-      window.removeEventListener("resize", updatePosition);
-      window.removeEventListener("scroll", updatePosition, true);
+      window.removeEventListener(
+        "resize",
+        updatePosition
+      );
+
+      window.removeEventListener(
+        "scroll",
+        updatePosition,
+        true
+      );
     };
   }, [open, isRoundTrip, isWide]);
 
@@ -231,35 +326,65 @@ export default function FlightDateRangePicker({
       return;
     }
 
-    function handlePointerDown(event: MouseEvent) {
-      const target = event.target as Node | null;
+    function handlePointerDown(
+      event: MouseEvent
+    ) {
+      const target =
+        event.target as Node | null;
+
       if (!target) {
         return;
       }
-      if (rootRef.current?.contains(target)) {
+
+      if (
+        rootRef.current?.contains(target)
+      ) {
         return;
       }
-      if (popoverRef.current?.contains(target)) {
+
+      if (
+        popoverRef.current?.contains(target)
+      ) {
         return;
       }
+
       setOpen(false);
     }
 
-    function handleKeyDown(event: KeyboardEvent) {
+    function handleKeyDown(
+      event: KeyboardEvent
+    ) {
       if (event.key === "Escape") {
         setOpen(false);
       }
     }
 
-    document.addEventListener("mousedown", handlePointerDown);
-    document.addEventListener("keydown", handleKeyDown);
+    document.addEventListener(
+      "mousedown",
+      handlePointerDown
+    );
+
+    document.addEventListener(
+      "keydown",
+      handleKeyDown
+    );
+
     return () => {
-      document.removeEventListener("mousedown", handlePointerDown);
-      document.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener(
+        "mousedown",
+        handlePointerDown
+      );
+
+      document.removeEventListener(
+        "keydown",
+        handleKeyDown
+      );
     };
   }, [open]);
 
-  function openField(field: "departure" | "return") {
+  function openField(
+    field: "departure" | "return"
+  ) {
     setActiveField(field);
     setOpen(true);
   }
@@ -273,30 +398,42 @@ export default function FlightDateRangePicker({
     setOpen(false);
   }
 
-  function handleSingleSelect(date: Date | undefined) {
-    onDepartureChange(date ? localDateToYmd(date) : "");
+  function handleSingleSelect(
+    date: Date | undefined
+  ) {
+    onDepartureChange(
+      date ? localDateToYmd(date) : ""
+    );
   }
 
-  function handleRangeSelect(range: DateRange | undefined) {
+  function handleRangeSelect(
+    range: DateRange | undefined
+  ) {
     if (!range?.from) {
       onDepartureChange("");
       onReturnChange("");
       return;
     }
 
-    const nextDeparture = localDateToYmd(range.from);
+    const nextDeparture =
+      localDateToYmd(range.from);
+
     onDepartureChange(nextDeparture);
 
     if (range.to) {
-      onReturnChange(localDateToYmd(range.to));
+      onReturnChange(
+        localDateToYmd(range.to)
+      );
     } else {
-      // Mid-selection: keep return empty until end date is chosen.
       onReturnChange("");
     }
   }
 
-  const numberOfMonths = isRoundTrip && isWide ? 2 : 1;
-  const defaultMonth = departureDate ?? today;
+  const numberOfMonths =
+    isRoundTrip && isWide ? 2 : 1;
+
+  const defaultMonth =
+    departureDate ?? today;
 
   const popover =
     open && popoverPos
@@ -317,16 +454,24 @@ export default function FlightDateRangePicker({
               width: popoverPos.width,
               zIndex: 80,
             }}
-            className="rounded-xl border border-slate-200 bg-white p-3 shadow-xl"
+            className="rounded-lg border border-slate-200 bg-white p-3 shadow-xl"
           >
             {isRoundTrip ? (
               <DayPicker
                 mode="range"
                 selected={selectedRange}
-                onSelect={handleRangeSelect}
-                numberOfMonths={numberOfMonths}
-                defaultMonth={defaultMonth}
-                disabled={{ before: today }}
+                onSelect={
+                  handleRangeSelect
+                }
+                numberOfMonths={
+                  numberOfMonths
+                }
+                defaultMonth={
+                  defaultMonth
+                }
+                disabled={{
+                  before: today,
+                }}
                 showOutsideDays={false}
                 className="fs-flight-day-picker"
                 style={dayPickerStyle}
@@ -335,10 +480,16 @@ export default function FlightDateRangePicker({
               <DayPicker
                 mode="single"
                 selected={departureDate}
-                onSelect={handleSingleSelect}
+                onSelect={
+                  handleSingleSelect
+                }
                 numberOfMonths={1}
-                defaultMonth={defaultMonth}
-                disabled={{ before: today }}
+                defaultMonth={
+                  defaultMonth
+                }
+                disabled={{
+                  before: today,
+                }}
                 showOutsideDays={false}
                 className="fs-flight-day-picker"
                 style={dayPickerStyle}
@@ -349,14 +500,15 @@ export default function FlightDateRangePicker({
               <button
                 type="button"
                 onClick={handleClear}
-                className="rounded-lg px-3 py-2 text-sm font-semibold uppercase tracking-wide text-slate-600 transition hover:bg-slate-50 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0078D2]/30"
+                className="px-3 py-2 text-sm font-semibold text-slate-600 transition hover:bg-slate-50 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0078D2]/30"
               >
                 Clear
               </button>
+
               <button
                 type="button"
                 onClick={handleDone}
-                className="rounded-lg bg-[#0078D2] px-4 py-2 text-sm font-semibold uppercase tracking-wide text-white transition hover:bg-[#0066b3] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0078D2]/30"
+                className="bg-[#0078D2] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#0066b3] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0078D2]/30"
               >
                 Done
               </button>
@@ -371,7 +523,8 @@ export default function FlightDateRangePicker({
       ref={rootRef}
       className={cn(
         "relative",
-        isRoundTrip && "md:col-span-2 grid gap-4 md:grid-cols-2"
+        isRoundTrip &&
+          "grid gap-4 md:col-span-2 md:grid-cols-2"
       )}
     >
       <DateFieldButton
@@ -379,9 +532,14 @@ export default function FlightDateRangePicker({
         label="Depart"
         value={departure}
         placeholder="Select date"
-        expanded={open && activeField === "departure"}
+        expanded={
+          open &&
+          activeField === "departure"
+        }
         controlsId={popoverId}
-        onClick={() => openField("departure")}
+        onClick={() =>
+          openField("departure")
+        }
       />
 
       {isRoundTrip ? (
@@ -390,16 +548,31 @@ export default function FlightDateRangePicker({
           label="Return"
           value={returnDate}
           placeholder="Select date"
-          expanded={open && activeField === "return"}
+          expanded={
+            open &&
+            activeField === "return"
+          }
           controlsId={popoverId}
-          onClick={() => openField("return")}
+          onClick={() =>
+            openField("return")
+          }
         />
       ) : null}
 
-      {/* Keep names available for tooling; search still uses React state. */}
-      <input type="hidden" name="departure" value={departure} readOnly />
+      <input
+        type="hidden"
+        name="departure"
+        value={departure}
+        readOnly
+      />
+
       {isRoundTrip ? (
-        <input type="hidden" name="returnDate" value={returnDate} readOnly />
+        <input
+          type="hidden"
+          name="returnDate"
+          value={returnDate}
+          readOnly
+        />
       ) : null}
 
       {popover}

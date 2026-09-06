@@ -6,7 +6,6 @@ import {
   type ComponentType,
   type SVGProps,
 } from "react";
-
 import { useRouter } from "next/navigation";
 
 import {
@@ -60,14 +59,13 @@ function OneWayIcon(props: SVGProps<SVGSVGElement>) {
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="1.8"
+      strokeWidth="1.7"
       strokeLinecap="round"
       strokeLinejoin="round"
       {...props}
     >
       <path d="M4 12h15" />
       <path d="m14 7 5 5-5 5" />
-      <path d="M7 8.5 4 12l3 3.5" opacity="0.35" />
     </svg>
   );
 }
@@ -78,7 +76,7 @@ function RoundTripIcon(props: SVGProps<SVGSVGElement>) {
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="1.8"
+      strokeWidth="1.7"
       strokeLinecap="round"
       strokeLinejoin="round"
       {...props}
@@ -110,7 +108,7 @@ function asInitialAirport(value?: string) {
     : "";
 }
 
-function TripTypeInlineControl({
+function TripTypeControl({
   value,
   onChange,
 }: {
@@ -121,14 +119,7 @@ function TripTypeInlineControl({
     <div
       role="tablist"
       aria-label="Trip type"
-      className="
-        flex
-        flex-wrap
-        items-start
-        justify-center
-        gap-4
-        sm:justify-start
-      "
+      className="flex items-center gap-8"
     >
       {TRIP_TYPES.map(({ value: type, label, icon: Icon }) => {
         const active = value === type;
@@ -142,99 +133,57 @@ function TripTypeInlineControl({
             onClick={() => onChange(type)}
             className={cn(
               `
-                group
+                relative
                 flex
-                w-[5.5rem]
-                cursor-pointer
-                flex-col
                 items-center
-                justify-start
                 gap-2
-                rounded-2xl
-                p-1
-                text-center
-                transition-all
-                duration-200
+                border-b-2
+                pb-3
+                text-sm
+                font-semibold
+                transition-colors
+                duration-150
                 focus-visible:outline-none
                 focus-visible:ring-2
                 focus-visible:ring-[#0078D2]
-                focus-visible:ring-offset-2
-                sm:w-[5.75rem]
+                focus-visible:ring-offset-4
               `,
               active
-                ? "scale-[1.03]"
-                : "hover:-translate-y-0.5"
+                ? "border-[#0078D2] text-[#0078D2]"
+                : `
+                    border-transparent
+                    text-slate-500
+                    hover:text-slate-900
+                  `
             )}
           >
-            <span
-              className={cn(
-                `
-                  flex
-                  h-14
-                  w-14
-                  shrink-0
-                  items-center
-                  justify-center
-                  rounded-md
-                  border
-                  transition-all
-                  duration-200
-                  sm:h-16
-                  sm:w-16
-                `,
-                active
-                  ? `
-                      border-[#0078D2]
-                      bg-[#0078D2]
-                      shadow-[0_6px_16px_rgba(0,120,210,0.22)]
-                    `
-                  : `
-                      border-slate-200
-                      bg-white
-                      shadow-sm
-                      group-hover:border-[#0078D2]
-                      group-hover:shadow-[0_5px_14px_rgba(0,120,210,0.12)]
-                    `
-              )}
-            >
-              <Icon
-                aria-hidden="true"
-                className={cn(
-                  "h-6 w-6 shrink-0 transition-colors duration-200",
-                  active
-                    ? "text-white"
-                    : "text-[#0078D2]"
-                )}
-              />
-            </span>
+            <Icon
+              aria-hidden="true"
+              className="h-4 w-4 shrink-0"
+            />
 
-            <span
-              className={cn(
-                `
-                  block
-                  min-h-5
-                  w-full
-                  whitespace-nowrap
-                  text-center
-                  text-xs
-                  font-semibold
-                  leading-5
-                  tracking-[-0.01em]
-                  transition-all
-                  duration-200
-                  sm:text-sm
-                `,
-                active
-                  ? "text-[#0078D2]"
-                  : "text-slate-700 group-hover:text-[#0078D2]"
-              )}
-            >
-              {label}
-            </span>
+            <span>{label}</span>
           </button>
         );
       })}
     </div>
+  );
+}
+
+function ArrowIcon(props: SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      {...props}
+    >
+      <path d="M5 12h14" />
+      <path d="m14 7 5 5-5 5" />
+    </svg>
   );
 }
 
@@ -347,47 +296,28 @@ export default function FlightSearchForm({
     );
   }
 
-  const fieldGridClass =
-    "grid grid-cols-1 items-end gap-4 md:grid-cols-2 xl:grid-cols-12";
-
   return (
-    <div
-      className="
-       
-        border
-        border-slate-200
-        bg-white
-        p-4
-        text-slate-900
-        shadow-[0_10px_35px_rgba(15,23,42,0.08)]
-        sm:p-5
-        lg:p-6
-        xl:p-7
-      "
-    >
-      {/* Header */}
-      <div className="mb-6">
-        {/* <p className="text-sm font-semibold uppercase tracking-[0.15em] text-[#0078D2]">
-          Flight Search
-        </p> */}
-
-        <h2 className="font-american-sans mt-1.5 text-2xl font-light tracking-[-0.015em] text-slate-950 sm:text-3xl">
-          Find your next flight
-        </h2>
-      </div>
-
+    <div className="w-full text-slate-900">
       {/* Trip type */}
-      <div className="mb-7 border-b border-slate-100 pb-5">
-        <TripTypeInlineControl
+      <div className="border-b border-slate-200">
+        <TripTypeControl
           value={tripType}
           onChange={selectTripType}
         />
       </div>
 
-      {/* Search fields */}
+      {/* Search form */}
       <form
         onSubmit={handleSubmit}
-        className={fieldGridClass}
+        className="
+          grid
+          grid-cols-1
+          gap-4
+          pt-6
+          md:grid-cols-2
+          xl:grid-cols-12
+          xl:gap-3
+        "
       >
         {/* From */}
         <div
@@ -405,9 +335,7 @@ export default function FlightSearchForm({
             value={from}
             excludeCode={to}
             describedBy={
-              error
-                ? "flight-search-error"
-                : undefined
+              error ? "flight-search-error" : undefined
             }
             onChange={(code) => {
               setFrom(code);
@@ -432,9 +360,7 @@ export default function FlightSearchForm({
             value={to}
             excludeCode={from}
             describedBy={
-              error
-                ? "flight-search-error"
-                : undefined
+              error ? "flight-search-error" : undefined
             }
             onChange={(code) => {
               setTo(code);
@@ -443,7 +369,7 @@ export default function FlightSearchForm({
           />
         </div>
 
-        {/* Dates */}
+        {/* Date */}
         <div
           className={cn(
             "min-w-0",
@@ -456,9 +382,7 @@ export default function FlightSearchForm({
             tripType={tripType}
             departure={departure}
             returnDate={returnDate}
-            onDepartureChange={
-              handleDepartureChange
-            }
+            onDepartureChange={handleDepartureChange}
             onReturnChange={(value) => {
               setReturnDate(value);
               setError(null);
@@ -472,55 +396,80 @@ export default function FlightSearchForm({
             value={composition}
             onChange={handleCompositionChange}
             describedBy={
-              error
-                ? "flight-search-error"
-                : undefined
+              error ? "flight-search-error" : undefined
             }
           />
         </div>
 
-        {/* Search button */}
-        <div className="flex min-w-0 items-end xl:col-span-2">
+        {/* Search */}
+        <div
+          className="
+            flex
+            min-w-0
+            items-end
+            md:col-span-2
+            xl:col-span-2
+          "
+        >
           <button
             type="submit"
             className="
+              group
               flex
               h-[66px]
               w-full
               items-center
-              justify-center
-              rounded-lg
+              justify-between
               bg-[#0078D2]
               px-5
-              text-base
+              text-left
+              text-[15px]
               font-semibold
               text-white
-              shadow-[0_4px_12px_rgba(0,120,210,0.18)]
-              transition-all
-              duration-200
-              hover:bg-[#006bbd]
-              hover:shadow-[0_6px_16px_rgba(0,120,210,0.24)]
+              transition-colors
+              duration-150
+              hover:bg-[#006CBF]
               focus-visible:outline-none
               focus-visible:ring-2
               focus-visible:ring-[#0078D2]
               focus-visible:ring-offset-2
-              active:translate-y-px
             "
           >
-            Search Flights
+            <span>Search flights</span>
+
+            <ArrowIcon
+              aria-hidden="true"
+              className="
+                h-[18px]
+                w-[18px]
+                transition-transform
+                duration-150
+                group-hover:translate-x-1
+              "
+            />
           </button>
         </div>
       </form>
 
       {/* Error */}
       {error ? (
-        <p
+        <div
           id="flight-search-error"
           role="alert"
-          className="mt-4 text-sm font-medium text-red-600"
+          className="
+            mt-4
+            border-l-2
+            border-red-600
+            bg-red-50
+            px-4
+            py-3
+            text-sm
+            font-medium
+            text-red-700
+          "
         >
           {error}
-        </p>
+        </div>
       ) : null}
     </div>
   );
