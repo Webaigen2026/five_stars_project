@@ -236,15 +236,15 @@ export default function Header() {
               justify-center
               rounded-xl
              
-              bg-white
+            
               text-slate-700
-              shadow-[0_1px_2px_rgba(15,23,42,0.04)]
+              
               transition-all
               duration-200
               
-              hover:bg-[#f4f9fd]
+           
               hover:text-[#0078D2]
-              hover:shadow-[0_4px_12px_rgba(0,120,210,0.10)]
+             
               focus-visible:outline-none
               focus-visible:ring-2
               focus-visible:ring-[#0078D2]/30
@@ -328,15 +328,15 @@ export default function Header() {
               justify-center
               rounded-xl
              
-              bg-white
+          
               text-slate-600
-              shadow-[0_1px_2px_rgba(15,23,42,0.04)]
+             
               transition-all
               duration-200
              
               hover:bg-[#f4f9fd]
               hover:text-[#0078D2]
-              hover:shadow-[0_4px_12px_rgba(0,120,210,0.10)]
+          
               focus-visible:outline-none
               focus-visible:ring-2
               focus-visible:ring-[#0078D2]/30
