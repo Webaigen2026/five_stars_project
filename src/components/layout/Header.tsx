@@ -235,14 +235,13 @@ export default function Header() {
               items-center
               justify-center
               rounded-xl
-              border
-              border-slate-200
+             
               bg-white
               text-slate-700
               shadow-[0_1px_2px_rgba(15,23,42,0.04)]
               transition-all
               duration-200
-              hover:border-[#0078D2]
+              
               hover:bg-[#f4f9fd]
               hover:text-[#0078D2]
               hover:shadow-[0_4px_12px_rgba(0,120,210,0.10)]
@@ -328,14 +327,13 @@ export default function Header() {
               items-center
               justify-center
               rounded-xl
-              border
-              border-slate-200
+             
               bg-white
               text-slate-600
               shadow-[0_1px_2px_rgba(15,23,42,0.04)]
               transition-all
               duration-200
-              hover:border-[#0078D2]
+             
               hover:bg-[#f4f9fd]
               hover:text-[#0078D2]
               hover:shadow-[0_4px_12px_rgba(0,120,210,0.10)]
