@@ -176,9 +176,9 @@ export default function PassengerPicker({
         "
       >
         <span className="flex min-w-0 items-center gap-3">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#EAF5FC] text-[#0078D2]">
+          {/* <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#EAF5FC] text-[#0078D2]">
             <TravelersIcon />
-          </span>
+          </span> */}
 
           <span className="min-w-0">
             <span className="block text-sm font-semibold text-slate-500">
