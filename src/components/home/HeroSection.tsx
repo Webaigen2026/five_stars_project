@@ -9,14 +9,15 @@ export default function HeroSection() {
             Haiti ↔ United States
           </p>
 
-          <h1 className="mt-3 font-american-sans text-4xl font-light tracking-[-0.025em] text-black sm:text-5xl lg:text-6xl">
+          <h1 className="mt-3 font-american-sans text-2xl font-light tracking-[-0.025em] text-black sm:text-3xl lg:text-4xl">
             Fly smarter between Haiti and the United States.
           </h1>
+     
 
-          <p className="mt-4 max-w-2xl text-lg font-normal leading-7 text-black">
+          {/* <p className="mt-4 max-w-2xl text-lg font-normal leading-7 text-black">
             Search flights, manage your trips, request cargo shipping, and
             arrange charter services from one modern travel platform.
-          </p>
+          </p> */}
         </div>
 
         <div className="mt-8">
