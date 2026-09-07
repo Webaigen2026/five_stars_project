@@ -139,11 +139,20 @@ export default function AirportSelect({
       }
 
       const rect = trigger.getBoundingClientRect();
-      const width = Math.min(rect.width, window.innerWidth - 16);
-      const left = Math.min(
-        Math.max(8, rect.left),
-        Math.max(8, window.innerWidth - width - 8)
+      const viewportPadding = 16;
+      const preferredWidth = 360;
+      const availableWidth = Math.max(
+        0,
+        window.innerWidth - viewportPadding * 2
       );
+      // Popup width is independent of the compact trigger width.
+      const width = Math.min(preferredWidth, availableWidth);
+      const maxLeft = Math.max(
+        viewportPadding,
+        window.innerWidth - width - viewportPadding
+      );
+      // Prefer aligning to the trigger's left edge; clamp into the viewport.
+      const left = Math.min(Math.max(viewportPadding, rect.left), maxLeft);
 
       setMenuPos({
         top: rect.bottom + 6,
@@ -359,10 +368,10 @@ export default function AirportSelect({
                               {airport.code}
                             </span>
                             <span className="min-w-0 flex-1">
-                              <span className="block truncate text-sm font-medium text-slate-800">
+                              <span className="block text-sm font-medium text-slate-800">
                                 {airport.city}
                               </span>
-                              <span className="mt-0.5 block truncate text-xs text-slate-500">
+                              <span className="mt-0.5 block min-w-0 truncate text-xs text-slate-500">
                                 {airport.name}
                               </span>
                             </span>

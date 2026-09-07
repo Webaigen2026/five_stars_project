@@ -8,33 +8,44 @@ export default function HeroSearch() {
   return (
     <section className="relative w-full max-w-full min-w-0 overflow-x-clip bg-background">
       {/*
-        Block width chain (not flex + justify-center): a shrink-to-content
-        flex child was able to sit off-center and leave a right-side gap on
-        narrow viewports when decorative overflow pushed min-content wide.
+        Centered hero composition. Keep the outer shell intentional so the
+        search + gallery read as one balanced block (not a left-biased pair
+        inside an oversized 1800px track).
       */}
-      <div className="mx-auto w-full min-w-0 max-w-[1800px]">
+      <div
+        className="
+          mx-auto
+          w-full
+          min-w-0
+          max-w-[1540px]
+          px-4
+          sm:px-6
+          lg:px-8
+          xl:px-10
+        "
+      >
         {/*
-          Mobile/tablet: only the main hero is shown.
-          lg+: hero and travel image wall display in 2 columns.
-          2xl+: the image-wall column becomes wider.
+          Mobile/tablet: single column.
+          lg+: search + constrained gallery column.
         */}
         <div
           className="
             grid w-full min-w-0 max-w-full grid-cols-1
             gap-y-[clamp(2rem,4vw,4rem)] gap-x-0
-            px-4 py-6
+            py-6
 
             dark:bg-surface
 
             sm:rounded-3xl
-            sm:p-10
+            sm:py-10
 
-            lg:grid-cols-[minmax(0,1fr)_minmax(20rem,24rem)]
-            lg:items-stretch
-            lg:gap-x-12 lg:gap-y-10
+            lg:grid-cols-[minmax(0,1fr)_340px]
+            lg:items-start
+            lg:gap-x-10
+            lg:gap-y-10
 
-            2xl:grid-cols-[minmax(0,1fr)_minmax(22rem,28vw)]
-            2xl:gap-x-16 2xl:gap-y-14
+            xl:grid-cols-[minmax(0,1fr)_360px]
+            xl:gap-x-12
           "
         >
           {/* ============================================================= */}
@@ -92,11 +103,8 @@ export default function HeroSearch() {
                   absolute inset-0
                   z-40
                   overflow-x-clip
-
-
-translate-y-[6rem]
-                  md: -translate-y-[3rem]
-                 
+                  translate-y-[6rem]
+                  md:translate-y-[4rem]
                 "
               >
                 <HeroAirplaneCutout />
@@ -111,21 +119,30 @@ translate-y-[6rem]
           {/* ============================================================= */}
           {/* RIGHT COLUMN — TRAVEL IMAGE WALL                              */}
           {/* ============================================================= */}
-          <aside className="hidden min-w-0 self-stretch lg:block -translate-y-14">
+          <aside
+            className="
+              hidden
+              w-full
+              min-w-0
+              justify-center
+              lg:flex
+              lg:justify-self-center
+              lg:-translate-y-14
+              lg:pt-10
+            "
+          >
             <div
               className="
+                mx-auto
+                pt-14
                 h-full
                 w-full
+                max-w-[340px]
                 overflow-hidden
-                mt-14
-
                 rounded-[clamp(1.25rem,2.2vw,1.75rem)]
                 px-2
                 py-2
-
-                lg:max-w-[21rem] xl:w-[20rem]
-           
-                2xl:max-w-none
+                xl:max-w-[310px]
               "
             >
               <TravelImageWall />

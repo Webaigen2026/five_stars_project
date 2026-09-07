@@ -118,8 +118,8 @@ export default function TravelImageWall() {
   }, []);
 
   return (
-    <div className="relative mx-auto hidden h-full w-full max-w-3xl items-center overflow-visible px-2 sm:flex sm:px-4 lg:px-2 xl:max-w-none">
-      <div className="grid w-full grid-cols-2 items-start gap-3 min-[400px]:gap-4 sm:gap-5 lg:gap-6">
+    <div className="relative mx-auto flex h-full w-full max-w-full items-center overflow-visible px-1 sm:px-2 lg:px-0">
+      <div className="grid w-full min-w-0 grid-cols-2 items-start gap-3 min-[400px]:gap-4 sm:gap-5 lg:gap-4 xl:gap-5">
         <ImageColumn
           slotIndexes={[0, 1, 2]}
           assignments={assignments}

@@ -33,9 +33,10 @@ export default function HomePage() {
         <ScrollReveal delay={120}>
           <FAQSection />
         </ScrollReveal>
+        <Footer />
       </main>
 
-      <Footer />
+    
     </>
   );
 }
