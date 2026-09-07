@@ -20,24 +20,24 @@ export default function TravelPromoSection() {
   const shouldReduceMotion = useReducedMotion();
 
   return (
-    <section className="bg-background py-12 sm:py-16 lg:py-20">
-      <div className="mx-auto w-full max-w-full px-4 sm:px-6 lg:px-10">
-        <div className="grid items-center gap-8 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.7fr)] lg:gap-12 xl:gap-16">
+    <section className="w-full min-w-0 max-w-full overflow-x-clip bg-background py-12 sm:py-16 lg:py-20">
+      <div className="mx-auto w-full min-w-0 max-w-full px-4 sm:px-6 lg:px-10">
+        <div className="grid w-full min-w-0 items-center gap-8 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.7fr)] lg:gap-12 xl:gap-16">
           {/* Decorative traveler artwork */}
           <motion.div
-            className="order-2 flex justify-center lg:order-1 lg:justify-end"
+            className="order-2 flex w-full min-w-0 justify-center lg:order-1 lg:justify-end"
             initial={
               shouldReduceMotion
                 ? { opacity: 1 }
                 : {
                     opacity: 0,
-                    x: -48,
-                    y: 16,
+                    // Vertical-only entrance: horizontal x offsets were
+                    // expanding document scrollWidth on mobile before in-view.
+                    y: 24,
                   }
             }
             whileInView={{
               opacity: 1,
-              x: 0,
               y: 0,
             }}
             viewport={viewportSettings}
@@ -47,6 +47,7 @@ export default function TravelPromoSection() {
             }}
           >
             <motion.div
+              className="min-w-0 max-w-full"
               whileInView={
                 shouldReduceMotion
                   ? {}
@@ -84,19 +85,17 @@ export default function TravelPromoSection() {
 
           {/* Promotional content */}
           <motion.div
-            className="order-1 min-w-0 lg:order-2"
+            className="order-1 w-full min-w-0 max-w-full lg:order-2"
             initial={
               shouldReduceMotion
                 ? { opacity: 1 }
                 : {
                     opacity: 0,
-                    x: 48,
-                    y: 20,
+                    y: 28,
                   }
             }
             whileInView={{
               opacity: 1,
-              x: 0,
               y: 0,
             }}
             viewport={viewportSettings}

@@ -306,35 +306,41 @@ export default function TravelDealsCarousel() {
           </Link>
         </div>
 
-        {/* Carousel */}
-        <div
-          ref={trackRef}
-          onScroll={updateEdges}
-          className="
-            -mx-4
-            flex
-            snap-x
-            snap-mandatory
-            gap-5
-            overflow-x-auto
-            px-4
-            pb-4
-            scroll-smooth
-            [scrollbar-width:none]
-            sm:-mx-6
-            sm:px-6
-            lg:mx-0
-            lg:gap-6
-            lg:px-0
-            [&::-webkit-scrollbar]:hidden
-          "
-        >
-          {deals.map((deal) => (
-            <DealCard
-              key={`${deal.city}-${deal.dateRange}`}
-              deal={deal}
-            />
-          ))}
+        {/* Carousel — width-bounded viewport; horizontal scroll stays internal */}
+        <div className="w-full min-w-0 max-w-full">
+          <div
+            ref={trackRef}
+            onScroll={updateEdges}
+            className="
+              -mx-4
+              flex
+              w-auto
+              min-w-0
+              max-w-none
+              snap-x
+              snap-mandatory
+              gap-5
+              overflow-x-auto
+              overscroll-x-contain
+              px-4
+              pb-4
+              scroll-smooth
+              [scrollbar-width:none]
+              sm:-mx-6
+              sm:px-6
+              lg:mx-0
+              lg:gap-6
+              lg:px-0
+              [&::-webkit-scrollbar]:hidden
+            "
+          >
+            {deals.map((deal) => (
+              <DealCard
+                key={`${deal.city}-${deal.dateRange}`}
+                deal={deal}
+              />
+            ))}
+          </div>
         </div>
 
         {/* Navigation */}

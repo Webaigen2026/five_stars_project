@@ -63,8 +63,11 @@ export default function RootLayout({
       data-scroll-behavior="smooth"
       className={`${inter.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="flex min-h-full flex-col font-sans">
-        {children}
+      <body className="flex min-h-full w-full min-w-0 max-w-full flex-col font-sans">
+        
+        <main className="flex w-full min-w-0 max-w-full flex-1 flex-col">
+          {children}
+        </main>
       </body>
     </html>
   );

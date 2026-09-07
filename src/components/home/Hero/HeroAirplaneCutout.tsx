@@ -127,7 +127,7 @@ export default function HeroAirplaneCutout() {
       className="
         pointer-events-none
         absolute inset-0 z-40
-        overflow-visible
+        overflow-x-clip
         transform-gpu
       "
       style={{
@@ -137,9 +137,9 @@ export default function HeroAirplaneCutout() {
       }}
     >
       {/*
-        Wider airplane canvas:
-        Mobile stays moderately oversized.
-        Tablet and desktop receive more room on the right.
+        Wider airplane canvas (visual only).
+        Oversizing is clipped by this decorative viewport so document
+        width stays stable on mobile.
       */}
       <div
         className="
@@ -148,6 +148,7 @@ export default function HeroAirplaneCutout() {
           absolute inset-y-0
           -left-[12%]
           w-[130%]
+          max-w-none
 
           sm:-left-[14%]
           sm:w-[136%]

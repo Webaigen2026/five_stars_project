@@ -14,7 +14,7 @@ export default function HomePage() {
     <>
       <Header />
 
-      <main>
+      <main className="flex w-full min-w-0 max-w-full flex-1 flex-col">
         {/* Hero stays immediately visible */}
         <HeroSearch />
 

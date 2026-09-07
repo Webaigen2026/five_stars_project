@@ -19,7 +19,7 @@ export default function ScrollReveal({
   return (
     <motion.div
       ref={ref}
-      className={className}
+      className={`w-full min-w-0 max-w-full ${className}`.trim()}
       initial={{
         opacity: 0,
         y: 48,

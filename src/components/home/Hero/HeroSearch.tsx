@@ -6,9 +6,13 @@ import FlightSearchForm from "../../flights/FlightSearchForm";
 
 export default function HeroSearch() {
   return (
-    <section className="relative w-full overflow-x-clip bg-background">
-      <div className="mx-auto w-full max-w-[1800px] flex justify-center items-center">
- 
+    <section className="relative w-full max-w-full min-w-0 overflow-x-clip bg-background">
+      {/*
+        Block width chain (not flex + justify-center): a shrink-to-content
+        flex child was able to sit off-center and leave a right-side gap on
+        narrow viewports when decorative overflow pushed min-content wide.
+      */}
+      <div className="mx-auto w-full min-w-0 max-w-[1800px]">
         {/*
           Mobile/tablet: only the main hero is shown.
           lg+: hero and travel image wall display in 2 columns.
@@ -16,7 +20,7 @@ export default function HeroSearch() {
         */}
         <div
           className="
-            grid min-w-0 grid-cols-1
+            grid w-full min-w-0 max-w-full grid-cols-1
             gap-y-[clamp(2rem,4vw,4rem)] gap-x-0
             px-4 py-6
 
@@ -33,14 +37,17 @@ export default function HeroSearch() {
             2xl:gap-x-16 2xl:gap-y-14
           "
         >
-   
           {/* ============================================================= */}
           {/* LEFT COLUMN — MAIN HERO                                       */}
           {/* ============================================================= */}
-          <div className="min-w-0">
-            <div className="relative">
+          <div className="w-full min-w-0 max-w-full">
+            {/*
+              Decorative airplane viewport: oversized art is clipped here so
+              it cannot widen the document.
+            */}
+            <div className="relative w-full min-w-0 max-w-full overflow-x-clip">
               {/* Hero card */}
-              <div className="hs-hero-card relative isolate overflow-hidden ">
+              <div className="hs-hero-card relative isolate w-full max-w-full overflow-hidden">
                 <HeroBackground />
 
                 {/* Subtle bottom wash for form readability */}
@@ -61,7 +68,7 @@ export default function HeroSearch() {
                 <div
                   className="
                     relative z-20
-                    flex min-h-[13rem] flex-col justify-end
+                    flex min-h-[13rem] w-full flex-col justify-end
                     px-5 pb-4 pt-14
 
                     sm:min-h-[min(28svh,16rem)]
@@ -72,23 +79,8 @@ export default function HeroSearch() {
                     xl:min-h-[13rem]
                     2xl:min-h-[16rem]
                   "
-                >
-           
-           
-                  {/* <div className="flex w-full max-w-7xl  flex-col gap-6 sm:gap-8">
-                  <FlightSearchForm />
-                  </div> */}
-
-                
-             
-             
-
-
-                </div>
-
-             
+                />
               </div>
-
 
               {/* ========================================================= */}
               {/* FOREGROUND AIRPLANE                                       */}
@@ -99,24 +91,19 @@ export default function HeroSearch() {
                   pointer-events-none
                   absolute inset-0
                   z-40
-                  overflow-visible
+                  overflow-x-clip
 
                   -translate-y-[3rem]
-                  mr-20
-
-                  md:mr-0
                   md:translate-y-0
                 "
               >
                 <HeroAirplaneCutout />
               </div>
-
-              
-
             </div>
-            <div className="flex w-full min-w-0 max-w-7xl flex-col gap-6 sm:gap-8">
-                  <FlightSearchForm />
-                  </div>
+
+            <div className="flex w-full min-w-0 max-w-full flex-col gap-6 sm:gap-8">
+              <FlightSearchForm />
+            </div>
           </div>
 
           {/* ============================================================= */}
@@ -153,7 +140,7 @@ export default function HeroSearch() {
         .hs-hero-card {
           border: 0;
           background: #edf1f4;
-         
+        }
 
         .dark .hs-hero-card {
           background: var(--surface);
