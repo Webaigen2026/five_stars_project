@@ -141,27 +141,34 @@ export default function Header() {
       <header className="relative z-40 border-b border-slate-200 bg-white">
         <div className="fs-container flex h-[72px] items-center justify-between">
 <span className="flex items-center gap-2 mt-2 ">
-<Image src="/airplane/logo_blue_upgrade.png" alt="Five Stars" width={90} height={90} />
+
   {/* Brand */}
   <Link
-            href="/"
-            className="
-              font-american-sans
-              shrink-0
-              text-2xl
-              font-light
-              tracking-[-0.025em]
-              text-slate-950
-              transition
-              hover:text-[#0078D2]
-              focus-visible:outline-none
-              focus-visible:ring-2
-              focus-visible:ring-[#0078D2]/30
-              focus-visible:ring-offset-4
-            "
-          >
-            Five Stars
-          </Link>
+    href="/"
+    className="
+      font-american-sans
+      flex
+      items-center
+      gap-2
+      shrink-0
+      text-2xl
+      font-light
+      tracking-[-0.025em]
+      text-slate-950
+      transition
+      hover:text-[#0078D2]
+      focus-visible:outline-none
+      focus-visible:ring-2
+      focus-visible:ring-[#0078D2]/30
+      focus-visible:ring-offset-4
+    "
+  >
+    <Image src="/airplane/logo_blue_upgrade.png" alt="Five Stars" width={90} height={90} />
+    <span>
+      Five Stars
+    </span>
+  </Link>
+     
 </span>
 
         
@@ -207,7 +214,7 @@ export default function Header() {
                 min-h-10
                 items-center
                 justify-center
-                rounded-lg
+            
                 bg-[#0078D2]
                 px-5
                 text-sm
@@ -222,9 +229,11 @@ export default function Header() {
                 focus-visible:ring-[#0078D2]/30
                 focus-visible:ring-offset-2
               "
+              style={{ color: "#fff" }}
             >
               Book a Flight
             </Link>
+       
           </div>
 
           {/* Mobile menu trigger */}
@@ -466,7 +475,7 @@ export default function Header() {
               focus-visible:ring-offset-2
             "
           >
-            Book a Flight
+            Book a Flight.
           </Link>
 
           <p className="mt-2.5 text-center text-[10.5px] leading-4 text-slate-400">

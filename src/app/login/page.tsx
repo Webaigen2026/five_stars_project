@@ -12,7 +12,7 @@ function LoginFallback() {
       </p>
 
       <h1 className="font-american-sans mt-3 text-3xl font-light tracking-[-0.02em] text-slate-950">
-        Sign in to Five Stars.
+        Sign in to Five Stars
       </h1>
 
       <p className="mt-3 font-normal leading-6 text-slate-600">
@@ -27,7 +27,7 @@ export default function LoginPage() {
     <>
       <Header />
 
-      <main className="min-h-screen bg-slate-50">
+      <main className="min-h-screen bg-white">
         <section className="fs-container flex justify-center fs-auth-shell">
           <Suspense fallback={<LoginFallback />}>
             <LoginContent />

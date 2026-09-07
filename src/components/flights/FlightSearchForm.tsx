@@ -366,23 +366,27 @@ export default function FlightSearchForm({
       "
     >
       {/* Header */}
-      <div className="mb-6">
+      {/* <div className="mb-6"> */}
         {/* <p className="text-sm font-semibold uppercase tracking-[0.15em] text-[#0078D2]">
           Flight Search
         </p> */}
 
-        <h2 className="font-american-sans mt-1.5 text-2xl font-light tracking-[-0.015em] text-slate-950 sm:text-3xl">
+        {/* <h2 className="font-american-sans mt-1.5 text-2xl font-light tracking-[-0.015em] text-slate-950 sm:text-3xl">
           Find your next flight
         </h2>
-      </div>
+      </div> */}
 
       {/* Trip type */}
-      <div className="mb-7 border-b border-slate-100 pb-5">
+      <div className="mb-7 border-b border-slate-100 pb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <TripTypeInlineControl
           value={tripType}
           onChange={selectTripType}
         />
+        <h2 className="font-american-sans mt-1.5 text-2xl font-light tracking-[-0.015em] text-slate-950 sm:text-3xl sm:mt-0">
+          Find your next flight
+        </h2>
       </div>
+
 
       {/* Search fields */}
       <form
@@ -507,7 +511,7 @@ export default function FlightSearchForm({
               active:translate-y-px
             "
           >
-        Search
+        Flights
           </button>
         </div>
       </form>
