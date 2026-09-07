@@ -4,6 +4,7 @@ import Header from "../components/layout/Header";
 import ServicesSection from "../components/home/ServicesSection";
 import FAQSection from "../components/layout/FAQSection";
 import HeroSearch from "../components/home/Hero/HeroSearch";
+import TravelPromoSection from "../components/layout/TravelPromoSection1";
 
 export default function HomePage() {
   return (
@@ -13,6 +14,7 @@ export default function HomePage() {
       <main>
       <HeroSearch />
         {/* <HeroSection /> */}
+        <TravelPromoSection />
         <ServicesSection />
         <FAQSection />
       </main>
