@@ -204,7 +204,7 @@ export default async function TripDetailPage({
     <>
       <Header />
 
-      <main className="min-h-screen bg-slate-50">
+      <main className="min-h-screen ">
         {/* Trip header */}
         <section className="border-b border-slate-200 bg-white">
           <div className="mx-auto w-full max-w-[1540px] px-4 py-8 sm:px-6 sm:py-10 lg:px-8 xl:px-10">
