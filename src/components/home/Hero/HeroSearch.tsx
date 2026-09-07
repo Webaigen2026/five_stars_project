@@ -119,18 +119,19 @@ export default function HeroSearch() {
           {/* ============================================================= */}
           {/* RIGHT COLUMN — TRAVEL IMAGE WALL                              */}
           {/* ============================================================= */}
-          <aside className="hidden min-w-0 self-stretch lg:block">
+          <aside className="hidden min-w-0 self-stretch lg:block -translate-y-14">
             <div
               className="
                 h-full
                 w-full
                 overflow-hidden
+                mt-14
 
                 rounded-[clamp(1.25rem,2.2vw,1.75rem)]
                 px-2
                 py-2
 
-                lg:max-w-[23rem]
+                lg:max-w-[21rem]
                 2xl:max-w-none
               "
             >
