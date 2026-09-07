@@ -383,7 +383,7 @@ export default function FlightSearchForm({
           onChange={selectTripType}
         />
         <h2 className="font-american-sans mt-1.5 text-2xl font-light tracking-[-0.015em] text-slate-950 sm:text-3xl sm:mt-0">
-          Find your next flight
+          Find your next flight with Five Stars.
         </h2>
       </div>
 

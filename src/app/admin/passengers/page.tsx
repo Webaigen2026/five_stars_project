@@ -6,6 +6,20 @@ import { maskPassportNumber } from "../../../lib/sensitive-data";
 import { getDecryptedPassportNumber } from "../../../lib/traveler-encryption";
 import { db } from "../../../prisma/db";
 
+function getPassengerPassportDisplay(passenger: {
+  passportNumberEncrypted?: string | null;
+}) {
+  if (!passenger.passportNumberEncrypted?.trim()) {
+    return "Unavailable";
+  }
+
+  try {
+    return maskPassportNumber(getDecryptedPassportNumber(passenger));
+  } catch {
+    return "Unavailable";
+  }
+}
+
 export default async function AdminPassengersPage() {
   const user = await requireStaffOrAdmin();
   const canEdit = isAdmin(user.role);
@@ -50,9 +64,7 @@ export default async function AdminPassengersPage() {
         flightCode: flight?.code ?? "Unknown",
         passengerTypeLabel: formatPassengerTypeLabel(passenger.passengerType),
         nationality: passenger.nationality,
-        passportMasked: maskPassportNumber(
-          getDecryptedPassportNumber(passenger)
-        ),
+        passportMasked: getPassengerPassportDisplay(passenger),
         passportCountry: passenger.passportCountry,
         passportExpiry: passenger.passportExpiry,
       };

@@ -190,7 +190,8 @@ model Passenger {
   passengerType String @default("ADULT")
 
   // AES-256-GCM ciphertext. The only stored passport number field.
-  passportNumberEncrypted String?
+  // Required: every Passenger write path must supply passportWriteFields(...).
+  passportNumberEncrypted String
   passportCountry String
   passportExpiry  String
 

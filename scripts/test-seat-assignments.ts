@@ -14,7 +14,13 @@ import {
   releaseSeatAssignmentsForBooking,
   SeatAssignmentError,
 } from "../src/lib/seat-assignments";
+import {
+  ensureTestEncryptionKey,
+  passportWriteFields,
+} from "../src/lib/traveler-encryption";
 import { db } from "../src/prisma/db";
+
+ensureTestEncryptionKey();
 
 const stamp = Date.now();
 const createdBookingIds: number[] = [];
@@ -123,6 +129,7 @@ async function main() {
       gender: "M",
       nationality: "US",
       passengerType: "ADULT",
+      ...passportWriteFields(`SEAT-A-${stamp}`),
       passportCountry: "US",
       passportExpiry: "2030-01-01",
     });
@@ -134,6 +141,7 @@ async function main() {
       gender: "F",
       nationality: "US",
       passengerType: "CHILD",
+      ...passportWriteFields(`SEAT-C-${stamp}`),
       passportCountry: "US",
       passportExpiry: "2030-01-01",
     });

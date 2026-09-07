@@ -1,6 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+
 import Image from "next/image";
 import Link from "next/link";
 
@@ -30,7 +36,8 @@ const deals: TravelDeal[] = [
     duration: "1h 44m, non-stop",
     dateRange: "Thu 8/20 – Mon 8/24",
     priceFrom: 109,
-    imageUrl: "/location/CitadelleLaferriereHaiti.jpg",
+    imageUrl:
+      "/location/CitadelleLaferriereHaiti.jpg",
     imageAlt: "Travel destination",
   },
   {
@@ -38,7 +45,8 @@ const deals: TravelDeal[] = [
     duration: "1h 43m, non-stop",
     dateRange: "Tue 8/25 – Sat 8/29",
     priceFrom: 117,
-    imageUrl: "/location/mid-beach-aerial1-1440x900.jpg",
+    imageUrl:
+      "/location/mid-beach-aerial1-1440x900.jpg",
     imageAlt: "Travel destination",
   },
   {
@@ -70,7 +78,9 @@ export default function TravelDealsCarousel() {
   const updateEdges = useCallback(() => {
     const track = trackRef.current;
 
-    if (!track) return;
+    if (!track) {
+      return;
+    }
 
     const tolerance = 4;
 
@@ -88,17 +98,24 @@ export default function TravelDealsCarousel() {
     window.addEventListener("resize", updateEdges);
 
     return () => {
-      window.removeEventListener("resize", updateEdges);
+      window.removeEventListener(
+        "resize",
+        updateEdges
+      );
     };
   }, [updateEdges]);
 
-  function scrollByCard(direction: "prev" | "next") {
+  function scrollByCard(
+    direction: "prev" | "next"
+  ) {
     const track = trackRef.current;
 
     const firstCard =
       track?.firstElementChild as HTMLElement | null;
 
-    if (!track || !firstCard) return;
+    if (!track || !firstCard) {
+      return;
+    }
 
     const styles = window.getComputedStyle(track);
 
@@ -106,21 +123,118 @@ export default function TravelDealsCarousel() {
       styles.columnGap || styles.gap || "0"
     );
 
-    const distance = firstCard.offsetWidth + gap;
+    const distance =
+      firstCard.offsetWidth + gap;
 
     track.scrollBy({
-      left: direction === "next" ? distance : -distance,
+      left:
+        direction === "next"
+          ? distance
+          : -distance,
       behavior: "smooth",
     });
   }
 
   return (
-    <section className="overflow-hidden bg-[#f5f6f7] py-14 sm:py-16 lg:py-20">
-      <div className="mx-auto w-full max-w-[1600px] px-4 sm:px-6 lg:px-10 xl:px-16">
+    <section
+      className="
+        relative
+        overflow-hidden
+        bg-white
+        py-14
+        sm:py-16
+        lg:py-20
+      "
+    >
+      {/*
+        Bottom half background.
+
+        The section itself is `relative`, so this layer is
+        anchored specifically to TravelDealsCarousel.
+
+        It starts at exactly 50% of the section height and
+        continues all the way to the bottom.
+      */}
+      <div
+        aria-hidden="true"
+        className="
+          pointer-events-none
+          absolute
+          inset-x-0
+          bottom-0
+          z-0
+          h-[50%]
+          bg-[#DCEAF6]
+        "
+      />
+
+      {/*
+        Soft transition just above the 50% boundary.
+
+        This prevents the white -> blue transition from
+        looking like a harsh horizontal stripe.
+      */}
+      <div
+        aria-hidden="true"
+        className="
+          pointer-events-none
+          absolute
+          inset-x-0
+          top-1/2
+          z-0
+          h-20
+          -translate-y-full
+          bg-gradient-to-b
+          from-transparent
+          via-[#DCEAF6]/10
+          to-[#DCEAF6]/35
+        "
+      />
+
+      {/*
+        Content sits above both decorative background layers.
+      */}
+      <div
+        className="
+          relative
+          z-10
+          mx-auto
+          w-full
+          max-w-[1600px]
+          px-4
+          sm:px-6
+          lg:px-10
+          xl:px-16
+        "
+      >
         {/* Header */}
-        <div className="mb-10 flex flex-col gap-5 border-b border-slate-300 pb-6 sm:flex-row sm:items-end sm:justify-between">
+        <div
+          className="
+            mb-10
+            flex
+            flex-col
+            gap-6
+            border-b
+            border-slate-300/80
+            pb-7
+            sm:flex-row
+            sm:items-end
+            sm:justify-between
+            lg:mb-12
+          "
+        >
           <div className="max-w-2xl">
-          
+            {/* <p
+              className="
+                text-xs
+                font-semibold
+                uppercase
+                tracking-[0.18em]
+                text-primary
+              "
+            >
+              Featured fares
+            </p> */}
 
             <h2
               className="
@@ -131,14 +245,25 @@ export default function TravelDealsCarousel() {
                 tracking-[-0.025em]
                 text-slate-950
                 sm:text-4xl
+                lg:text-[42px]
+                lg:leading-[1.1]
               "
             >
               Travel deals worth checking out.
             </h2>
 
-            <p className="mt-3 max-w-xl text-base leading-7 text-slate-600 sm:text-lg">
-              Explore selected fares and find a trip that fits your schedule
-              and budget.
+            <p
+              className="
+                mt-4
+                max-w-xl
+                text-base
+                leading-7
+                text-slate-600
+                sm:text-lg
+              "
+            >
+              Explore selected fares and find a trip
+              that fits your schedule and budget.
             </p>
           </div>
 
@@ -150,10 +275,15 @@ export default function TravelDealsCarousel() {
               w-fit
               items-center
               gap-2
+              border-b
+              border-primary/40
+              pb-1
               text-sm
               font-semibold
               text-primary
-              transition
+              transition-all
+              duration-300
+              hover:border-primary
               hover:text-primary-hover
               focus-visible:outline-none
               focus-visible:ring-2
@@ -167,7 +297,7 @@ export default function TravelDealsCarousel() {
                 h-4
                 w-4
                 transition-transform
-                duration-200
+                duration-300
                 group-hover:-translate-y-0.5
                 group-hover:translate-x-0.5
               "
@@ -277,6 +407,7 @@ function DealCard({
           "
         />
 
+        {/* Image shading */}
         <div
           aria-hidden="true"
           className="
@@ -290,7 +421,20 @@ function DealCard({
           "
         />
 
-        <div className="absolute inset-x-0 bottom-0 border-t border-white/20 bg-slate-950/20 px-5 py-4 backdrop-blur-[2px]">
+        {/* Destination */}
+        <div
+          className="
+            absolute
+            inset-x-0
+            bottom-0
+            border-t
+            border-white/20
+            bg-slate-950/20
+            px-5
+            py-4
+            backdrop-blur-[2px]
+          "
+        >
           <h3
             className="
               font-american-sans
@@ -305,8 +449,9 @@ function DealCard({
         </div>
       </div>
 
-      {/* Content */}
+      {/* Card content */}
       <div className="flex flex-1 flex-col px-5 py-5 sm:px-6">
+        {/* Flight type */}
         <div className="flex items-center gap-2 text-sm text-slate-600">
           <Plane
             className="h-4 w-4 shrink-0 text-primary"
@@ -316,6 +461,7 @@ function DealCard({
           <span>Non-stop</span>
         </div>
 
+        {/* Duration */}
         <div className="mt-3 flex items-center gap-2 text-sm text-slate-600">
           <Clock3
             className="h-4 w-4 shrink-0 text-primary"
@@ -325,14 +471,24 @@ function DealCard({
           <span>{deal.duration}</span>
         </div>
 
+        {/* Dates */}
         <p className="mt-2 text-sm text-slate-500">
           {deal.dateRange}
         </p>
 
+        {/* Fare */}
         <div className="mt-6 border-t border-slate-200 pt-5">
           <div className="flex items-end justify-between gap-5">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+              <p
+                className="
+                  text-xs
+                  font-semibold
+                  uppercase
+                  tracking-[0.14em]
+                  text-slate-500
+                "
+              >
                 Round-trip from
               </p>
 

@@ -27,6 +27,20 @@ import {
 } from "../../../../lib/trip-formatting";
 import { db } from "../../../../prisma/db";
 
+function getPassengerPassportDisplay(passenger: {
+  passportNumberEncrypted?: string | null;
+}) {
+  if (!passenger.passportNumberEncrypted?.trim()) {
+    return "Unavailable";
+  }
+
+  try {
+    return maskPassportNumber(getDecryptedPassportNumber(passenger));
+  } catch {
+    return "Unavailable";
+  }
+}
+
 function customerDisplay(
   user: {
     email: string;
@@ -338,9 +352,7 @@ export default async function AdminBookingDetailPage({
                       {passenger.nationality}
                     </td>
                     <td className="py-3 pr-4 font-mono text-slate-950">
-                      {maskPassportNumber(
-                        getDecryptedPassportNumber(passenger)
-                      )}
+                      {getPassengerPassportDisplay(passenger)}
                     </td>
                     <td className="py-3 pr-4 text-slate-700">
                       {passenger.passportCountry}

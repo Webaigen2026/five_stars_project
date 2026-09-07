@@ -1,99 +1,130 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Bell, ArrowRight } from "lucide-react";
+
+import { ArrowRight } from "lucide-react";
+
+import {
+  motion,
+  useReducedMotion,
+} from "framer-motion";
+
+const viewportSettings = {
+  once: false,
+  amount: 0.18,
+  margin: "0px 0px -8% 0px",
+} as const;
 
 export default function TravelPromoSection() {
-  const sectionRef = useRef<HTMLElement | null>(null);
-  const [inView, setInView] = useState(false);
-
-  useEffect(() => {
-    const section = sectionRef.current;
-
-    if (!section) {
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setInView(true);
-          observer.disconnect();
-        }
-      },
-      {
-        threshold: 0.18,
-        rootMargin: "0px 0px -8% 0px",
-      }
-    );
-
-    observer.observe(section);
-
-    return () => observer.disconnect();
-  }, []);
+  const shouldReduceMotion = useReducedMotion();
 
   return (
-    <section
-      ref={sectionRef}
-      className="bg-background py-12 sm:py-16 lg:py-20"
-    >
+    <section className="bg-background py-12 sm:py-16 lg:py-20">
       <div className="mx-auto w-full max-w-full px-4 sm:px-6 lg:px-10">
         <div className="grid items-center gap-8 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.7fr)] lg:gap-12 xl:gap-16">
           {/* Decorative traveler artwork */}
-          <div
-            className={[
-              "order-2 flex justify-center transition-all duration-1000 ease-out lg:order-1 lg:justify-end",
-              inView
-                ? "translate-x-0 translate-y-0 opacity-100"
-                : "-translate-x-8 translate-y-4 opacity-0",
-            ].join(" ")}
-          >
-            <Image
-              src="/airplane/avatars.png"
-              alt="Travelers preparing for their next trip"
-              width={500}
-              height={500}
-              sizes="
-                (max-width: 639px) 240px,
-                (max-width: 1023px) 320px,
-                380px
-              "
-              className="
-                h-auto
-                w-full
-                max-w-[240px]
-                object-contain
-                sm:max-w-[320px]
-                lg:max-w-[380px]
-              "
-            />
-          </div>
-
-          {/* Promotional content */}
-          <div
-            className={[
-              "order-1 min-w-0 transition-all duration-1000 ease-out lg:order-2",
-              inView
-                ? "translate-x-0 translate-y-0 opacity-100"
-                : "translate-x-8 translate-y-5 opacity-0",
-            ].join(" ")}
-            style={{
-              transitionDelay: inView ? "120ms" : "0ms",
+          <motion.div
+            className="order-2 flex justify-center lg:order-1 lg:justify-end"
+            initial={
+              shouldReduceMotion
+                ? { opacity: 1 }
+                : {
+                    opacity: 0,
+                    x: -48,
+                    y: 16,
+                  }
+            }
+            whileInView={{
+              opacity: 1,
+              x: 0,
+              y: 0,
+            }}
+            viewport={viewportSettings}
+            transition={{
+              duration: shouldReduceMotion ? 0 : 0.9,
+              ease: [0.22, 1, 0.36, 1],
             }}
           >
-            <PromoCard inView={inView} />
-          </div>
+            <motion.div
+              whileInView={
+                shouldReduceMotion
+                  ? {}
+                  : {
+                      scale: [0.98, 1],
+                    }
+              }
+              viewport={viewportSettings}
+              transition={{
+                duration: 1,
+                ease: [0.22, 1, 0.36, 1],
+              }}
+            >
+              <Image
+                src="/airplane/avatars.png"
+                alt="Travelers preparing for their next trip"
+                width={500}
+                height={500}
+                sizes="
+                  (max-width: 639px) 240px,
+                  (max-width: 1023px) 320px,
+                  380px
+                "
+                className="
+                  h-auto
+                  w-full
+                  max-w-[240px]
+                  object-contain
+                  sm:max-w-[320px]
+                  lg:max-w-[380px]
+                "
+              />
+            </motion.div>
+          </motion.div>
+
+          {/* Promotional content */}
+          <motion.div
+            className="order-1 min-w-0 lg:order-2"
+            initial={
+              shouldReduceMotion
+                ? { opacity: 1 }
+                : {
+                    opacity: 0,
+                    x: 48,
+                    y: 20,
+                  }
+            }
+            whileInView={{
+              opacity: 1,
+              x: 0,
+              y: 0,
+            }}
+            viewport={viewportSettings}
+            transition={{
+              duration: shouldReduceMotion ? 0 : 0.95,
+              delay: shouldReduceMotion ? 0 : 0.08,
+              ease: [0.22, 1, 0.36, 1],
+            }}
+          >
+            <PromoCard
+              shouldReduceMotion={Boolean(
+                shouldReduceMotion
+              )}
+            />
+          </motion.div>
         </div>
       </div>
     </section>
   );
 }
 
-function PromoCard({ inView }: { inView: boolean }) {
+function PromoCard({
+  shouldReduceMotion,
+}: {
+  shouldReduceMotion: boolean;
+}) {
   return (
-    <article
+    <motion.article
       className="
         relative
         overflow-hidden
@@ -107,137 +138,217 @@ function PromoCard({ inView }: { inView: boolean }) {
         dark:bg-surface
         dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_20px_50px_-24px_rgba(0,0,0,0.55)]
       "
+      initial={
+        shouldReduceMotion
+          ? { opacity: 1 }
+          : {
+              opacity: 0,
+              scale: 0.985,
+            }
+      }
+      whileInView={{
+        opacity: 1,
+        scale: 1,
+      }}
+      viewport={viewportSettings}
+      transition={{
+        duration: shouldReduceMotion ? 0 : 0.85,
+        ease: [0.22, 1, 0.36, 1],
+      }}
     >
       <div className="grid items-center gap-7 lg:grid-cols-[minmax(0,400px)_minmax(0,1fr)] lg:gap-10">
-        <div
-          className={[
-            "transition-all duration-1000 ease-out",
-            inView
-              ? "translate-y-0 scale-100 opacity-100"
-              : "translate-y-5 scale-[0.97] opacity-0",
-          ].join(" ")}
-          style={{
-            transitionDelay: inView ? "220ms" : "0ms",
+        {/* Promo image */}
+        <motion.div
+          initial={
+            shouldReduceMotion
+              ? { opacity: 1 }
+              : {
+                  opacity: 0,
+                  y: 30,
+                  scale: 0.96,
+                }
+          }
+          whileInView={{
+            opacity: 1,
+            y: 0,
+            scale: 1,
+          }}
+          viewport={viewportSettings}
+          transition={{
+            duration: shouldReduceMotion ? 0 : 0.9,
+            delay: shouldReduceMotion ? 0 : 0.14,
+            ease: [0.22, 1, 0.36, 1],
           }}
         >
           <PromoImage />
-        </div>
+        </motion.div>
 
-        <div
-          className={[
-            "min-w-0 text-center transition-all duration-1000 ease-out lg:text-left",
-            inView
-              ? "translate-y-0 opacity-100"
-              : "translate-y-6 opacity-0",
-          ].join(" ")}
-          style={{
-            transitionDelay: inView ? "320ms" : "0ms",
+        {/* Text content */}
+        <motion.div
+          className="min-w-0 text-center lg:text-left"
+          initial="hidden"
+          whileInView="visible"
+          viewport={viewportSettings}
+          variants={{
+            hidden: {},
+            visible: {
+              transition: {
+                staggerChildren: shouldReduceMotion
+                  ? 0
+                  : 0.1,
+                delayChildren: shouldReduceMotion
+                  ? 0
+                  : 0.18,
+              },
+            },
           }}
         >
-          <div
-            className={[
-              "flex justify-center transition-all duration-700 ease-out lg:justify-start",
-              inView
-                ? "translate-y-0 opacity-100"
-                : "translate-y-3 opacity-0",
-            ].join(" ")}
-            style={{
-              transitionDelay: inView ? "380ms" : "0ms",
-            }}
-          >
-            {/* <div
-              className="
-                inline-flex
-                items-center
-                gap-2
-                rounded-full
-                border
-                border-sky-100
-                bg-sky-50
-                px-3
-                py-1.5
-                text-xs
-                font-semibold
-                uppercase
-                tracking-[0.14em]
-                text-primary
-              "
-            >
-              <Bell className="h-3.5 w-3.5" aria-hidden="true" />
-              Flight Alerts
-            </div> */}
-          </div>
-
-          <h2
+          <motion.h2
             className="
               font-american-sans
-            
               text-3xl
               font-light
               tracking-[-0.015em]
               text-slate-950
             "
+            variants={{
+              hidden: shouldReduceMotion
+                ? {
+                    opacity: 1,
+                    y: 0,
+                  }
+                : {
+                    opacity: 0,
+                    y: 24,
+                  },
+
+              visible: {
+                opacity: 1,
+                y: 0,
+                transition: {
+                  duration: shouldReduceMotion
+                    ? 0
+                    : 0.75,
+                  ease: [0.22, 1, 0.36, 1],
+                },
+              },
+            }}
           >
             Missed the fare drop again?
-          </h2>
+          </motion.h2>
 
-          <p className="mt-3 text-lg font-normal leading-7 text-slate-600">
-            Turn on Flight Alerts and we&apos;ll notify you the moment prices
-            change on your route—so you can book at the right time without
-            repeatedly checking.
-          </p>
+          <motion.p
+            className="mt-3 text-lg font-normal leading-7 text-slate-600"
+            variants={{
+              hidden: shouldReduceMotion
+                ? {
+                    opacity: 1,
+                    y: 0,
+                  }
+                : {
+                    opacity: 0,
+                    y: 20,
+                  },
 
-          <Link
-            href="/flights"
-            className="
-              group
-              mt-6
-              inline-flex
-              items-center
-              gap-2
-              font-american-sans
-              text-lg
-              leading-7
-              transition-all
-              duration-300
-              hover:scale-105
-            "
+              visible: {
+                opacity: 1,
+                y: 0,
+                transition: {
+                  duration: shouldReduceMotion
+                    ? 0
+                    : 0.75,
+                  ease: [0.22, 1, 0.36, 1],
+                },
+              },
+            }}
           >
-            Visit Flights
+            Turn on Flight Alerts and we&apos;ll notify you
+            the moment prices change on your route—so you
+            can book at the right time without repeatedly
+            checking.
+          </motion.p>
 
-            <ArrowRight
+          <motion.div
+            variants={{
+              hidden: shouldReduceMotion
+                ? {
+                    opacity: 1,
+                    y: 0,
+                  }
+                : {
+                    opacity: 0,
+                    y: 18,
+                  },
+
+              visible: {
+                opacity: 1,
+                y: 0,
+                transition: {
+                  duration: shouldReduceMotion
+                    ? 0
+                    : 0.7,
+                  ease: [0.22, 1, 0.36, 1],
+                },
+              },
+            }}
+          >
+            <Link
+              href="/flights"
               className="
-                h-4
-                w-4
-                transition-transform
+                group
+                mt-6
+                inline-flex
+                items-center
+                gap-2
+                font-american-sans
+                text-lg
+                leading-7
+                transition-all
                 duration-300
-                group-hover:translate-x-1
+                hover:scale-105
               "
-              aria-hidden="true"
-            />
-          </Link>
-        </div>
+            >
+              Visit Flights
+
+              <ArrowRight
+                className="
+                  h-4
+                  w-4
+                  transition-transform
+                  duration-300
+                  group-hover:translate-x-1
+                "
+                aria-hidden="true"
+              />
+            </Link>
+          </motion.div>
+        </motion.div>
       </div>
-    </article>
+    </motion.article>
   );
 }
 
 function PromoImage() {
   return (
-    <div
+    <motion.div
       className="
         group
         relative
         aspect-[4/3]
         w-full
         overflow-hidden
-      
         bg-surface
         shadow-[0_14px_40px_rgba(15,23,42,0.12)]
-     
         lg:h-[300px]
         lg:aspect-auto
       "
+      whileHover={{
+        scale: 1.01,
+      }}
+      transition={{
+        duration: 0.4,
+        ease: [0.22, 1, 0.36, 1],
+      }}
     >
       <Image
         src="/airplane/boston.webp"
@@ -259,6 +370,7 @@ function PromoImage() {
         "
       />
 
+      {/* Image shading */}
       <div
         aria-hidden="true"
         className="
@@ -272,18 +384,18 @@ function PromoImage() {
         "
       />
 
+      {/* Fine image edge */}
       <div
         aria-hidden="true"
         className="
           pointer-events-none
           absolute
           inset-0
-          rounded-[inherit]
           ring-1
           ring-inset
           ring-white/25
         "
       />
-    </div>
+    </motion.div>
   );
 }

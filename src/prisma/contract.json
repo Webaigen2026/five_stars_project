@@ -1515,7 +1515,7 @@
                 }
               },
               "passportNumberEncrypted": {
-                "nullable": true,
+                "nullable": false,
                 "type": {
                   "codecId": "pg/text@1",
                   "kind": "scalar"
@@ -3583,7 +3583,7 @@
                 "passportNumberEncrypted": {
                   "codecId": "pg/text@1",
                   "nativeType": "text",
-                  "nullable": true
+                  "nullable": false
                 },
                 "updatedAt": {
                   "codecId": "pg/timestamptz-string@1",
@@ -4312,7 +4312,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "8ceb2b75a9dd791fd8cc2a94d267c5fc93184bb566bf4cbee859317912d4c6ef"
+    "storageHash": "0b9c99d4868b80a0a05ee2ee504532a476fe9e20b526d4f60d41948491fc804a"
   },
   "execution": {
     "executionHash": "e53ca58f945c2f2e6a7746970a2c9705d07ef96c22839f79616dd11711e480ac",
