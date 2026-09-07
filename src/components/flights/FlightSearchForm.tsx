@@ -507,7 +507,7 @@ export default function FlightSearchForm({
               active:translate-y-px
             "
           >
-            Search Flights
+        Search
           </button>
         </div>
       </form>

@@ -39,7 +39,7 @@ export default function TravelPromoSection() {
       ref={sectionRef}
       className="bg-background py-12 sm:py-16 lg:py-20"
     >
-      <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-10">
+      <div className="mx-auto w-full max-w-full px-4 sm:px-6 lg:px-10">
         <div className="grid items-center gap-8 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.7fr)] lg:gap-12 xl:gap-16">
           {/* Decorative traveler artwork */}
           <div

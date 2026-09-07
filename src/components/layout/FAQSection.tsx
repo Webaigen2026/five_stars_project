@@ -62,7 +62,7 @@ export default function FAQSection() {
 
   return (
     <section className="border-t border-slate-200 bg-white py-14 sm:py-16 lg:py-20">
-      <div className="fs-container">
+      <div className="mx-auto w-full max-w-full px-4 sm:px-6 lg:px-20">
         {/* Section heading */}
         <div className="mb-10 sm:mb-12">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
