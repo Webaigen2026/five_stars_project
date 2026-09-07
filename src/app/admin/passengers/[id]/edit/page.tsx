@@ -4,8 +4,11 @@ import { notFound } from "next/navigation";
 import EditPassengerForm from "../../../../../components/admin/passengers/EditPassengerForm";
 import { parsePositiveInt } from "../../../../../lib/admin-bookings";
 import { formatPassengerTypeLabel } from "../../../../../lib/passenger-composition";
-import { toSafePassenger } from "../../../../../lib/admin-passengers";
-import { requireAdmin } from "../../../../../lib/authorization";
+import { toPassengerEditView } from "../../../../../lib/admin-passengers";
+import {
+  canViewSensitiveTravelerData,
+  requireAdmin,
+} from "../../../../../lib/authorization";
 import { db } from "../../../../../prisma/db";
 
 export default async function EditPassengerPage({
@@ -13,7 +16,7 @@ export default async function EditPassengerPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireAdmin();
+  const currentUser = await requireAdmin();
 
   const { id: rawId } = await params;
   const id = parsePositiveInt(rawId);
@@ -51,6 +54,10 @@ export default async function EditPassengerPage({
     .where({ id: passenger.bookingId })
     .first();
 
+  const editView = toPassengerEditView(passenger, {
+    canReplacePassport: canViewSensitiveTravelerData(currentUser),
+  });
+
   return (
     <>
       <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
@@ -81,7 +88,7 @@ export default async function EditPassengerPage({
       </p>
 
       <section className="mt-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
-        <EditPassengerForm passenger={toSafePassenger(passenger)} />
+        <EditPassengerForm passenger={editView} />
       </section>
     </>
   );

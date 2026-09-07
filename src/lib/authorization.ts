@@ -13,6 +13,19 @@ export function isAdmin(role: string) {
   return role === ADMIN_ROLE;
 }
 
+/**
+ * Traveler document reveal requires an explicit DB grant in addition to ADMIN.
+ * STAFF never qualifies. ADMIN alone is never enough.
+ */
+export function canViewSensitiveTravelerData(user: {
+  role?: string | null;
+  canViewSensitiveTravelerData?: boolean | null;
+}) {
+  return (
+    user.role === ADMIN_ROLE && user.canViewSensitiveTravelerData === true
+  );
+}
+
 export async function requireUser(): Promise<CurrentUser> {
   const user = await getCurrentUser();
 

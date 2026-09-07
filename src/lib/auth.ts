@@ -22,6 +22,8 @@ export type CurrentUser = {
   lastName: string | null;
   role: string;
   emailVerified: boolean;
+  /** DB-backed; never trust client-supplied values for this flag. */
+  canViewSensitiveTravelerData: boolean;
 };
 
 export type CurrentSession = {
@@ -221,7 +223,8 @@ export async function getCurrentSession(): Promise<CurrentSession | null> {
     "firstName",
     "lastName",
     "role",
-    "emailVerified"
+    "emailVerified",
+    "canViewSensitiveTravelerData"
   )
     .where({
       id: claims.userId,

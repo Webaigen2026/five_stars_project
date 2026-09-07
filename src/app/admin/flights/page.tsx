@@ -1,7 +1,12 @@
 import Link from "next/link";
 
 import CreateFlightForm from "../../../components/admin/flights/CreateFlightForm";
-import { isAdmin, requireStaffOrAdmin } from "../../../lib/authorization";
+import PassengerManifestExportControl from "../../../components/admin/PassengerManifestExportControl";
+import {
+  canViewSensitiveTravelerData,
+  isAdmin,
+  requireStaffOrAdmin,
+} from "../../../lib/authorization";
 import {
   formatArrivalDateTime,
   formatDepartureDateTime,
@@ -29,6 +34,8 @@ function statusClassName(status: string) {
 export default async function AdminFlightsPage() {
   const user = await requireStaffOrAdmin();
   const canManage = isAdmin(user.role);
+  const canExportManifest = canViewSensitiveTravelerData(user);
+  const showActions = canManage || canExportManifest;
   const flights = [...(await db.orm.public.Flight.all())].sort(
     (left, right) =>
       new Date(left.departureTime).getTime() -
@@ -124,7 +131,7 @@ export default async function AdminFlightsPage() {
                   <th className="px-5 py-4">Seats</th>
                   <th className="px-5 py-4">Price</th>
                   <th className="px-5 py-4">Status</th>
-                  {canManage && <th className="px-5 py-4">Actions</th>}
+                  {showActions && <th className="px-5 py-4">Actions</th>}
                 </tr>
               </thead>
               <tbody>
@@ -171,14 +178,23 @@ export default async function AdminFlightsPage() {
                         {flight.status}
                       </span>
                     </td>
-                    {canManage && (
+                    {showActions && (
                       <td className="px-5 py-4 align-top">
-                        <Link
-                          href={`/admin/flights/${flight.id}/edit`}
-                          className="rounded-xl px-3 py-2 font-medium text-primary transition hover:bg-sky-50"
-                        >
-                          Edit
-                        </Link>
+                        <div className="flex flex-col items-start gap-2">
+                          {canManage && (
+                            <Link
+                              href={`/admin/flights/${flight.id}/edit`}
+                              className="rounded-xl px-3 py-2 font-medium text-primary transition hover:bg-sky-50"
+                            >
+                              Edit
+                            </Link>
+                          )}
+                          <PassengerManifestExportControl
+                            flightId={flight.id}
+                            flightCode={flight.code}
+                            canExport={canExportManifest}
+                          />
+                        </div>
                       </td>
                     )}
                   </tr>

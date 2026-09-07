@@ -2,8 +2,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import AdminFlightForm from "../../../../../components/admin/flights/AdminFlightForm";
+import PassengerManifestExportControl from "../../../../../components/admin/PassengerManifestExportControl";
 import { toSafeFlight } from "../../../../../lib/admin-flights";
-import { requireAdmin } from "../../../../../lib/authorization";
+import {
+  canViewSensitiveTravelerData,
+  requireAdmin,
+} from "../../../../../lib/authorization";
 import { db } from "../../../../../prisma/db";
 
 function parseFlightId(value: string) {
@@ -25,7 +29,8 @@ export default async function EditFlightPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  await requireAdmin();
+  const currentUser = await requireAdmin();
+  const canExportManifest = canViewSensitiveTravelerData(currentUser);
 
   const { id: rawId } = await params;
   const id = parseFlightId(rawId);
@@ -75,14 +80,19 @@ export default async function EditFlightPage({
         and stored as cents.
       </p>
 
-      <p className="mt-4">
+      <div className="mt-4 flex flex-wrap items-center gap-4">
         <Link
           href="/admin/flights"
           className="text-sm font-semibold text-primary transition hover:text-primary-hover"
         >
           ← Back to flights
         </Link>
-      </p>
+        <PassengerManifestExportControl
+          flightId={flight.id}
+          flightCode={flight.code}
+          canExport={canExportManifest}
+        />
+      </div>
 
       <section className="mt-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm md:p-8">
         <AdminFlightForm mode="edit" flight={toSafeFlight(flight)} />

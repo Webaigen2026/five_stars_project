@@ -6,11 +6,15 @@ import {
   createUserSession,
   getSessionCookieOptions,
 } from "../../../../lib/auth";
+import {
+  ACCOUNT_LOCKED_LOGIN_MESSAGE,
+  ACCOUNT_LOCKED_STATUS,
+  clearedLockoutState,
+  isAccountLocked,
+} from "../../../../lib/account-lockout";
+import { recordFailedLoginAttempt } from "../../../../lib/account-lockout-db";
 import { canSignInWithCredentials } from "../../../../lib/auth-email-policy";
 import { db } from "../../../../prisma/db";
-
-const LOCKOUT_THRESHOLD = 5;
-const LOCKOUT_MINUTES = 15;
 
 class LoginRequestError extends Error {
   constructor(
@@ -27,36 +31,6 @@ function jsonError(message: string, status: number) {
 
 function asTrimmedString(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
-}
-
-function isLocked(lockedUntil: string | null) {
-  if (!lockedUntil) {
-    return false;
-  }
-
-  const lockedUntilDate = new Date(lockedUntil);
-
-  if (Number.isNaN(lockedUntilDate.getTime())) {
-    return false;
-  }
-
-  return lockedUntilDate.getTime() > Date.now();
-}
-
-async function recordFailedLogin(user: {
-  id: number;
-  failedLoginAttempts: number;
-}) {
-  const failedLoginAttempts = user.failedLoginAttempts + 1;
-  const shouldLock = failedLoginAttempts >= LOCKOUT_THRESHOLD;
-  const lockedUntil = shouldLock
-    ? new Date(Date.now() + LOCKOUT_MINUTES * 60 * 1000).toISOString()
-    : null;
-
-  await db.orm.public.User.where({ id: user.id }).update({
-    failedLoginAttempts,
-    lockedUntil,
-  });
 }
 
 export async function POST(request: Request) {
@@ -92,17 +66,17 @@ export async function POST(request: Request) {
       throw new LoginRequestError("Invalid email or password.", 401);
     }
 
-    if (isLocked(user.lockedUntil)) {
+    if (isAccountLocked(user.lockedUntil)) {
       throw new LoginRequestError(
-        "Account temporarily locked. Please try again later.",
-        423
+        ACCOUNT_LOCKED_LOGIN_MESSAGE,
+        ACCOUNT_LOCKED_STATUS
       );
     }
 
     const passwordMatches = await bcrypt.compare(password, user.password);
 
     if (!passwordMatches) {
-      await recordFailedLogin(user);
+      await recordFailedLoginAttempt(user.id);
       throw new LoginRequestError("Invalid email or password.", 401);
     }
 
@@ -115,10 +89,9 @@ export async function POST(request: Request) {
       throw new LoginRequestError("Invalid email or password.", 401);
     }
 
-    await db.orm.public.User.where({ id: user.id }).update({
-      failedLoginAttempts: 0,
-      lockedUntil: null,
-    });
+    await db.orm.public.User.where({ id: user.id }).update(
+      clearedLockoutState()
+    );
 
     const token = await createUserSession({
       id: user.id,

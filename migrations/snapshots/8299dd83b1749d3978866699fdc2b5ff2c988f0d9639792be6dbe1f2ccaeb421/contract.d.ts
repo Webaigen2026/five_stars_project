@@ -33,7 +33,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'ff9712f853056665e72303972171cb48ca1567dc2284f01de7e2aa7ce5403c88'>;
+  StorageHashBase<'8299dd83b1749d3978866699fdc2b5ff2c988f0d9639792be6dbe1f2ccaeb421'>;
 export type ExecutionHash =
   ExecutionHashBase<'e53ca58f945c2f2e6a7746970a2c9705d07ef96c22839f79616dd11711e480ac'>;
 export type ProfileHash =
@@ -246,7 +246,6 @@ export type FieldOutputTypes = {
       readonly adminUserId: CodecTypes['pg/int4@1']['output'];
       readonly action: CodecTypes['pg/text@1']['output'];
       readonly passengerId: CodecTypes['pg/int4@1']['output'] | null;
-      readonly flightId: CodecTypes['pg/int4@1']['output'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
     };
     readonly Booking: {
@@ -462,7 +461,6 @@ export type FieldInputTypes = {
       readonly adminUserId: CodecTypes['pg/int4@1']['input'];
       readonly action: CodecTypes['pg/text@1']['input'];
       readonly passengerId: CodecTypes['pg/int4@1']['input'] | null;
-      readonly flightId: CodecTypes['pg/int4@1']['input'] | null;
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['input'];
     };
     readonly Booking: {
@@ -677,7 +675,6 @@ export type StorageColumnTypes = {
       readonly action: CodecTypes['pg/text@1']['output'];
       readonly adminUserId: CodecTypes['pg/int4@1']['output'];
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
-      readonly flightId: CodecTypes['pg/int4@1']['output'] | null;
       readonly id: CodecTypes['pg/int4@1']['output'];
       readonly passengerId: CodecTypes['pg/int4@1']['output'] | null;
     };
@@ -893,7 +890,6 @@ export type StorageColumnInputTypes = {
       readonly action: CodecTypes['pg/text@1']['input'];
       readonly adminUserId: CodecTypes['pg/int4@1']['input'];
       readonly createdAt: CodecTypes['pg/timestamptz-string@1']['input'];
-      readonly flightId: CodecTypes['pg/int4@1']['input'] | null;
       readonly id: CodecTypes['pg/int4@1']['input'];
       readonly passengerId: CodecTypes['pg/int4@1']['input'] | null;
     };
@@ -1147,11 +1143,6 @@ type ContractBase = Omit<
                   readonly codecId: 'pg/int4@1';
                   readonly nullable: true;
                 };
-                readonly flightId: {
-                  readonly nativeType: 'int4';
-                  readonly codecId: 'pg/int4@1';
-                  readonly nullable: true;
-                };
                 readonly createdAt: {
                   readonly nativeType: 'timestamptz';
                   readonly codecId: 'pg/timestamptz-string@1';
@@ -1178,12 +1169,6 @@ type ContractBase = Omit<
                   readonly name: 'adminAuditLog_createdAt_idx_9575dbd7';
                   readonly prefix: 'adminAuditLog_createdAt_idx';
                   readonly columns: readonly ['createdAt'];
-                  readonly unique: false;
-                },
-                {
-                  readonly name: 'adminAuditLog_flightId_idx_7ef5148f';
-                  readonly prefix: 'adminAuditLog_flightId_idx';
-                  readonly columns: readonly ['flightId'];
                   readonly unique: false;
                 },
               ];
@@ -2780,10 +2765,6 @@ type ContractBase = Omit<
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
               };
-              readonly flightId: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
-              };
               readonly createdAt: {
                 readonly nullable: false;
                 readonly type: {
@@ -2810,7 +2791,6 @@ type ContractBase = Omit<
                 readonly adminUserId: { readonly column: 'adminUserId' };
                 readonly action: { readonly column: 'action' };
                 readonly passengerId: { readonly column: 'passengerId' };
-                readonly flightId: { readonly column: 'flightId' };
                 readonly createdAt: { readonly column: 'createdAt' };
               };
             };

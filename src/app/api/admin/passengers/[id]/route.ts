@@ -1,12 +1,16 @@
 import { getCurrentUser } from "../../../../../lib/auth";
-import { isAdmin } from "../../../../../lib/authorization";
+import {
+  canViewSensitiveTravelerData,
+  isAdmin,
+} from "../../../../../lib/authorization";
 import {
   AdminBookingRequestError,
   parsePositiveInt,
 } from "../../../../../lib/admin-bookings";
 import {
-  parsePassengerWriteInput,
-  toSafePassenger,
+  parsePassengerUpdateInput,
+  resolvePassportReplacement,
+  toPassengerEditView,
 } from "../../../../../lib/admin-passengers";
 import {
   calendarDateInTimeZone,
@@ -64,7 +68,16 @@ export async function PATCH(
       throw new AdminBookingRequestError("Invalid JSON body.", 400);
     }
 
-    const input = parsePassengerWriteInput(body);
+    const input = parsePassengerUpdateInput(body);
+
+    const passportDecision = resolvePassportReplacement({
+      passportNumberReplacement: input.passportNumberReplacement,
+      user,
+    });
+
+    if (passportDecision.action === "reject") {
+      return jsonError(passportDecision.error, passportDecision.status);
+    }
 
     const booking = await db.orm.public.Booking.where({
       id: existing.bookingId,
@@ -106,11 +119,19 @@ export async function PATCH(
       );
     }
 
-    const { passportNumber, ...identityFields } = input;
+    const {
+      passportNumberReplacement: _ignored,
+      ...identityFields
+    } = input;
+
+    const passportFields =
+      passportDecision.action === "replace"
+        ? passportWriteFields(passportDecision.passportNumber)
+        : null;
 
     await db.orm.public.Passenger.where({ id }).update({
       ...identityFields,
-      ...passportWriteFields(passportNumber),
+      ...(passportFields ?? {}),
     });
 
     const passenger = await db.orm.public.Passenger.select(
@@ -135,7 +156,11 @@ export async function PATCH(
       return jsonError("Passenger not found.", 404);
     }
 
-    return Response.json({ passenger: toSafePassenger(passenger) });
+    return Response.json({
+      passenger: toPassengerEditView(passenger, {
+        canReplacePassport: canViewSensitiveTravelerData(user),
+      }),
+    });
   } catch (error) {
     if (error instanceof AdminBookingRequestError) {
       return jsonError(error.message, error.status);

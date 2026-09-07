@@ -2,9 +2,14 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import BookingStatusForm from "../../../../components/admin/bookings/BookingStatusForm";
+import PassportRevealControl from "../../../../components/admin/PassportRevealControl";
 import { parsePositiveInt } from "../../../../lib/admin-bookings";
 import { FALLBACK_AIRPORT_TIME_ZONE } from "../../../../lib/airport-timezones";
-import { isAdmin, requireStaffOrAdmin } from "../../../../lib/authorization";
+import {
+  canViewSensitiveTravelerData,
+  isAdmin,
+  requireStaffOrAdmin,
+} from "../../../../lib/authorization";
 import { getAllowedAdminBookingTransitions } from "../../../../lib/booking-lifecycle";
 import {
   isRoundTripLegs,
@@ -74,6 +79,7 @@ export default async function AdminBookingDetailPage({
 }) {
   const currentUser = await requireStaffOrAdmin();
   const canEditPassengers = isAdmin(currentUser.role);
+  const canRevealPassport = canViewSensitiveTravelerData(currentUser);
   const { id: rawId } = await params;
   const id = parsePositiveInt(rawId);
 
@@ -331,7 +337,11 @@ export default async function AdminBookingDetailPage({
                 </tr>
               </thead>
               <tbody>
-                {sortedPassengers.map((passenger) => (
+                {sortedPassengers.map((passenger) => {
+                  const maskedPassport =
+                    getPassengerPassportDisplay(passenger);
+
+                  return (
                   <tr
                     key={passenger.id}
                     className="border-b border-slate-100 last:border-b-0"
@@ -351,8 +361,14 @@ export default async function AdminBookingDetailPage({
                     <td className="py-3 pr-4 text-slate-700">
                       {passenger.nationality}
                     </td>
-                    <td className="py-3 pr-4 font-mono text-slate-950">
-                      {getPassengerPassportDisplay(passenger)}
+                    <td className="py-3 pr-4">
+                      <PassportRevealControl
+                        passengerId={passenger.id}
+                        maskedPassport={maskedPassport}
+                        canReveal={
+                          canRevealPassport && maskedPassport !== "Unavailable"
+                        }
+                      />
                     </td>
                     <td className="py-3 pr-4 text-slate-700">
                       {passenger.passportCountry}
@@ -371,7 +387,8 @@ export default async function AdminBookingDetailPage({
                       </td>
                     )}
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>

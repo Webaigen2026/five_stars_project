@@ -3,7 +3,7 @@
 import { FormEvent, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 
-import type { SafePassenger } from "../../../lib/admin-passengers";
+import type { PassengerEditView } from "../../../lib/admin-passengers";
 
 const inputClassName =
   "w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20";
@@ -11,7 +11,7 @@ const inputClassName =
 export default function EditPassengerForm({
   passenger,
 }: {
-  passenger: SafePassenger;
+  passenger: PassengerEditView;
 }) {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -30,21 +30,29 @@ export default function EditPassengerForm({
     setIsSubmitting(true);
 
     try {
+      const body: Record<string, string> = {
+        firstName: String(formData.get("firstName") ?? ""),
+        lastName: String(formData.get("lastName") ?? ""),
+        dateOfBirth: String(formData.get("dateOfBirth") ?? ""),
+        gender: String(formData.get("gender") ?? ""),
+        nationality: String(formData.get("nationality") ?? ""),
+        passportCountry: String(formData.get("passportCountry") ?? ""),
+        passportExpiry: String(formData.get("passportExpiry") ?? ""),
+      };
+
+      // Only authorized admins may attempt replacement. Blank preserves
+      // existing ciphertext server-side. Unauthorized forged values are
+      // rejected by the API regardless of this client gate.
+      if (passenger.canReplacePassport) {
+        body.passportNumber = String(formData.get("passportNumber") ?? "");
+      }
+
       const response = await fetch(`/api/admin/passengers/${passenger.id}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          firstName: String(formData.get("firstName") ?? ""),
-          lastName: String(formData.get("lastName") ?? ""),
-          dateOfBirth: String(formData.get("dateOfBirth") ?? ""),
-          gender: String(formData.get("gender") ?? ""),
-          nationality: String(formData.get("nationality") ?? ""),
-          passportNumber: String(formData.get("passportNumber") ?? ""),
-          passportCountry: String(formData.get("passportCountry") ?? ""),
-          passportExpiry: String(formData.get("passportExpiry") ?? ""),
-        }),
+        body: JSON.stringify(body),
       });
 
       const payload = (await response.json().catch(() => null)) as
@@ -127,15 +135,33 @@ export default function EditPassengerForm({
         />
       </Field>
 
-      <Field label="Passport number" htmlFor="passportNumber">
-        <input
-          id="passportNumber"
-          name="passportNumber"
-          required
-          defaultValue={passenger.passportNumber}
-          className={inputClassName}
-        />
-      </Field>
+      <div>
+        <p className="mb-2 block text-sm font-medium text-slate-700">
+          Passport number
+        </p>
+        <p
+          className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 font-mono text-sm text-slate-800"
+          aria-label="Masked passport number"
+        >
+          {passenger.maskedPassport}
+        </p>
+      </div>
+
+      {passenger.canReplacePassport ? (
+        <Field label="New passport number" htmlFor="passportNumber">
+          <input
+            id="passportNumber"
+            name="passportNumber"
+            autoComplete="off"
+            defaultValue=""
+            placeholder="Leave blank to keep existing"
+            className={inputClassName}
+          />
+          <p className="mt-1.5 text-xs leading-5 text-slate-500">
+            Leave blank to keep the existing passport number.
+          </p>
+        </Field>
+      ) : null}
 
       <Field label="Passport issuing country" htmlFor="passportCountry">
         <input

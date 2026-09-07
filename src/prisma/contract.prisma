@@ -13,6 +13,10 @@ model User {
 
   emailVerified Boolean @default(false)
 
+  // Explicit grant for revealing masked traveler document data in admin.
+  // ADMIN role alone is never enough — must be set true separately.
+  canViewSensitiveTravelerData Boolean @default(false)
+
   failedLoginAttempts Int @default(0)
   lockedUntil         TimestamptzString?
 
@@ -24,6 +28,7 @@ model User {
   passwordResetCodes PasswordResetCode[]
   sessions Session[]
   travelerProfiles TravelerProfile[]
+  adminAuditLogs AdminAuditLog[]
 
   createdAt TimestamptzString @default(now())
   updatedAt temporal.updatedAtString()
@@ -329,6 +334,32 @@ model Session {
   revokedAt TimestamptzString?
 
   createdAt TimestamptzString @default(now())
+}
+
+// Admin security audit trail. Never store passport numbers or ciphertext.
+model AdminAuditLog {
+  id Int @id @default(autoincrement())
+
+  adminUser   User @relation(fields: [adminUserId], references: [id])
+  adminUserId Int
+
+  // e.g. PASSPORT_REVEALED, PASSENGER_MANIFEST_EXPORTED_MASKED
+  action String
+
+  // Target passenger id when action is passenger-scoped. Stored as Int only
+  // (no FK) so historical audit rows survive passenger deletion.
+  passengerId Int?
+
+  // Target flight id when action is flight-scoped (e.g. passenger manifest).
+  // Stored as Int only (no FK) so historical audit rows survive flight deletion.
+  flightId Int?
+
+  createdAt TimestamptzString @default(now())
+
+  @@index([adminUserId])
+  @@index([action])
+  @@index([createdAt])
+  @@index([flightId])
 }
 
 model CargoRequest {

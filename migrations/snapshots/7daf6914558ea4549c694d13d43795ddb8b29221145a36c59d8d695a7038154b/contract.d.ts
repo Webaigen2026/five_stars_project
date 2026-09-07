@@ -33,7 +33,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'ff9712f853056665e72303972171cb48ca1567dc2284f01de7e2aa7ce5403c88'>;
+  StorageHashBase<'7daf6914558ea4549c694d13d43795ddb8b29221145a36c59d8d695a7038154b'>;
 export type ExecutionHash =
   ExecutionHashBase<'e53ca58f945c2f2e6a7746970a2c9705d07ef96c22839f79616dd11711e480ac'>;
 export type ProfileHash =
@@ -241,14 +241,6 @@ type DefaultLiteralValue<CodecId extends string, Encoded> = CodecId extends keyo
 
 export type FieldOutputTypes = {
   readonly public: {
-    readonly AdminAuditLog: {
-      readonly id: CodecTypes['pg/int4@1']['output'];
-      readonly adminUserId: CodecTypes['pg/int4@1']['output'];
-      readonly action: CodecTypes['pg/text@1']['output'];
-      readonly passengerId: CodecTypes['pg/int4@1']['output'] | null;
-      readonly flightId: CodecTypes['pg/int4@1']['output'] | null;
-      readonly createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
-    };
     readonly Booking: {
       readonly id: CodecTypes['pg/int4@1']['output'];
       readonly bookingReference: CodecTypes['pg/text@1']['output'];
@@ -457,14 +449,6 @@ export type FieldOutputTypes = {
 };
 export type FieldInputTypes = {
   readonly public: {
-    readonly AdminAuditLog: {
-      readonly id: CodecTypes['pg/int4@1']['input'];
-      readonly adminUserId: CodecTypes['pg/int4@1']['input'];
-      readonly action: CodecTypes['pg/text@1']['input'];
-      readonly passengerId: CodecTypes['pg/int4@1']['input'] | null;
-      readonly flightId: CodecTypes['pg/int4@1']['input'] | null;
-      readonly createdAt: CodecTypes['pg/timestamptz-string@1']['input'];
-    };
     readonly Booking: {
       readonly id: CodecTypes['pg/int4@1']['input'];
       readonly bookingReference: CodecTypes['pg/text@1']['input'];
@@ -673,14 +657,6 @@ export type FieldInputTypes = {
 };
 export type StorageColumnTypes = {
   readonly public: {
-    readonly adminAuditLog: {
-      readonly action: CodecTypes['pg/text@1']['output'];
-      readonly adminUserId: CodecTypes['pg/int4@1']['output'];
-      readonly createdAt: CodecTypes['pg/timestamptz-string@1']['output'];
-      readonly flightId: CodecTypes['pg/int4@1']['output'] | null;
-      readonly id: CodecTypes['pg/int4@1']['output'];
-      readonly passengerId: CodecTypes['pg/int4@1']['output'] | null;
-    };
     readonly booking: {
       readonly bookingCreatedEmailSentAt: CodecTypes['pg/timestamptz-string@1']['output'] | null;
       readonly bookingReference: CodecTypes['pg/text@1']['output'];
@@ -889,14 +865,6 @@ export type StorageColumnTypes = {
 };
 export type StorageColumnInputTypes = {
   readonly public: {
-    readonly adminAuditLog: {
-      readonly action: CodecTypes['pg/text@1']['input'];
-      readonly adminUserId: CodecTypes['pg/int4@1']['input'];
-      readonly createdAt: CodecTypes['pg/timestamptz-string@1']['input'];
-      readonly flightId: CodecTypes['pg/int4@1']['input'] | null;
-      readonly id: CodecTypes['pg/int4@1']['input'];
-      readonly passengerId: CodecTypes['pg/int4@1']['input'] | null;
-    };
     readonly booking: {
       readonly bookingCreatedEmailSentAt: CodecTypes['pg/timestamptz-string@1']['input'] | null;
       readonly bookingReference: CodecTypes['pg/text@1']['input'];
@@ -1121,87 +1089,6 @@ type ContractBase = Omit<
         readonly kind: 'postgres-schema';
         readonly entries: {
           readonly table: {
-            readonly adminAuditLog: {
-              columns: {
-                readonly id: {
-                  readonly nativeType: 'int4';
-                  readonly codecId: 'pg/int4@1';
-                  readonly nullable: false;
-                  readonly default: {
-                    readonly kind: 'function';
-                    readonly expression: 'autoincrement()';
-                  };
-                };
-                readonly adminUserId: {
-                  readonly nativeType: 'int4';
-                  readonly codecId: 'pg/int4@1';
-                  readonly nullable: false;
-                };
-                readonly action: {
-                  readonly nativeType: 'text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
-                };
-                readonly passengerId: {
-                  readonly nativeType: 'int4';
-                  readonly codecId: 'pg/int4@1';
-                  readonly nullable: true;
-                };
-                readonly flightId: {
-                  readonly nativeType: 'int4';
-                  readonly codecId: 'pg/int4@1';
-                  readonly nullable: true;
-                };
-                readonly createdAt: {
-                  readonly nativeType: 'timestamptz';
-                  readonly codecId: 'pg/timestamptz-string@1';
-                  readonly nullable: false;
-                  readonly default: { readonly kind: 'function'; readonly expression: 'now()' };
-                };
-              };
-              primaryKey: { readonly columns: readonly ['id'] };
-              uniques: readonly [];
-              indexes: readonly [
-                {
-                  readonly name: 'adminAuditLog_adminUserId_idx_0ce093a3';
-                  readonly prefix: 'adminAuditLog_adminUserId_idx';
-                  readonly columns: readonly ['adminUserId'];
-                  readonly unique: false;
-                },
-                {
-                  readonly name: 'adminAuditLog_action_idx_cd0d2116';
-                  readonly prefix: 'adminAuditLog_action_idx';
-                  readonly columns: readonly ['action'];
-                  readonly unique: false;
-                },
-                {
-                  readonly name: 'adminAuditLog_createdAt_idx_9575dbd7';
-                  readonly prefix: 'adminAuditLog_createdAt_idx';
-                  readonly columns: readonly ['createdAt'];
-                  readonly unique: false;
-                },
-                {
-                  readonly name: 'adminAuditLog_flightId_idx_7ef5148f';
-                  readonly prefix: 'adminAuditLog_flightId_idx';
-                  readonly columns: readonly ['flightId'];
-                  readonly unique: false;
-                },
-              ];
-              foreignKeys: readonly [
-                {
-                  readonly source: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'adminAuditLog';
-                    readonly columns: readonly ['adminUserId'];
-                  };
-                  readonly target: {
-                    readonly namespaceId: 'public' & NamespaceId;
-                    readonly tableName: 'user';
-                    readonly columns: readonly ['id'];
-                  };
-                },
-              ];
-            };
             readonly booking: {
               columns: {
                 readonly id: {
@@ -2741,10 +2628,6 @@ type ContractBase = Omit<
       readonly model: 'GuestTripAccessCode';
     };
     readonly session: { readonly namespace: 'public' & NamespaceId; readonly model: 'Session' };
-    readonly adminAuditLog: {
-      readonly namespace: 'public' & NamespaceId;
-      readonly model: 'AdminAuditLog';
-    };
     readonly cargoRequest: {
       readonly namespace: 'public' & NamespaceId;
       readonly model: 'CargoRequest';
@@ -2762,59 +2645,6 @@ type ContractBase = Omit<
     readonly namespaces: {
       readonly public: {
         readonly models: {
-          readonly AdminAuditLog: {
-            readonly fields: {
-              readonly id: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
-              };
-              readonly adminUserId: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
-              };
-              readonly action: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
-              readonly passengerId: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
-              };
-              readonly flightId: {
-                readonly nullable: true;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
-              };
-              readonly createdAt: {
-                readonly nullable: false;
-                readonly type: {
-                  readonly kind: 'scalar';
-                  readonly codecId: 'pg/timestamptz-string@1';
-                };
-              };
-            };
-            readonly relations: {
-              readonly adminUser: {
-                readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'User' };
-                readonly cardinality: 'N:1';
-                readonly on: {
-                  readonly localFields: readonly ['adminUserId'];
-                  readonly targetFields: readonly ['id'];
-                };
-              };
-            };
-            readonly storage: {
-              readonly table: 'adminAuditLog';
-              readonly namespaceId: 'public';
-              readonly fields: {
-                readonly id: { readonly column: 'id' };
-                readonly adminUserId: { readonly column: 'adminUserId' };
-                readonly action: { readonly column: 'action' };
-                readonly passengerId: { readonly column: 'passengerId' };
-                readonly flightId: { readonly column: 'flightId' };
-                readonly createdAt: { readonly column: 'createdAt' };
-              };
-            };
-          };
           readonly Booking: {
             readonly fields: {
               readonly id: {
@@ -4256,17 +4086,6 @@ type ContractBase = Omit<
               };
             };
             readonly relations: {
-              readonly adminAuditLogs: {
-                readonly to: {
-                  readonly namespace: 'public' & NamespaceId;
-                  readonly model: 'AdminAuditLog';
-                };
-                readonly cardinality: '1:N';
-                readonly on: {
-                  readonly localFields: readonly ['id'];
-                  readonly targetFields: readonly ['adminUserId'];
-                };
-              };
               readonly bookings: {
                 readonly to: {
                   readonly namespace: 'public' & NamespaceId;

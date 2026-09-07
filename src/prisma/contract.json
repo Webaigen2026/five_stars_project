@@ -4,6 +4,10 @@
   "target": "postgres",
   "profileHash": "3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2",
   "roots": {
+    "adminAuditLog": {
+      "model": "AdminAuditLog",
+      "namespace": "public"
+    },
     "booking": {
       "model": "Booking",
       "namespace": "public"
@@ -69,6 +73,93 @@
     "namespaces": {
       "public": {
         "models": {
+          "AdminAuditLog": {
+            "fields": {
+              "action": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "adminUserId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "createdAt": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "kind": "scalar"
+                }
+              },
+              "flightId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "id": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              },
+              "passengerId": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/int4@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "adminUser": {
+                "cardinality": "N:1",
+                "on": {
+                  "localFields": [
+                    "adminUserId"
+                  ],
+                  "targetFields": [
+                    "id"
+                  ]
+                },
+                "to": {
+                  "model": "User",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "action": {
+                  "column": "action"
+                },
+                "adminUserId": {
+                  "column": "adminUserId"
+                },
+                "createdAt": {
+                  "column": "createdAt"
+                },
+                "flightId": {
+                  "column": "flightId"
+                },
+                "id": {
+                  "column": "id"
+                },
+                "passengerId": {
+                  "column": "passengerId"
+                }
+              },
+              "namespaceId": "public",
+              "table": "adminAuditLog"
+            }
+          },
           "Booking": {
             "fields": {
               "bookingCreatedEmailSentAt": {
@@ -2279,6 +2370,13 @@
           },
           "User": {
             "fields": {
+              "canViewSensitiveTravelerData": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/bool@1",
+                  "kind": "scalar"
+                }
+              },
               "createdAt": {
                 "nullable": false,
                 "type": {
@@ -2358,6 +2456,21 @@
               }
             },
             "relations": {
+              "adminAuditLogs": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "id"
+                  ],
+                  "targetFields": [
+                    "adminUserId"
+                  ]
+                },
+                "to": {
+                  "model": "AdminAuditLog",
+                  "namespace": "public"
+                }
+              },
               "bookings": {
                 "cardinality": "1:N",
                 "on": {
@@ -2481,6 +2594,9 @@
             },
             "storage": {
               "fields": {
+                "canViewSensitiveTravelerData": {
+                  "column": "canViewSensitiveTravelerData"
+                },
                 "createdAt": {
                   "column": "createdAt"
                 },
@@ -2528,6 +2644,106 @@
       "public": {
         "entries": {
           "table": {
+            "adminAuditLog": {
+              "columns": {
+                "action": {
+                  "codecId": "pg/text@1",
+                  "nativeType": "text",
+                  "nullable": false
+                },
+                "adminUserId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "createdAt": {
+                  "codecId": "pg/timestamptz-string@1",
+                  "default": {
+                    "expression": "now()",
+                    "kind": "function"
+                  },
+                  "nativeType": "timestamptz",
+                  "nullable": false
+                },
+                "flightId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                },
+                "id": {
+                  "codecId": "pg/int4@1",
+                  "default": {
+                    "expression": "autoincrement()",
+                    "kind": "function"
+                  },
+                  "nativeType": "int4",
+                  "nullable": false
+                },
+                "passengerId": {
+                  "codecId": "pg/int4@1",
+                  "nativeType": "int4",
+                  "nullable": true
+                }
+              },
+              "foreignKeys": [
+                {
+                  "source": {
+                    "columns": [
+                      "adminUserId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "adminAuditLog"
+                  },
+                  "target": {
+                    "columns": [
+                      "id"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "user"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "action"
+                  ],
+                  "name": "adminAuditLog_action_idx_cd0d2116",
+                  "prefix": "adminAuditLog_action_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "adminUserId"
+                  ],
+                  "name": "adminAuditLog_adminUserId_idx_0ce093a3",
+                  "prefix": "adminAuditLog_adminUserId_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "createdAt"
+                  ],
+                  "name": "adminAuditLog_createdAt_idx_9575dbd7",
+                  "prefix": "adminAuditLog_createdAt_idx",
+                  "unique": false
+                },
+                {
+                  "columns": [
+                    "flightId"
+                  ],
+                  "name": "adminAuditLog_flightId_idx_7ef5148f",
+                  "prefix": "adminAuditLog_flightId_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "id"
+                ]
+              },
+              "uniques": []
+            },
             "booking": {
               "columns": {
                 "bookingCreatedEmailSentAt": {
@@ -4215,6 +4431,15 @@
             },
             "user": {
               "columns": {
+                "canViewSensitiveTravelerData": {
+                  "codecId": "pg/bool@1",
+                  "default": {
+                    "kind": "literal",
+                    "value": false
+                  },
+                  "nativeType": "bool",
+                  "nullable": false
+                },
                 "createdAt": {
                   "codecId": "pg/timestamptz-string@1",
                   "default": {
@@ -4312,7 +4537,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "0b9c99d4868b80a0a05ee2ee504532a476fe9e20b526d4f60d41948491fc804a"
+    "storageHash": "ff9712f853056665e72303972171cb48ca1567dc2284f01de7e2aa7ce5403c88"
   },
   "execution": {
     "executionHash": "e53ca58f945c2f2e6a7746970a2c9705d07ef96c22839f79616dd11711e480ac",
