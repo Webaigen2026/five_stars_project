@@ -3,9 +3,9 @@
 import {
   FormEvent,
   useState,
-  type ComponentType,
   type SVGProps,
 } from "react";
+
 import { useRouter } from "next/navigation";
 
 import {
@@ -26,6 +26,10 @@ import AirportSelect from "./AirportSelect";
 import FlightDateRangePicker from "./FlightDateRangePicker";
 import PassengerPicker from "./PassengerPicker";
 
+/* -------------------------------------------------------------------------- */
+/* Types                                                                      */
+/* -------------------------------------------------------------------------- */
+
 type FlightSearchFormProps = {
   initialTripType?: string;
   initialFrom?: string;
@@ -39,19 +43,25 @@ type FlightSearchFormProps = {
   initialInfants?: string;
 };
 
-type TripTypeIcon = ComponentType<SVGProps<SVGSVGElement>>;
-
-type TripTypeOption = {
-  value: TripType;
-  label: string;
-  icon: TripTypeIcon;
-};
+/* -------------------------------------------------------------------------- */
+/* Helpers                                                                    */
+/* -------------------------------------------------------------------------- */
 
 function cn(
   ...classes: Array<string | false | null | undefined>
 ): string {
   return classes.filter(Boolean).join(" ");
 }
+
+function asInitialAirport(value?: string) {
+  return value && isKnownAirportCode(value)
+    ? value.trim().toUpperCase()
+    : "";
+}
+
+/* -------------------------------------------------------------------------- */
+/* Icons                                                                      */
+/* -------------------------------------------------------------------------- */
 
 function OneWayIcon(props: SVGProps<SVGSVGElement>) {
   return (
@@ -83,94 +93,14 @@ function RoundTripIcon(props: SVGProps<SVGSVGElement>) {
     >
       <path d="M5 7h12" />
       <path d="m14 4 3 3-3 3" />
+
       <path d="M19 17H7" />
       <path d="m10 14-3 3 3 3" />
     </svg>
   );
 }
 
-const TRIP_TYPES: TripTypeOption[] = [
-  {
-    value: "one-way",
-    label: "One way",
-    icon: OneWayIcon,
-  },
-  {
-    value: "round-trip",
-    label: "Round trip",
-    icon: RoundTripIcon,
-  },
-];
-
-function asInitialAirport(value?: string) {
-  return value && isKnownAirportCode(value)
-    ? value.trim().toUpperCase()
-    : "";
-}
-
-function TripTypeControl({
-  value,
-  onChange,
-}: {
-  value: TripType;
-  onChange: (value: TripType) => void;
-}) {
-  return (
-    <div
-      role="tablist"
-      aria-label="Trip type"
-      className="flex items-center gap-8"
-    >
-      {TRIP_TYPES.map(({ value: type, label, icon: Icon }) => {
-        const active = value === type;
-
-        return (
-          <button
-            key={type}
-            type="button"
-            role="tab"
-            aria-selected={active}
-            onClick={() => onChange(type)}
-            className={cn(
-              `
-                relative
-                flex
-                items-center
-                gap-2
-                border-b-2
-                pb-3
-                text-sm
-                font-semibold
-                transition-colors
-                duration-150
-                focus-visible:outline-none
-                focus-visible:ring-2
-                focus-visible:ring-[#0078D2]
-                focus-visible:ring-offset-4
-              `,
-              active
-                ? "border-[#0078D2] text-[#0078D2]"
-                : `
-                    border-transparent
-                    text-slate-500
-                    hover:text-slate-900
-                  `
-            )}
-          >
-            <Icon
-              aria-hidden="true"
-              className="h-4 w-4 shrink-0"
-            />
-
-            <span>{label}</span>
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
-function ArrowIcon(props: SVGProps<SVGSVGElement>) {
+function SearchArrowIcon(props: SVGProps<SVGSVGElement>) {
   return (
     <svg
       viewBox="0 0 24 24"
@@ -187,6 +117,104 @@ function ArrowIcon(props: SVGProps<SVGSVGElement>) {
   );
 }
 
+/* -------------------------------------------------------------------------- */
+/* Trip type control                                                          */
+/* -------------------------------------------------------------------------- */
+
+function TripTypeControl({
+  value,
+  onChange,
+}: {
+  value: TripType;
+  onChange: (value: TripType) => void;
+}) {
+  return (
+    <div
+      role="tablist"
+      aria-label="Trip type"
+      className="flex items-center gap-8"
+    >
+      {/* One way */}
+      <button
+        type="button"
+        role="tab"
+        aria-selected={value === "one-way"}
+        onClick={() => onChange("one-way")}
+        className={cn(
+          "group relative flex h-11 items-center gap-2",
+          "text-[14px] font-medium",
+          "transition-colors duration-150",
+          "focus-visible:outline-none",
+          "focus-visible:ring-2",
+          "focus-visible:ring-[#0078D2]/25",
+          "focus-visible:ring-offset-2",
+          value === "one-way"
+            ? "text-[#0078D2]"
+            : "text-slate-500 hover:text-slate-900"
+        )}
+      >
+        <OneWayIcon
+          className="h-[14px] w-[14px]"
+          aria-hidden="true"
+        />
+
+        <span>One way</span>
+
+        <span
+          aria-hidden="true"
+          className={cn(
+            "absolute -bottom-px left-0 right-0 h-[2px]",
+            value === "one-way"
+              ? "bg-[#0078D2]"
+              : "bg-transparent"
+          )}
+        />
+      </button>
+
+      {/* Round trip */}
+      <button
+        type="button"
+        role="tab"
+        aria-selected={value === "round-trip"}
+        onClick={() => onChange("round-trip")}
+        className={cn(
+          "group relative flex h-11 items-center gap-2",
+          "text-[14px] font-medium",
+          "transition-colors duration-150",
+          "focus-visible:outline-none",
+          "focus-visible:ring-2",
+          "focus-visible:ring-[#0078D2]/25",
+          "focus-visible:ring-offset-2",
+          value === "round-trip"
+            ? "text-[#0078D2]"
+            : "text-slate-500 hover:text-slate-900"
+        )}
+      >
+        <RoundTripIcon
+          className="h-[14px] w-[14px]"
+          aria-hidden="true"
+        />
+
+        <span>Round trip</span>
+
+        <span
+          aria-hidden="true"
+          className={cn(
+            "absolute -bottom-px left-0 right-0 h-[2px]",
+            value === "round-trip"
+              ? "bg-[#0078D2]"
+              : "bg-transparent"
+          )}
+        />
+      </button>
+    </div>
+  );
+}
+
+/* -------------------------------------------------------------------------- */
+/* Flight search form                                                         */
+/* -------------------------------------------------------------------------- */
+
 export default function FlightSearchForm({
   initialTripType,
   initialFrom,
@@ -200,6 +228,10 @@ export default function FlightSearchForm({
   initialInfants,
 }: FlightSearchFormProps) {
   const router = useRouter();
+
+  /* ------------------------------------------------------------------------ */
+  /* State                                                                    */
+  /* ------------------------------------------------------------------------ */
 
   const [tripType, setTripType] = useState<TripType>(
     parseTripType(initialTripType)
@@ -232,7 +264,13 @@ export default function FlightSearchForm({
       })
     );
 
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(
+    null
+  );
+
+  /* ------------------------------------------------------------------------ */
+  /* Trip type                                                                */
+  /* ------------------------------------------------------------------------ */
 
   function selectTripType(next: TripType) {
     setTripType(next);
@@ -243,14 +281,40 @@ export default function FlightSearchForm({
     }
   }
 
+  /* ------------------------------------------------------------------------ */
+  /* Departure                                                                */
+  /* ------------------------------------------------------------------------ */
+
   function handleDepartureChange(value: string) {
     setDeparture(value);
     setError(null);
 
-    if (returnDate && value && returnDate < value) {
+    /*
+     * If the passenger changes departure to a date
+     * later than the currently selected return date,
+     * clear the return date.
+     */
+    if (
+      returnDate &&
+      value &&
+      returnDate < value
+    ) {
       setReturnDate("");
     }
   }
+
+  /* ------------------------------------------------------------------------ */
+  /* Return                                                                   */
+  /* ------------------------------------------------------------------------ */
+
+  function handleReturnChange(value: string) {
+    setReturnDate(value);
+    setError(null);
+  }
+
+  /* ------------------------------------------------------------------------ */
+  /* Passengers                                                               */
+  /* ------------------------------------------------------------------------ */
 
   function handleCompositionChange(
     next: PassengerComposition
@@ -258,6 +322,10 @@ export default function FlightSearchForm({
     setComposition(next);
     setError(null);
   }
+
+  /* ------------------------------------------------------------------------ */
+  /* Submit                                                                   */
+  /* ------------------------------------------------------------------------ */
 
   function handleSubmit(
     event: FormEvent<HTMLFormElement>
@@ -273,8 +341,12 @@ export default function FlightSearchForm({
       from,
       to,
       departure,
+
       returnDate:
-        tripType === "round-trip" ? returnDate : "",
+        tripType === "round-trip"
+          ? returnDate
+          : "",
+
       passengers,
       composition,
     };
@@ -289,16 +361,24 @@ export default function FlightSearchForm({
 
     setError(null);
 
+    const searchParams =
+      buildFlightSearchParams(values);
+
     router.push(
-      `/flights/results?${buildFlightSearchParams(
-        values
-      ).toString()}`
+      `/flights/results?${searchParams.toString()}`
     );
   }
 
+  /* ------------------------------------------------------------------------ */
+  /* Render                                                                   */
+  /* ------------------------------------------------------------------------ */
+
   return (
-    <div className="w-full text-slate-900">
-      {/* Trip type */}
+    <div className="w-full text-slate-950">
+      {/* -------------------------------------------------------------- */}
+      {/* Trip type                                                      */}
+      {/* -------------------------------------------------------------- */}
+
       <div className="border-b border-slate-200">
         <TripTypeControl
           value={tripType}
@@ -306,28 +386,29 @@ export default function FlightSearchForm({
         />
       </div>
 
-      {/* Search form */}
+      {/* -------------------------------------------------------------- */}
+      {/* Search form                                                    */}
+      {/* -------------------------------------------------------------- */}
+
       <form
         onSubmit={handleSubmit}
         className="
           grid
           grid-cols-1
-          gap-4
-          pt-6
+          gap-3
+          pt-4
+
           md:grid-cols-2
-          xl:grid-cols-12
-          xl:gap-3
+
+          xl:grid-cols-[minmax(0,1.35fr)_minmax(0,1.35fr)_minmax(170px,0.88fr)_minmax(175px,0.9fr)_190px]
+          xl:gap-2
         "
       >
-        {/* From */}
-        <div
-          className={cn(
-            "min-w-0",
-            tripType === "round-trip"
-              ? "xl:col-span-2"
-              : "xl:col-span-3"
-          )}
-        >
+        {/* ------------------------------------------------------------ */}
+        {/* From                                                         */}
+        {/* ------------------------------------------------------------ */}
+
+        <div className="min-w-0">
           <AirportSelect
             id="from"
             name="from"
@@ -335,7 +416,9 @@ export default function FlightSearchForm({
             value={from}
             excludeCode={to}
             describedBy={
-              error ? "flight-search-error" : undefined
+              error
+                ? "flight-search-error"
+                : undefined
             }
             onChange={(code) => {
               setFrom(code);
@@ -344,15 +427,11 @@ export default function FlightSearchForm({
           />
         </div>
 
-        {/* To */}
-        <div
-          className={cn(
-            "min-w-0",
-            tripType === "round-trip"
-              ? "xl:col-span-2"
-              : "xl:col-span-3"
-          )}
-        >
+        {/* ------------------------------------------------------------ */}
+        {/* To                                                           */}
+        {/* ------------------------------------------------------------ */}
+
+        <div className="min-w-0">
           <AirportSelect
             id="to"
             name="to"
@@ -360,7 +439,9 @@ export default function FlightSearchForm({
             value={to}
             excludeCode={from}
             describedBy={
-              error ? "flight-search-error" : undefined
+              error
+                ? "flight-search-error"
+                : undefined
             }
             onChange={(code) => {
               setTo(code);
@@ -369,102 +450,121 @@ export default function FlightSearchForm({
           />
         </div>
 
-        {/* Date */}
+        {/* ------------------------------------------------------------ */}
+        {/* Travel dates                                                 */}
+        {/* ------------------------------------------------------------ */}
+
         <div
           className={cn(
             "min-w-0",
-            tripType === "round-trip"
-              ? "md:col-span-2 xl:col-span-4"
-              : "xl:col-span-2"
+
+            tripType === "round-trip" &&
+              "md:col-span-2 xl:col-span-1"
           )}
         >
           <FlightDateRangePicker
             tripType={tripType}
             departure={departure}
             returnDate={returnDate}
-            onDepartureChange={handleDepartureChange}
-            onReturnChange={(value) => {
-              setReturnDate(value);
-              setError(null);
-            }}
-          />
-        </div>
-
-        {/* Passengers */}
-        <div className="min-w-0 xl:col-span-2">
-          <PassengerPicker
-            value={composition}
-            onChange={handleCompositionChange}
-            describedBy={
-              error ? "flight-search-error" : undefined
+            onDepartureChange={
+              handleDepartureChange
+            }
+            onReturnChange={
+              handleReturnChange
             }
           />
         </div>
 
-        {/* Search */}
-        <div
-          className="
-            flex
-            min-w-0
-            items-end
-            md:col-span-2
-            xl:col-span-2
-          "
-        >
+        {/* ------------------------------------------------------------ */}
+        {/* Passengers                                                   */}
+        {/* ------------------------------------------------------------ */}
+
+        <div className="min-w-0">
+          <PassengerPicker
+            value={composition}
+            onChange={
+              handleCompositionChange
+            }
+            describedBy={
+              error
+                ? "flight-search-error"
+                : undefined
+            }
+          />
+        </div>
+
+        {/* ------------------------------------------------------------ */}
+        {/* Search button                                                */}
+        {/* ------------------------------------------------------------ */}
+
+        <div className="flex min-w-0">
           <button
             type="submit"
             className="
               group
               flex
-              h-[66px]
+              h-[72px]
               w-full
               items-center
               justify-between
+
               bg-[#0078D2]
+
               px-5
-              text-left
+
               text-[15px]
-              font-semibold
+              font-medium
               text-white
+
               transition-colors
               duration-150
-              hover:bg-[#006CBF]
+
+              hover:bg-[#006bbd]
+
               focus-visible:outline-none
               focus-visible:ring-2
-              focus-visible:ring-[#0078D2]
+              focus-visible:ring-[#0078D2]/40
               focus-visible:ring-offset-2
+
+              active:bg-[#005fa8]
             "
           >
             <span>Search flights</span>
 
-            <ArrowIcon
+            <SearchArrowIcon
               aria-hidden="true"
               className="
-                h-[18px]
-                w-[18px]
+                h-[16px]
+                w-[16px]
+                shrink-0
+
                 transition-transform
                 duration-150
-                group-hover:translate-x-1
+
+                group-hover:translate-x-0.5
               "
             />
           </button>
         </div>
       </form>
 
-      {/* Error */}
+      {/* -------------------------------------------------------------- */}
+      {/* Validation                                                     */}
+      {/* -------------------------------------------------------------- */}
+
       {error ? (
         <div
           id="flight-search-error"
           role="alert"
           className="
-            mt-4
+            mt-3
             border-l-2
-            border-red-600
-            bg-red-50
-            px-4
-            py-3
-            text-sm
+            border-red-500
+            pl-3
+
+            text-[13px]
             font-medium
+            leading-5
             text-red-700
           "
         >

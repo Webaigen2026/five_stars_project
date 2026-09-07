@@ -16,13 +16,13 @@ const travelLinks: FooterLink[] = [
 ];
 
 const serviceLinks: FooterLink[] = [
-  { label: "Passenger travel", href: "/flights" },
-  { label: "Cargo services", href: "/cargo" },
+  { label: "Passenger flights", href: "/flights" },
+  { label: "Cargo transportation", href: "/cargo" },
   { label: "Private charter", href: "/charter" },
 ];
 
 const supportLinks: FooterLink[] = [
-  { label: "Contact us", href: "/contact" },
+  { label: "Contact Five Stars", href: "/contact" },
   { label: "Sign in", href: "/login" },
   { label: "Create account", href: "/register" },
 ];
@@ -36,7 +36,7 @@ function FooterColumn({
 }) {
   return (
     <div>
-      <h2 className="text-[14px] font-semibold text-white">
+      <h2 className="text-[13px] font-semibold uppercase tracking-[0.16em] text-slate-400">
         {title}
       </h2>
 
@@ -49,7 +49,7 @@ function FooterColumn({
                 inline-block
                 text-[14px]
                 leading-6
-                text-slate-300
+                text-slate-200
                 transition-colors
                 duration-150
                 hover:text-white
@@ -57,7 +57,7 @@ function FooterColumn({
                 focus-visible:ring-2
                 focus-visible:ring-white/40
                 focus-visible:ring-offset-4
-                focus-visible:ring-offset-[#101a2b]
+                focus-visible:ring-offset-[#0d1a2b]
               "
             >
               {link.label}
@@ -66,6 +66,25 @@ function FooterColumn({
         ))}
       </ul>
     </div>
+  );
+}
+
+function ArrowIcon() {
+  return (
+    <svg
+      viewBox="0 0 20 20"
+      fill="none"
+      aria-hidden="true"
+      className="h-4 w-4"
+    >
+      <path
+        d="M4 10h11M11 6l4 4-4 4"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
 
@@ -98,8 +117,7 @@ function InfoIcon() {
 }
 
 export default function Footer() {
-  const [cookieNoticeVisible, setCookieNoticeVisible] =
-    useState(false);
+  const [cookieNoticeVisible, setCookieNoticeVisible] = useState(false);
 
   useEffect(() => {
     const dismissed = window.localStorage.getItem(
@@ -122,18 +140,18 @@ export default function Footer() {
 
   return (
     <>
-      <footer className="bg-[#101a2b] text-white">
+      <footer className="bg-[#0d1a2b] text-white">
         <div className="fs-container">
           {/* Main footer */}
           <div
             className="
               grid
-              gap-12
-              py-12
-              sm:py-14
-              lg:grid-cols-[1.55fr_0.75fr_0.75fr_0.75fr]
-              lg:gap-16
-              lg:py-16
+              gap-10
+              py-10
+              sm:py-12
+              lg:grid-cols-[1.45fr_0.75fr_0.85fr_0.85fr]
+              lg:gap-14
+              lg:py-12
             "
           >
             {/* Brand */}
@@ -152,48 +170,109 @@ export default function Footer() {
                 Five Stars
               </Link>
 
-              <p className="mt-5 text-[15px] leading-7 text-slate-300">
-                Travel and transportation connecting Haiti and the
-                United States.
-              </p>
-
-              <p className="mt-2 text-[14px] leading-6 text-slate-400">
-                Passenger flights, cargo services, and private
-                charter travel in one place.
+              <p className="mt-5 max-w-[350px] text-[14px] leading-6 text-slate-300">
+                Passenger flights, cargo transportation, and private
+                charter service between Haiti and the United States.
               </p>
 
               <Link
                 href="/flights"
                 className="
+                  group
                   mt-7
                   inline-flex
                   items-center
-                  gap-3
-                  border-b
-                  border-white/50
-                  pb-1
+                  gap-2.5
                   text-[14px]
                   font-semibold
                   text-white
-                  transition
-                  hover:border-[#35a7ff]
-                  hover:text-[#5bb8ff]
+                  transition-colors
+                  duration-150
+                  hover:text-[#56b5f5]
                 "
               >
-                Book a flight
-                <span aria-hidden="true">→</span>
+                Search flights
+
+                <span className="transition-transform duration-200 group-hover:translate-x-1">
+                  <ArrowIcon />
+                </span>
               </Link>
             </div>
 
-            {/* Navigation */}
+            {/* Travel */}
             <FooterColumn title="Travel" links={travelLinks} />
 
+            {/* Services */}
             <FooterColumn title="Services" links={serviceLinks} />
 
+            {/* Support */}
             <FooterColumn title="Support" links={supportLinks} />
           </div>
 
-          {/* Bottom footer */}
+          {/* Traveler assistance strip */}
+          <div
+            className="
+              flex
+              flex-col
+              gap-5
+              border-t
+              border-white/15
+              py-5
+              sm:flex-row
+              sm:items-center
+              sm:justify-between
+            "
+          >
+            <p className="text-[13px] text-slate-400">
+              Traveling between Haiti and the United States?
+            </p>
+
+            <div className="flex flex-wrap items-center gap-x-8 gap-y-3">
+              <Link
+                href="/find-trip"
+                className="
+                  group
+                  inline-flex
+                  items-center
+                  gap-2
+                  text-[13px]
+                  font-semibold
+                  text-white
+                  transition-colors
+                  hover:text-[#56b5f5]
+                "
+              >
+                Find My Trip
+
+                <span className="transition-transform duration-200 group-hover:translate-x-1">
+                  <ArrowIcon />
+                </span>
+              </Link>
+
+              <Link
+                href="/contact"
+                className="
+                  group
+                  inline-flex
+                  items-center
+                  gap-2
+                  text-[13px]
+                  font-semibold
+                  text-white
+                  transition-colors
+                  hover:text-[#56b5f5]
+                "
+              >
+                Contact Five Stars
+
+                <span className="transition-transform duration-200 group-hover:translate-x-1">
+                  <ArrowIcon />
+                </span>
+              </Link>
+            </div>
+          </div>
+
+          {/* Legal footer */}
           <div
             className="
               flex
@@ -201,39 +280,29 @@ export default function Footer() {
               gap-4
               border-t
               border-white/15
-              py-6
+              py-5
               text-[12px]
-              text-slate-400
+              text-slate-500
               sm:flex-row
               sm:items-center
               sm:justify-between
             "
           >
-            <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
+            <div className="flex flex-wrap items-center gap-x-7 gap-y-2">
               <span>© 2026 Five Stars. All rights reserved.</span>
 
               <Link
                 href="/contact"
-                className="transition-colors hover:text-white"
+                className="transition-colors hover:text-slate-200"
               >
                 Contact
-              </Link>
-
-              <Link
-                href="/find-trip"
-                className="transition-colors hover:text-white"
-              >
-                Find My Trip
               </Link>
             </div>
 
             <div className="flex items-center gap-3">
               <span>Haiti</span>
 
-              <span
-                aria-hidden="true"
-                className="text-slate-600"
-              >
+              <span aria-hidden="true" className="text-slate-600">
                 ↔
               </span>
 
@@ -262,6 +331,7 @@ export default function Footer() {
           tracking-wide
           text-white
           transition-colors
+          duration-150
           hover:bg-[#0068b8]
           lg:block
           [writing-mode:vertical-rl]
@@ -303,8 +373,8 @@ export default function Footer() {
               </h2>
 
               <p className="mt-2 text-[13px] leading-5 text-slate-600">
-                We use cookies to support essential website
-                functionality and improve your experience.
+                We use cookies to support essential website functionality
+                and improve your experience.
               </p>
 
               <div className="mt-4 flex items-center gap-5">

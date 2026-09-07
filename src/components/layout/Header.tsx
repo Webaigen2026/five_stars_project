@@ -6,26 +6,11 @@ import { usePathname } from "next/navigation";
 import HeaderAccountNav from "./HeaderAccountNav";
 
 const navigation = [
-  {
-    label: "Flights",
-    href: "/flights",
-  },
-  {
-    label: "Cargo",
-    href: "/cargo",
-  },
-  {
-    label: "Charter",
-    href: "/charter",
-  },
-  {
-    label: "Contact",
-    href: "/contact",
-  },
-  {
-    label: "Find My Trip",
-    href: "/find-trip",
-  },
+  { label: "Flights", href: "/flights" },
+  { label: "Cargo", href: "/cargo" },
+  { label: "Charter", href: "/charter" },
+  { label: "Contact", href: "/contact" },
+  { label: "Find My Trip", href: "/find-trip" },
 ];
 
 function MenuIcon({ open }: { open: boolean }) {
@@ -121,33 +106,48 @@ export default function Header() {
 
   return (
     <>
-      <header className="relative z-40 border-b border-slate-200 bg-white">
-        <div className="fs-container flex h-[76px] items-stretch justify-between">
+      {/* =========================================================
+          DESKTOP / MOBILE HEADER
+      ========================================================= */}
+
+      <header className="relative z-40 border-b border-slate-200/80 bg-white">
+        <div className="fs-container flex h-[76px] items-center">
           {/* Brand */}
-          <div className="flex items-center">
-            <Link
-              href="/"
-              aria-label="Five Stars home"
-              className="
-                font-american-sans
-                text-[26px]
-                font-light
-                tracking-[-0.035em]
-                text-slate-950
-                transition-colors
-                duration-150
-                hover:text-[#0078D2]
-                focus-visible:outline-none
-              "
-            >
-              Five Stars
-            </Link>
-          </div>
+
+          <Link
+            href="/"
+            aria-label="Five Stars home"
+            className="
+              shrink-0
+              font-american-sans
+              text-[26px]
+              font-light
+              tracking-[-0.035em]
+              text-slate-950
+              transition-opacity
+              duration-150
+              hover:opacity-70
+              focus-visible:outline-none
+              focus-visible:ring-2
+              focus-visible:ring-[#0078D2]/30
+              focus-visible:ring-offset-4
+            "
+          >
+            Five Stars
+          </Link>
 
           {/* Desktop navigation */}
+
           <nav
             aria-label="Primary navigation"
-            className="hidden h-full items-stretch lg:flex"
+            className="
+              ml-[clamp(4rem,8vw,8rem)]
+              hidden
+              h-full
+              items-center
+              gap-8
+              lg:flex
+            "
           >
             {navigation.map((item) => {
               const active = isActive(item.href);
@@ -156,54 +156,54 @@ export default function Header() {
                 <Link
                   key={item.href}
                   href={item.href}
+                  aria-current={active ? "page" : undefined}
                   className={[
-                    "relative flex h-full items-center px-[18px]",
+                    "group relative flex h-full items-center",
                     "text-[14px] font-medium",
                     "transition-colors duration-150",
                     "focus-visible:outline-none",
                     active
-                      ? "text-[#0078D2]"
-                      : "text-slate-800 hover:text-[#0078D2]",
+                      ? "text-slate-950"
+                      : "text-slate-700 hover:text-slate-950",
                   ].join(" ")}
                 >
                   {item.label}
 
-                  {active ? (
-                    <span
-                      aria-hidden="true"
-                      className="
-                        absolute
-                        bottom-0
-                        left-[18px]
-                        right-[18px]
-                        h-[2px]
-                        bg-[#0078D2]
-                      "
-                    />
-                  ) : null}
+                  <span
+                    aria-hidden="true"
+                    className={[
+                      "absolute bottom-0 left-0 right-0 h-[2px]",
+                      "origin-left bg-[#0078D2]",
+                      "transition-transform duration-200",
+                      active
+                        ? "scale-x-100"
+                        : "scale-x-0 group-hover:scale-x-100",
+                    ].join(" ")}
+                  />
                 </Link>
               );
             })}
           </nav>
 
-          {/* Desktop actions */}
-          <div className="hidden items-center lg:flex">
+          {/* Desktop account / booking */}
+
+          <div className="ml-auto hidden h-full items-center lg:flex">
             <div
               className="
-                mr-6
+                mr-8
                 flex
                 items-center
-                text-sm
+                text-[14px]
                 font-medium
                 text-slate-800
 
                 [&_a]:transition-colors
                 [&_a]:duration-150
-                [&_a:hover]:text-[#0078D2]
+                [&_a:hover]:text-slate-500
 
                 [&_button]:transition-colors
                 [&_button]:duration-150
-                [&_button:hover]:text-[#0078D2]
+                [&_button:hover]:text-slate-500
               "
             >
               <HeaderAccountNav />
@@ -212,11 +212,12 @@ export default function Header() {
             <Link
               href="/flights"
               className="
+                group
                 inline-flex
                 h-11
                 items-center
                 justify-center
-                gap-2
+                gap-3
                 bg-[#0078D2]
                 px-5
                 text-[14px]
@@ -224,20 +225,24 @@ export default function Header() {
                 text-white
                 transition-colors
                 duration-150
-                hover:bg-[#0068b8]
+                hover:bg-[#006ab9]
                 focus-visible:outline-none
                 focus-visible:ring-2
                 focus-visible:ring-[#0078D2]/30
                 focus-visible:ring-offset-2
               "
             >
-              Book a Flight
-              <ArrowRight />
+              <span>Book a Flight</span>
+
+              <span className="transition-transform duration-150 group-hover:translate-x-0.5">
+                <ArrowRight />
+              </span>
             </Link>
           </div>
 
-          {/* Mobile menu button */}
-          <div className="flex items-center lg:hidden">
+          {/* Mobile trigger */}
+
+          <div className="ml-auto flex items-center lg:hidden">
             <button
               type="button"
               onClick={() => setMenuOpen((current) => !current)}
@@ -252,7 +257,7 @@ export default function Header() {
                 w-11
                 items-center
                 justify-center
-                text-slate-900
+                text-slate-950
                 transition-colors
                 hover:text-[#0078D2]
                 focus-visible:outline-none
@@ -266,19 +271,27 @@ export default function Header() {
         </div>
       </header>
 
-      {/* Mobile backdrop */}
+      {/* =========================================================
+          MOBILE BACKDROP
+      ========================================================= */}
+
       <div
         aria-hidden="true"
         onClick={closeMenu}
         className={[
-          "fixed inset-0 z-50 bg-slate-950/35 transition-opacity duration-200 lg:hidden",
+          "fixed inset-0 z-50 bg-slate-950/30",
+          "transition-opacity duration-300",
+          "lg:hidden",
           menuOpen
             ? "pointer-events-auto opacity-100"
             : "pointer-events-none opacity-0",
         ].join(" ")}
       />
 
-      {/* Mobile navigation */}
+      {/* =========================================================
+          MOBILE DRAWER
+      ========================================================= */}
+
       <aside
         id={mobileMenuId}
         aria-label="Mobile navigation"
@@ -290,9 +303,10 @@ export default function Header() {
             right-0
             z-[60]
             flex
-            w-[min(88vw,380px)]
+            w-[min(88vw,390px)]
             flex-col
             bg-white
+            shadow-[-20px_0_60px_rgba(15,23,42,0.12)]
             transition-transform
             duration-300
             ease-out
@@ -301,7 +315,8 @@ export default function Header() {
           menuOpen ? "translate-x-0" : "translate-x-full",
         ].join(" ")}
       >
-        {/* Mobile header */}
+        {/* Drawer header */}
+
         <div className="flex h-[76px] shrink-0 items-center justify-between border-b border-slate-200 px-6">
           <Link
             href="/"
@@ -327,7 +342,7 @@ export default function Header() {
               w-10
               items-center
               justify-center
-              text-slate-900
+              text-slate-950
               transition-colors
               hover:text-[#0078D2]
               focus-visible:outline-none
@@ -337,13 +352,16 @@ export default function Header() {
           </button>
         </div>
 
-        {/* Navigation */}
+        {/* Scrollable drawer content */}
+
         <div className="flex-1 overflow-y-auto px-6">
+          {/* Primary mobile navigation */}
+
           <nav
             aria-label="Mobile primary navigation"
-            className="border-b border-slate-200 py-5"
+            className="py-5"
           >
-            {navigation.map((item) => {
+            {navigation.map((item, index) => {
               const active = isActive(item.href);
 
               return (
@@ -351,26 +369,39 @@ export default function Header() {
                   key={item.href}
                   href={item.href}
                   onClick={closeMenu}
+                  aria-current={active ? "page" : undefined}
                   className={[
-                    "flex min-h-[54px] items-center justify-between",
-                    "border-b border-slate-100",
+                    "group flex min-h-[56px] items-center justify-between",
+                    index !== navigation.length - 1
+                      ? "border-b border-slate-100"
+                      : "",
                     "text-[16px] font-medium",
                     "transition-colors duration-150",
                     active
                       ? "text-[#0078D2]"
-                      : "text-slate-900 hover:text-[#0078D2]",
+                      : "text-slate-950 hover:text-[#0078D2]",
                   ].join(" ")}
                 >
                   <span>{item.label}</span>
 
-                  <ArrowRight />
+                  <span
+                    className={[
+                      "transition-all duration-150",
+                      active
+                        ? "text-[#0078D2]"
+                        : "text-slate-400 group-hover:translate-x-0.5 group-hover:text-[#0078D2]",
+                    ].join(" ")}
+                  >
+                    <ArrowRight />
+                  </span>
                 </Link>
               );
             })}
           </nav>
 
           {/* Account */}
-          <div className="py-6">
+
+          <div className="border-t border-slate-200 py-6">
             <p
               className="
                 mb-3
@@ -399,7 +430,6 @@ export default function Header() {
                 [&_a]:font-medium
                 [&_a]:text-slate-800
                 [&_a]:transition-colors
-
                 [&_a:hover]:text-[#0078D2]
 
                 [&_button]:min-h-[48px]
@@ -416,7 +446,8 @@ export default function Header() {
           </div>
         </div>
 
-        {/* Mobile CTA */}
+        {/* Mobile booking CTA */}
+
         <div
           className="
             shrink-0
@@ -432,6 +463,7 @@ export default function Header() {
             href="/flights"
             onClick={closeMenu}
             className="
+              group
               flex
               min-h-[50px]
               w-full
@@ -443,11 +475,15 @@ export default function Header() {
               font-semibold
               text-white
               transition-colors
-              hover:bg-[#0068b8]
+              duration-150
+              hover:bg-[#006ab9]
             "
           >
             <span>Book a Flight</span>
-            <ArrowRight />
+
+            <span className="transition-transform duration-150 group-hover:translate-x-0.5">
+              <ArrowRight />
+            </span>
           </Link>
         </div>
       </aside>

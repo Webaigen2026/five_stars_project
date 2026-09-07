@@ -10,7 +10,8 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
 } from "react";
 import { createPortal } from "react-dom";
-import { ChevronsUpDown, MapPin } from "lucide-react";
+import { Check, ChevronDown, Search } from "lucide-react";
+
 import {
   getAirportByCode,
   getAirportsByCountry,
@@ -34,7 +35,10 @@ function cn(
   return classes.filter(Boolean).join(" ");
 }
 
-function airportMatchesQuery(airport: AirportOption, query: string) {
+function airportMatchesQuery(
+  airport: AirportOption,
+  query: string
+) {
   const normalized = query.trim().toLowerCase();
 
   if (!normalized) {
@@ -47,10 +51,6 @@ function airportMatchesQuery(airport: AirportOption, query: string) {
     airport.name.toLowerCase().includes(normalized) ||
     airport.country.toLowerCase().includes(normalized)
   );
-}
-
-function secondaryLine(airport: AirportOption) {
-  return `${airport.city} — ${airport.name}`;
 }
 
 export default function AirportSelect({
@@ -82,6 +82,7 @@ export default function AirportSelect({
   } | null>(null);
 
   const selected = getAirportByCode(value);
+
   const groups = useMemo(() => getAirportsByCountry(), []);
 
   const flatOptions = useMemo(() => {
@@ -98,6 +99,10 @@ export default function AirportSelect({
     return options;
   }, [groups, query]);
 
+  /*
+   * Reset search and active option whenever
+   * the dropdown opens.
+   */
   useEffect(() => {
     if (!open) {
       return;
@@ -115,15 +120,22 @@ export default function AirportSelect({
       (airport) => airport.code === value
     );
 
-    setActiveIndex(selectedIndex >= 0 ? selectedIndex : 0);
+    setActiveIndex(
+      selectedIndex >= 0 ? selectedIndex : 0
+    );
 
     const frame = window.requestAnimationFrame(() => {
       searchRef.current?.focus();
     });
 
-    return () => window.cancelAnimationFrame(frame);
+    return () => {
+      window.cancelAnimationFrame(frame);
+    };
   }, [open, groups, value]);
 
+  /*
+   * Keep active index valid after filtering.
+   */
   useEffect(() => {
     if (!open) {
       return;
@@ -134,10 +146,17 @@ export default function AirportSelect({
         return 0;
       }
 
-      return Math.min(current, flatOptions.length - 1);
+      return Math.min(
+        current,
+        flatOptions.length - 1
+      );
     });
   }, [flatOptions, open]);
 
+  /*
+   * Position dropdown directly below the trigger.
+   * The dropdown uses the same width as the field.
+   */
   useLayoutEffect(() => {
     if (!open) {
       setMenuPos(null);
@@ -152,12 +171,19 @@ export default function AirportSelect({
       }
 
       const rect = trigger.getBoundingClientRect();
-      const width = Math.min(rect.width, window.innerWidth - 16);
 
-      const left = Math.min(
-        Math.max(8, rect.left),
-        Math.max(8, window.innerWidth - width - 8)
+      const width = Math.min(
+        rect.width,
+        window.innerWidth - 24
       );
+
+      let left = rect.left;
+
+      if (left + width > window.innerWidth - 12) {
+        left = window.innerWidth - width - 12;
+      }
+
+      left = Math.max(12, left);
 
       setMenuPos({
         top: rect.bottom + 6,
@@ -168,15 +194,34 @@ export default function AirportSelect({
 
     updatePosition();
 
-    window.addEventListener("resize", updatePosition);
-    window.addEventListener("scroll", updatePosition, true);
+    window.addEventListener(
+      "resize",
+      updatePosition
+    );
+
+    window.addEventListener(
+      "scroll",
+      updatePosition,
+      true
+    );
 
     return () => {
-      window.removeEventListener("resize", updatePosition);
-      window.removeEventListener("scroll", updatePosition, true);
+      window.removeEventListener(
+        "resize",
+        updatePosition
+      );
+
+      window.removeEventListener(
+        "scroll",
+        updatePosition,
+        true
+      );
     };
   }, [open]);
 
+  /*
+   * Close when clicking outside.
+   */
   useEffect(() => {
     if (!open) {
       return;
@@ -203,30 +248,52 @@ export default function AirportSelect({
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
         event.preventDefault();
+
         setOpen(false);
+
         triggerRef.current?.focus();
       }
     }
 
-    document.addEventListener("mousedown", handlePointerDown);
-    document.addEventListener("keydown", handleKeyDown);
+    document.addEventListener(
+      "mousedown",
+      handlePointerDown
+    );
+
+    document.addEventListener(
+      "keydown",
+      handleKeyDown
+    );
 
     return () => {
-      document.removeEventListener("mousedown", handlePointerDown);
-      document.removeEventListener("keydown", handleKeyDown);
+      document.removeEventListener(
+        "mousedown",
+        handlePointerDown
+      );
+
+      document.removeEventListener(
+        "keydown",
+        handleKeyDown
+      );
     };
   }, [open]);
 
+  /*
+   * Keep keyboard-highlighted airport visible.
+   */
   useEffect(() => {
     if (!open) {
       return;
     }
 
-    const active = listRef.current?.querySelector<HTMLElement>(
-      `[data-airport-index="${activeIndex}"]`
-    );
+    const active =
+      listRef.current?.querySelector<HTMLElement>(
+        `[data-airport-index="${activeIndex}"]`
+      );
 
-    active?.scrollIntoView({ block: "nearest" });
+    active?.scrollIntoView({
+      block: "nearest",
+    });
   }, [activeIndex, open]);
 
   function selectAirport(code: string) {
@@ -235,7 +302,9 @@ export default function AirportSelect({
     }
 
     onChange(code);
+
     setOpen(false);
+
     triggerRef.current?.focus();
   }
 
@@ -261,6 +330,7 @@ export default function AirportSelect({
       event.key === " "
     ) {
       event.preventDefault();
+
       setOpen(true);
     }
   }
@@ -270,13 +340,17 @@ export default function AirportSelect({
   ) {
     if (event.key === "ArrowDown") {
       event.preventDefault();
+
       moveActive(1);
+
       return;
     }
 
     if (event.key === "ArrowUp") {
       event.preventDefault();
+
       moveActive(-1);
+
       return;
     }
 
@@ -285,7 +359,10 @@ export default function AirportSelect({
 
       const option = flatOptions[activeIndex];
 
-      if (option && option.code !== excludeCode) {
+      if (
+        option &&
+        option.code !== excludeCode
+      ) {
         selectAirport(option.code);
       }
 
@@ -294,7 +371,9 @@ export default function AirportSelect({
 
     if (event.key === "Escape") {
       event.preventDefault();
+
       setOpen(false);
+
       triggerRef.current?.focus();
     }
   }
@@ -320,16 +399,27 @@ export default function AirportSelect({
               width: menuPos.width,
               zIndex: 80,
             }}
-            className="overflow-hidden border border-slate-200 bg-white shadow-lg shadow-slate-900/10"
+            className="
+              overflow-hidden
+              border
+              border-slate-200
+              bg-white
+              shadow-[0_18px_45px_rgba(15,23,42,0.14)]
+            "
           >
-            <div className="border-b border-slate-100 p-2">
-              <label htmlFor={searchId} className="sr-only">
+            {/* Airport search */}
+            <div className="border-b border-slate-200 px-4 py-3">
+              <label
+                htmlFor={searchId}
+                className="sr-only"
+              >
                 Search airports
               </label>
 
-              <div className="flex items-center gap-2 border border-slate-200 bg-slate-50 px-3 py-2">
-                <MapPin
+              <div className="flex h-9 items-center gap-3">
+                <Search
                   className="h-4 w-4 shrink-0 text-slate-400"
+                  strokeWidth={1.8}
                   aria-hidden="true"
                 />
 
@@ -338,25 +428,49 @@ export default function AirportSelect({
                   id={searchId}
                   type="text"
                   value={query}
-                  onChange={(event) => setQuery(event.target.value)}
+                  onChange={(event) =>
+                    setQuery(event.target.value)
+                  }
                   onKeyDown={handleSearchKeyDown}
-                  placeholder="City or airport"
+                  placeholder="Search city or airport"
                   aria-controls={listboxId}
-                  aria-activedescendant={activeDescendantId}
-                  className="w-full bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400"
+                  aria-activedescendant={
+                    activeDescendantId
+                  }
+                  className="
+                    min-w-0
+                    flex-1
+                    bg-transparent
+                    text-[14px]
+                    text-slate-950
+                    outline-none
+                    placeholder:text-slate-400
+                  "
                 />
               </div>
             </div>
 
-            <div className="max-h-64 overflow-y-auto py-1">
+            {/* Airport options */}
+            <div className="max-h-[300px] overflow-y-auto py-1.5">
               {flatOptions.length === 0 ? (
-                <p className="px-4 py-6 text-center text-sm text-slate-500">
-                  No airports match your search.
-                </p>
+                <div className="px-5 py-8 text-center">
+                  <p className="text-[14px] font-medium text-slate-700">
+                    No airports found
+                  </p>
+
+                  <p className="mt-1 text-[12px] leading-5 text-slate-500">
+                    Try searching by airport code,
+                    city, or airport name.
+                  </p>
+                </div>
               ) : (
                 groups.map(([country, airports]) => {
-                  const visible = airports.filter((airport) =>
-                    airportMatchesQuery(airport, query)
+                  const visible = airports.filter(
+                    (airport) =>
+                      airportMatchesQuery(
+                        airport,
+                        query
+                      )
                   );
 
                   if (visible.length === 0) {
@@ -364,15 +478,33 @@ export default function AirportSelect({
                   }
 
                   return (
-                    <div key={country} role="group" aria-label={country}>
-                      <p className="px-4 pb-1 pt-3 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+                    <div
+                      key={country}
+                      role="group"
+                      aria-label={country}
+                    >
+                      <p
+                        className="
+                          px-4
+                          pb-1
+                          pt-3
+                          text-[10px]
+                          font-semibold
+                          uppercase
+                          tracking-[0.16em]
+                          text-slate-400
+                        "
+                      >
                         {country}
                       </p>
 
                       {visible.map((airport) => {
-                        const index = flatOptions.findIndex(
-                          (item) => item.code === airport.code
-                        );
+                        const index =
+                          flatOptions.findIndex(
+                            (item) =>
+                              item.code ===
+                              airport.code
+                          );
 
                         const excluded =
                           airport.code === excludeCode;
@@ -396,40 +528,92 @@ export default function AirportSelect({
                               setActiveIndex(index)
                             }
                             onClick={() =>
-                              selectAirport(airport.code)
+                              selectAirport(
+                                airport.code
+                              )
                             }
                             className={cn(
-                              "flex w-full items-start gap-3 px-4 py-3 text-left transition",
+                              `
+                                group
+                                flex
+                                w-full
+                                items-center
+                                gap-3
+                                px-4
+                                py-2.5
+                                text-left
+                                transition-colors
+                                duration-150
+                              `,
                               excluded &&
-                                "cursor-not-allowed opacity-40",
+                                "cursor-not-allowed opacity-35",
                               !excluded &&
                                 isActive &&
-                                "bg-sky-50",
+                                "bg-slate-50",
                               !excluded &&
                                 !isActive &&
-                                "hover:bg-slate-50",
-                              isSelected && "bg-[#0078D2]/8"
+                                "hover:bg-slate-50"
                             )}
                           >
+                            {/* Airport code */}
                             <span
                               className={cn(
-                                "w-12 shrink-0 text-base font-semibold tracking-wide text-slate-950",
-                                isSelected &&
-                                  "text-[#0078D2]"
+                                `
+                                  w-[44px]
+                                  shrink-0
+                                  text-[13px]
+                                  font-semibold
+                                  tracking-[0.05em]
+                                `,
+                                isSelected
+                                  ? "text-[#0078D2]"
+                                  : "text-slate-950"
                               )}
                             >
                               {airport.code}
                             </span>
 
+                            {/* Airport information */}
                             <span className="min-w-0 flex-1">
-                              <span className="block truncate text-sm font-medium text-slate-800">
+                              <span
+                                className="
+                                  block
+                                  truncate
+                                  text-[14px]
+                                  font-medium
+                                  leading-5
+                                  text-slate-900
+                                "
+                              >
                                 {airport.city}
                               </span>
 
-                              <span className="mt-0.5 block truncate text-xs text-slate-500">
+                              <span
+                                className="
+                                  mt-0.5
+                                  block
+                                  truncate
+                                  text-[12px]
+                                  leading-4
+                                  text-slate-500
+                                "
+                              >
                                 {airport.name}
                               </span>
                             </span>
+
+                            {isSelected ? (
+                              <Check
+                                className="
+                                  h-4
+                                  w-4
+                                  shrink-0
+                                  text-[#0078D2]
+                                "
+                                strokeWidth={1.8}
+                                aria-hidden="true"
+                              />
+                            ) : null}
                           </button>
                         );
                       })}
@@ -444,7 +628,11 @@ export default function AirportSelect({
       : null;
 
   return (
-    <div ref={rootRef} className="min-w-0">
+    <div
+      ref={rootRef}
+      className="min-w-0"
+    >
+      {/* Value submitted with the parent form */}
       <input
         type="hidden"
         name={name}
@@ -459,6 +647,7 @@ export default function AirportSelect({
         {label}
       </span>
 
+      {/* Main airport field */}
       <button
         ref={triggerRef}
         id={id}
@@ -473,37 +662,105 @@ export default function AirportSelect({
         }
         onKeyDown={handleTriggerKeyDown}
         className={cn(
-          "flex h-[76px] w-full items-center gap-3 rounded-md border bg-white px-3.5 py-2 text-left transition",
-          "border-slate-300 hover:border-slate-400",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0078D2]/30",
-          open &&
-            "border-[#0078D2] ring-2 ring-[#0078D2]/25"
+          `
+            group
+            flex
+            h-[72px]
+            w-full
+            items-center
+            gap-4
+            border
+            bg-white
+            px-4
+            text-left
+            transition-colors
+            duration-150
+          `,
+          open
+            ? "border-[#0078D2]"
+            : "border-slate-300 hover:border-slate-400",
+          `
+            focus-visible:outline-none
+            focus-visible:border-[#0078D2]
+            focus-visible:ring-1
+            focus-visible:ring-[#0078D2]
+          `
         )}
       >
         <span className="min-w-0 flex-1">
-          <span className="block text-xs font-semibold leading-4 text-slate-500">
+          {/* Field label */}
+          <span
+            className="
+              block
+              text-[11px]
+              font-semibold
+              leading-4
+              text-slate-500
+            "
+          >
             {label}
           </span>
 
+          {/* Selected airport */}
           {selected ? (
-            <>
-              <span className="mt-1 block truncate text-lg font-semibold leading-5 tracking-wide text-slate-950">
+            <span className="mt-1 flex min-w-0 items-baseline gap-2">
+              <span
+                className="
+                  shrink-0
+                  text-[15px]
+                  font-semibold
+                  leading-5
+                  tracking-[0.02em]
+                  text-slate-950
+                "
+              >
                 {selected.code}
               </span>
 
-              <span className="mt-0.5 block truncate text-xs leading-4 text-slate-500">
-                {secondaryLine(selected)}
+              <span
+                className="
+                  min-w-0
+                  truncate
+                  text-[14px]
+                  font-normal
+                  leading-5
+                  text-slate-500
+                "
+              >
+                {selected.city}
               </span>
-            </>
+            </span>
           ) : (
-            <span className="mt-1 block truncate text-base font-medium leading-6 text-slate-400">
+            <span
+              className="
+                mt-1
+                block
+                truncate
+                text-[15px]
+                font-normal
+                leading-5
+                text-slate-400
+              "
+            >
               City or airport
             </span>
           )}
         </span>
 
-        <ChevronsUpDown
-          className="h-4 w-4 shrink-0 text-slate-400"
+        <ChevronDown
+          className={cn(
+            `
+              h-4
+              w-4
+              shrink-0
+              text-slate-400
+              transition-transform
+              duration-200
+              group-hover:text-slate-600
+            `,
+            open && "rotate-180"
+          )}
+          strokeWidth={1.7}
           aria-hidden="true"
         />
       </button>

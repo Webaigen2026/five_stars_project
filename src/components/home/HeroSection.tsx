@@ -2,26 +2,39 @@ import FlightSearchForm from "../../components/flights/FlightSearchForm";
 
 export default function HeroSection() {
   return (
-    <section className="relative overflow-hidden text-white">
-      <div className="fs-container relative py-12 sm:py-16 lg:py-20">
-        <div className="max-w-3xl">
-          <p className="text-sm font-semibold uppercase tracking-[0.22em] text-black">
-            Haiti ↔ United States
-          </p>
+    <section className="border-b border-slate-200 bg-white">
+      <div className="fs-container">
+        <div className="py-10 sm:py-12 lg:py-14">
+          {/* Route */}
+          <div className="flex items-center gap-3">
+            <span
+              aria-hidden="true"
+              className="h-px w-6 shrink-0 bg-[#0078D2]"
+            />
 
-          <h1 className="mt-3 font-american-sans text-2xl font-light tracking-[-0.025em] text-black sm:text-3xl lg:text-4xl">
-            Fly smarter between Haiti and the United States.
-          </h1>
-     
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-slate-600">
+              Haiti
+              <span className="mx-2 text-slate-400">↔</span>
+              United States
+            </p>
+          </div>
 
-          {/* <p className="mt-4 max-w-2xl text-lg font-normal leading-7 text-black">
-            Search flights, manage your trips, request cargo shipping, and
-            arrange charter services from one modern travel platform.
-          </p> */}
-        </div>
+          {/* Main content */}
+          <div className="mt-4 max-w-[760px]">
+            <h1 className="font-american-sans text-[34px] font-light leading-[1.08] tracking-[-0.03em] text-slate-950 sm:text-[38px] lg:text-[42px]">
+              Travel between Haiti and the United States.
+            </h1>
 
-        <div className="mt-8">
-          <FlightSearchForm />
+            <p className="mt-3 max-w-[620px] text-[14px] leading-6 text-slate-600 sm:text-[15px]">
+              Search scheduled passenger flights and plan your journey with
+              Five Stars.
+            </p>
+          </div>
+
+          {/* Booking */}
+          <div className="mt-7">
+            <FlightSearchForm />
+          </div>
         </div>
       </div>
     </section>
