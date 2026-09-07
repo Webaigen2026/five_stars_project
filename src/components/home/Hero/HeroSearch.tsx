@@ -7,7 +7,8 @@ import FlightSearchForm from "../../flights/FlightSearchForm";
 export default function HeroSearch() {
   return (
     <section className="relative w-full overflow-x-clip bg-background">
-      <div className="mx-auto w-full max-w-[1800px] ">
+      <div className="mx-auto w-full max-w-[1800px] flex justify-center items-center">
+ 
         {/*
           Mobile/tablet: only the main hero is shown.
           lg+: hero and travel image wall display in 2 columns.
