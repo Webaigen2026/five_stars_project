@@ -143,7 +143,7 @@ export default function TravelDealsCarousel() {
           </div>
 
           <Link
-            href="/deals"
+            href="/flights"
             className="
               group
               inline-flex
