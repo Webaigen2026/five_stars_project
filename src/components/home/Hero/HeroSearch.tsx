@@ -16,8 +16,8 @@ export default function HeroSearch() {
         <div
           className="
             grid min-w-0 grid-cols-1
-            gap-[clamp(1.25rem,2.5vw,2.75rem)]
-         
+            gap-y-[clamp(2rem,4vw,4rem)] gap-x-0
+
             dark:bg-surface
 
             sm:rounded-3xl
@@ -25,12 +25,13 @@ export default function HeroSearch() {
 
             lg:grid-cols-[minmax(0,1fr)_minmax(20rem,24rem)]
             lg:items-stretch
-            lg:gap-8
+            lg:gap-x-12 lg:gap-y-10
 
             2xl:grid-cols-[minmax(0,1fr)_minmax(22rem,28vw)]
-            2xl:gap-10
+            2xl:gap-x-16 2xl:gap-y-14
           "
         >
+   
           {/* ============================================================= */}
           {/* LEFT COLUMN — MAIN HERO                                       */}
           {/* ============================================================= */}
