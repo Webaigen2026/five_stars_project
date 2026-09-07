@@ -5,6 +5,8 @@ import ServicesSection from "../components/home/ServicesSection";
 import FAQSection from "../components/layout/FAQSection";
 import HeroSearch from "../components/home/Hero/HeroSearch";
 import TravelPromoSection from "../components/layout/TravelPromoSection1";
+import RouteMap from "../components/layout/RouteMap";
+import RavelDealsCarousel from "../components/layout/raveldealscarousel";
 
 export default function HomePage() {
   return (
@@ -15,7 +17,10 @@ export default function HomePage() {
       <HeroSearch />
         {/* <HeroSection /> */}
         <TravelPromoSection />
-        <ServicesSection />
+        <RavelDealsCarousel />
+        <RouteMap />
+    
+     
         <FAQSection />
       </main>
 

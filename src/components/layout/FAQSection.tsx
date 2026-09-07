@@ -67,9 +67,7 @@ export default function FAQSection() {
         <div className="mb-10 sm:mb-12">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
             <div className="max-w-3xl">
-              <p className="text-sm font-semibold uppercase tracking-[0.16em] text-[#0078D2]">
-                Help & Support
-              </p>
+            
 
               <h2 className="font-american-sans mt-2 text-3xl font-light tracking-[-0.025em] text-slate-950 sm:text-4xl">
                 Frequently asked questions
