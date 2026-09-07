@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useState } from "react";
+import Image from "next/image";
 
 import Link from "next/link";
 
@@ -139,8 +140,10 @@ export default function Header() {
     <>
       <header className="relative z-40 border-b border-slate-200 bg-white">
         <div className="fs-container flex h-[72px] items-center justify-between">
-          {/* Brand */}
-          <Link
+<span className="flex items-center gap-2 mt-2 ">
+<Image src="/airplane/logo_blue_upgrade.png" alt="Five Stars" width={90} height={90} />
+  {/* Brand */}
+  <Link
             href="/"
             className="
               font-american-sans
@@ -159,6 +162,9 @@ export default function Header() {
           >
             Five Stars
           </Link>
+</span>
+
+        
 
           {/* Desktop primary navigation */}
           <nav
