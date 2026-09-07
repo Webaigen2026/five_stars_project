@@ -93,8 +93,10 @@ export default function HeroSearch() {
                   z-40
                   overflow-x-clip
 
-                  -translate-y-[3rem]
-                  md:translate-y-0
+
+translate-y-[6rem]
+                  md: -translate-y-[3rem]
+                 
                 "
               >
                 <HeroAirplaneCutout />

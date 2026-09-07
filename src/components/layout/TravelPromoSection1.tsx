@@ -2,9 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-
 import { ArrowRight } from "lucide-react";
-
 import {
   motion,
   useReducedMotion,
@@ -20,19 +18,65 @@ export default function TravelPromoSection() {
   const shouldReduceMotion = useReducedMotion();
 
   return (
-    <section className="w-full min-w-0 max-w-full overflow-x-clip bg-background py-12 sm:py-16 lg:py-20">
-      <div className="mx-auto w-full min-w-0 max-w-full px-4 sm:px-6 lg:px-10">
-        <div className="grid w-full min-w-0 items-center gap-8 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.7fr)] lg:gap-12 xl:gap-16">
+    <section
+      className="
+        w-full
+        min-w-0
+        max-w-full
+        overflow-x-clip
+        bg-background
+        py-12
+        sm:py-16
+        lg:py-20
+      "
+    >
+      <div
+        className="
+          mx-auto
+          w-full
+          min-w-0
+          max-w-[1800px]
+          px-4
+          sm:px-6
+          lg:px-10
+        "
+      >
+        <div
+          className="
+            mx-auto
+            grid
+            w-full
+            min-w-0
+            max-w-full
+            grid-cols-1
+            justify-items-center
+            gap-8
+            lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.7fr)]
+            lg:items-center
+            lg:justify-items-stretch
+            lg:gap-12
+            xl:gap-16
+          "
+        >
           {/* Decorative traveler artwork */}
           <motion.div
-            className="order-2 flex w-full min-w-0 justify-center lg:order-1 lg:justify-end"
+            className="
+              order-2
+              mx-auto
+              flex
+              w-full
+              min-w-0
+              max-w-full
+              justify-center
+              lg:order-1
+              lg:mx-0
+              lg:justify-end
+            "
             initial={
               shouldReduceMotion
                 ? { opacity: 1 }
                 : {
                     opacity: 0,
-                    // Vertical-only entrance: horizontal x offsets were
-                    // expanding document scrollWidth on mobile before in-view.
                     y: 24,
                   }
             }
@@ -47,7 +91,17 @@ export default function TravelPromoSection() {
             }}
           >
             <motion.div
-              className="min-w-0 max-w-full"
+              className="
+                mx-auto
+                flex
+                w-full
+                min-w-0
+                max-w-full
+                items-center
+                justify-center
+                lg:mx-0
+                lg:justify-end
+              "
               whileInView={
                 shouldReduceMotion
                   ? {}
@@ -72,11 +126,16 @@ export default function TravelPromoSection() {
                   380px
                 "
                 className="
+                  mx-auto
+                  block
                   h-auto
                   w-full
                   max-w-[240px]
                   object-contain
+                  object-center
                   sm:max-w-[320px]
+                  lg:mx-0
+                  lg:w-full
                   lg:max-w-[380px]
                 "
               />
@@ -85,7 +144,15 @@ export default function TravelPromoSection() {
 
           {/* Promotional content */}
           <motion.div
-            className="order-1 w-full min-w-0 max-w-full lg:order-2"
+            className="
+              order-1
+              mx-auto
+              w-full
+              min-w-0
+              max-w-full
+              lg:order-2
+              lg:mx-0
+            "
             initial={
               shouldReduceMotion
                 ? { opacity: 1 }
@@ -126,13 +193,19 @@ function PromoCard({
     <motion.article
       className="
         relative
+        mx-auto
+        w-full
+        min-w-0
+        max-w-full
         overflow-hidden
-        rounded-[28px]
+        rounded-[24px]
         bg-white
-        p-4
+        p-5
         shadow-[-6px_-6px_14px_var(--color-neu-highlight),6px_6px_14px_var(--color-neu-shadow)]
-        sm:rounded-[32px]
+        sm:rounded-[28px]
         sm:p-6
+        lg:mx-0
+        lg:rounded-[32px]
         lg:p-8
         dark:bg-surface
         dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_20px_50px_-24px_rgba(0,0,0,0.55)]
@@ -155,9 +228,30 @@ function PromoCard({
         ease: [0.22, 1, 0.36, 1],
       }}
     >
-      <div className="grid items-center gap-7 lg:grid-cols-[minmax(0,400px)_minmax(0,1fr)] lg:gap-10">
+      <div
+        className="
+          grid
+          w-full
+          min-w-0
+          max-w-full
+          grid-cols-1
+          items-center
+          justify-items-center
+          gap-7
+          lg:grid-cols-[minmax(0,400px)_minmax(0,1fr)]
+          lg:justify-items-stretch
+          lg:gap-10
+        "
+      >
         {/* Promo image */}
         <motion.div
+          className="
+            mx-auto
+            w-full
+            min-w-0
+            max-w-full
+            lg:mx-0
+          "
           initial={
             shouldReduceMotion
               ? { opacity: 1 }
@@ -182,9 +276,25 @@ function PromoCard({
           <PromoImage />
         </motion.div>
 
-        {/* Text content */}
+        {/*
+          Text column: keep full-width on mobile but inset from the card
+          edges so centered lines do not sit flush against the border
+          (previously read as right-side clipping).
+        */}
         <motion.div
-          className="min-w-0 text-center lg:text-left"
+          className="
+            mx-auto
+            w-full
+            min-w-0
+            max-w-full
+            px-3
+            text-center
+            sm:px-4
+            lg:mx-0
+            lg:max-w-none
+            lg:px-0
+            lg:text-left
+          "
           initial="hidden"
           whileInView="visible"
           viewport={viewportSettings}
@@ -205,10 +315,19 @@ function PromoCard({
           <motion.h2
             className="
               font-american-sans
+              mx-auto
+              w-full
+              min-w-0
+              max-w-[32rem]
+              text-balance
+              break-words
               text-3xl
               font-light
+              leading-tight
               tracking-[-0.015em]
               text-slate-950
+              sm:text-4xl
+              lg:mx-0
             "
             variants={{
               hidden: shouldReduceMotion
@@ -237,7 +356,21 @@ function PromoCard({
           </motion.h2>
 
           <motion.p
-            className="mt-3 text-lg font-normal leading-7 text-slate-600"
+            className="
+              mx-auto
+              mt-3
+              w-full
+              min-w-0
+              max-w-[32rem]
+              break-words
+              text-pretty
+              text-base
+              font-normal
+              leading-7
+              text-slate-600
+              sm:text-lg
+              lg:mx-0
+            "
             variants={{
               hidden: shouldReduceMotion
                 ? {
@@ -268,6 +401,14 @@ function PromoCard({
           </motion.p>
 
           <motion.div
+            className="
+              flex
+              w-full
+              min-w-0
+              max-w-full
+              justify-center
+              lg:justify-start
+            "
             variants={{
               hidden: shouldReduceMotion
                 ? {
@@ -298,13 +439,20 @@ function PromoCard({
                 mt-6
                 inline-flex
                 items-center
+                justify-center
                 gap-2
                 font-american-sans
                 text-lg
                 leading-7
+                text-[#0078D2]
                 transition-all
                 duration-300
-                hover:scale-105
+                hover:text-[#006bbd]
+                motion-safe:hover:scale-105
+                focus-visible:outline-none
+                focus-visible:ring-2
+                focus-visible:ring-[#0078D2]/30
+                focus-visible:ring-offset-4
               "
             >
               Visit Flights
@@ -333,11 +481,15 @@ function PromoImage() {
       className="
         group
         relative
+        mx-auto
         aspect-[4/3]
         w-full
+        min-w-0
+        max-w-full
         overflow-hidden
         bg-surface
         shadow-[0_14px_40px_rgba(15,23,42,0.12)]
+        lg:mx-0
         lg:h-[300px]
         lg:aspect-auto
       "
