@@ -215,15 +215,15 @@ export default function PassengerPicker({
             z-50
             mt-3
             w-full
+            max-w-full
             overflow-hidden
-           
             border
             border-slate-200
             bg-white
             shadow-[0_18px_50px_rgba(15,23,42,0.16)]
             sm:left-auto
             sm:right-0
-            sm:w-[24rem]
+            sm:w-[min(24rem,calc(100vw-2rem))]
             sm:max-w-[calc(100vw-2rem)]
           "
         >

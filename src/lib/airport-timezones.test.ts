@@ -85,7 +85,7 @@ describe("airport wall-clock conversion", () => {
         parseFlightWriteInput({
           code: "SJ999",
           airline: "StarJet",
-          aircraft: "A320",
+          aircraft: "Airbus A320",
           origin: "Port-au-Prince",
           originCode: "PAP",
           destination: "Boston",
@@ -106,7 +106,7 @@ describe("airport wall-clock conversion", () => {
     const parsed = parseFlightWriteInput({
       code: "SJ999",
       airline: "StarJet",
-      aircraft: "A320",
+      aircraft: "Airbus A320",
       origin: "Port-au-Prince",
       originCode: "PAP",
       destination: "Boston",

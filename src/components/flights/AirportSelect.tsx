@@ -399,13 +399,13 @@ export default function AirportSelect({
         onClick={() => setOpen((current) => !current)}
         onKeyDown={handleTriggerKeyDown}
         className={cn(
-          "flex h-[86px] w-full items-center gap-3 rounded-lg border bg-white px-3.5 py-2.5 text-left transition",
+          "flex h-[86px] w-full min-w-0 items-center gap-3 rounded-lg border bg-white px-3.5 py-2.5 text-left transition",
           "border-slate-300 hover:border-slate-400",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0078D2]/30",
           open && "border-[#0078D2] ring-2 ring-[#0078D2]/25"
         )}
       >
-        <span className="min-w-0 flex-1">
+        <span className="min-w-0 flex-1 overflow-hidden">
           <span className="block text-sm font-semibold leading-4 text-slate-500">
             {label}
           </span>

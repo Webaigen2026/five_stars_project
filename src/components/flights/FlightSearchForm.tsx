@@ -122,12 +122,17 @@ function TripTypeInlineControl({
       role="tablist"
       aria-label="Trip type"
       className="
+        mx-auto
         flex
+        w-full
+        max-w-full
         flex-wrap
         items-start
         justify-center
         gap-4
-        sm:justify-start
+        lg:mx-0
+        lg:w-auto
+        lg:justify-start
       "
     >
       {TRIP_TYPES.map(({ value: type, label, icon: Icon }) => {
@@ -353,7 +358,9 @@ export default function FlightSearchForm({
   return (
     <div
       className="
-       
+        w-full
+        max-w-full
+        min-w-0
         border
         border-slate-200
         bg-white
@@ -365,28 +372,19 @@ export default function FlightSearchForm({
         xl:p-7
       "
     >
-      {/* Header */}
-      {/* <div className="mb-6"> */}
-        {/* <p className="text-sm font-semibold uppercase tracking-[0.15em] text-[#0078D2]">
-          Flight Search
-        </p> */}
-
-        {/* <h2 className="font-american-sans mt-1.5 text-2xl font-light tracking-[-0.015em] text-slate-950 sm:text-3xl">
-          Find your next flight
-        </h2>
-      </div> */}
-
-      {/* Trip type */}
-      <div className="mb-7 border-b border-slate-100 pb-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      {/*
+        Stack trip controls + heading until lg so the long American Sans
+        title cannot force horizontal overflow beside the trip buttons.
+      */}
+      <div className="mb-7 flex w-full min-w-0 flex-col gap-5 border-b border-slate-100 pb-5 lg:flex-row lg:items-end lg:justify-between lg:gap-6">
         <TripTypeInlineControl
           value={tripType}
           onChange={selectTripType}
         />
-        <h2 className="font-american-sans mt-1.5 text-2xl font-light tracking-[-0.015em] text-slate-950 sm:text-3xl sm:mt-0">
+        <h2 className="font-american-sans w-full min-w-0 text-balance text-3xl font-light leading-[1.15] tracking-[-0.015em] text-slate-950 lg:mt-0 lg:flex-1 lg:text-right lg:text-3xl xl:text-[2.125rem] xl:leading-[1.12]">
           Find your next flight with Five Stars.
         </h2>
       </div>
-
 
       {/* Search fields */}
       <form
@@ -396,7 +394,7 @@ export default function FlightSearchForm({
         {/* From */}
         <div
           className={cn(
-            "min-w-0",
+            "w-full min-w-0",
             tripType === "round-trip"
               ? "xl:col-span-2"
               : "xl:col-span-3"
@@ -423,7 +421,7 @@ export default function FlightSearchForm({
         {/* To */}
         <div
           className={cn(
-            "min-w-0",
+            "w-full min-w-0",
             tripType === "round-trip"
               ? "xl:col-span-2"
               : "xl:col-span-3"
@@ -450,7 +448,7 @@ export default function FlightSearchForm({
         {/* Dates */}
         <div
           className={cn(
-            "min-w-0",
+            "w-full min-w-0",
             tripType === "round-trip"
               ? "md:col-span-2 xl:col-span-4"
               : "xl:col-span-2"
@@ -471,7 +469,7 @@ export default function FlightSearchForm({
         </div>
 
         {/* Passengers */}
-        <div className="min-w-0 xl:col-span-2">
+        <div className="w-full min-w-0 xl:col-span-2">
           <PassengerPicker
             value={composition}
             onChange={handleCompositionChange}
@@ -484,7 +482,7 @@ export default function FlightSearchForm({
         </div>
 
         {/* Search button */}
-        <div className="flex min-w-0 items-end xl:col-span-2">
+        <div className="flex w-full min-w-0 items-end xl:col-span-2">
           <button
             type="submit"
             className="

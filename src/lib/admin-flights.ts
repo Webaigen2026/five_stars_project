@@ -1,4 +1,17 @@
+import {
+  isCanonicalAdminAircraft,
+} from "./aircraft-config";
 import { elapsedDurationMinutes } from "./airport-timezones";
+import { isSeatSelectionAvailable } from "./seat-layouts";
+
+export type ParseFlightWriteOptions = {
+  mode: "create" | "edit";
+  /**
+   * Existing persisted aircraft on edit. Used to preserve unsupported legacy
+   * values when the admin does not intentionally change Aircraft.
+   */
+  existingAircraft?: string | null;
+};
 
 export const FLIGHT_STATUSES = [
   "SCHEDULED",
@@ -139,7 +152,77 @@ function asTimestamptzString(value: unknown, field: string) {
   return raw;
 }
 
-export function parseFlightWriteInput(body: unknown): FlightWriteInput {
+/**
+ * Resolve aircraft for Admin create/edit writes.
+ * Create: required canonical option only.
+ * Edit: canonical options accepted; unsupported legacy preserved only when
+ * the submitted value exactly matches the existing persisted aircraft.
+ */
+export function resolveAircraftForAdminWrite(input: {
+  mode: "create" | "edit";
+  submittedAircraft: unknown;
+  existingAircraft?: string | null;
+}): string | null {
+  const submitted = asTrimmedString(input.submittedAircraft);
+  const existing =
+    typeof input.existingAircraft === "string"
+      ? input.existingAircraft.trim()
+      : input.existingAircraft === null || input.existingAircraft === undefined
+        ? ""
+        : "";
+
+  if (input.mode === "create") {
+    if (!submitted) {
+      throw new AdminFlightRequestError("Aircraft is required.", 400);
+    }
+    if (!isCanonicalAdminAircraft(submitted)) {
+      throw new AdminFlightRequestError(
+        "Select a supported aircraft from the list.",
+        400
+      );
+    }
+    return submitted;
+  }
+
+  // Edit: empty submission preserves existing (including null).
+  if (!submitted) {
+    return input.existingAircraft ?? null;
+  }
+
+  if (isCanonicalAdminAircraft(submitted)) {
+    return submitted;
+  }
+
+  // Preserve exact unsupported legacy value when unchanged.
+  if (
+    existing !== "" &&
+    submitted === existing &&
+    !isSeatSelectionAvailable(existing)
+  ) {
+    return input.existingAircraft ?? submitted;
+  }
+
+  // Supported legacy aliases (e.g. "A320") may be preserved as-is when
+  // the admin did not change aircraft via the controlled selector.
+  // Prefer canonicalization only when the form submits a canonical option.
+  if (
+    existing !== "" &&
+    submitted === existing &&
+    isSeatSelectionAvailable(existing)
+  ) {
+    return input.existingAircraft ?? submitted;
+  }
+
+  throw new AdminFlightRequestError(
+    "Select a supported aircraft from the list, or keep the current aircraft value.",
+    400
+  );
+}
+
+export function parseFlightWriteInput(
+  body: unknown,
+  options: ParseFlightWriteOptions = { mode: "create" }
+): FlightWriteInput {
   if (!body || typeof body !== "object") {
     throw new AdminFlightRequestError("Invalid flight payload.", 400);
   }
@@ -147,7 +230,11 @@ export function parseFlightWriteInput(body: unknown): FlightWriteInput {
   const payload = body as Record<string, unknown>;
   const code = asTrimmedString(payload.code).toUpperCase();
   const airline = asTrimmedString(payload.airline);
-  const aircraftValue = asTrimmedString(payload.aircraft);
+  const aircraftValue = resolveAircraftForAdminWrite({
+    mode: options.mode,
+    submittedAircraft: payload.aircraft,
+    existingAircraft: options.existingAircraft,
+  });
   const origin = asTrimmedString(payload.origin);
   const originCode = asTrimmedString(payload.originCode).toUpperCase();
   const destination = asTrimmedString(payload.destination);
@@ -231,7 +318,7 @@ export function parseFlightWriteInput(body: unknown): FlightWriteInput {
   return {
     code,
     airline,
-    aircraft: aircraftValue || null,
+    aircraft: aircraftValue,
     origin,
     originCode,
     destination,

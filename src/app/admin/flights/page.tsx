@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import CreateFlightForm from "../../../components/admin/flights/CreateFlightForm";
 import PassengerManifestExportControl from "../../../components/admin/PassengerManifestExportControl";
+import { describeFlightAircraft } from "../../../lib/aircraft-config";
 import {
   canViewSensitiveTravelerData,
   isAdmin,
@@ -29,6 +30,12 @@ function statusClassName(status: string) {
     default:
       return "bg-slate-100 text-slate-700";
   }
+}
+
+function seatMapBadgeClassName(supported: boolean) {
+  return supported
+    ? "bg-emerald-50 text-emerald-800"
+    : "bg-amber-50 text-amber-800";
 }
 
 export default async function AdminFlightsPage() {
@@ -126,6 +133,7 @@ export default async function AdminFlightsPage() {
               <thead className="border-b border-slate-200 bg-slate-50 text-xs font-semibold uppercase tracking-wider text-slate-500">
                 <tr>
                   <th className="px-5 py-4">Flight</th>
+                  <th className="px-5 py-4">Aircraft</th>
                   <th className="px-5 py-4">Route</th>
                   <th className="px-5 py-4">Times</th>
                   <th className="px-5 py-4">Seats</th>
@@ -135,7 +143,10 @@ export default async function AdminFlightsPage() {
                 </tr>
               </thead>
               <tbody>
-                {flights.map((flight) => (
+                {flights.map((flight) => {
+                  const aircraftInfo = describeFlightAircraft(flight.aircraft);
+
+                  return (
                   <tr
                     key={flight.id}
                     className="border-b border-slate-100 last:border-b-0"
@@ -143,9 +154,16 @@ export default async function AdminFlightsPage() {
                     <td className="px-5 py-4 align-top">
                       <p className="font-semibold text-slate-950">{flight.code}</p>
                       <p className="mt-1 text-slate-600">{flight.airline}</p>
-                      <p className="mt-1 text-slate-500">
-                        {flight.aircraft ?? "—"}
+                    </td>
+                    <td className="px-5 py-4 align-top">
+                      <p className="font-medium text-slate-950">
+                        {aircraftInfo.displayValue}
                       </p>
+                      <span
+                        className={`mt-2 inline-flex rounded-md px-2 py-0.5 text-[11px] font-semibold ${seatMapBadgeClassName(aircraftInfo.supported)}`}
+                      >
+                        {aircraftInfo.supportLabel}
+                      </span>
                     </td>
                     <td className="px-5 py-4 align-top">
                       <p className="font-semibold text-slate-950">
@@ -198,7 +216,8 @@ export default async function AdminFlightsPage() {
                       </td>
                     )}
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>

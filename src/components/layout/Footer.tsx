@@ -307,35 +307,7 @@ export default function Footer() {
         </div>
       </footer>
 
-      {/* Feedback tab */}
-      <Link
-        href="/contact"
-        aria-label="Send feedback"
-        className="
-          fixed
-          right-0
-          top-1/2
-          z-30
-          hidden
-          -translate-y-1/2
-          rounded-l-lg
-          bg-[#0078D2]
-          px-2.5
-          py-4
-          text-xs
-          font-semibold
-          text-white
-          shadow-lg
-          transition
-          hover:bg-[#006bbd]
-          lg:block
-          [writing-mode:vertical-rl]
-          rotate-180
-        "
-      >
-        Feedback
-      </Link>
-
+     
       {/* Privacy notice */}
       {cookieNoticeVisible ? (
         <div

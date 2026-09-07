@@ -32,7 +32,7 @@ export async function POST(request: Request) {
       throw new AdminFlightRequestError("Invalid JSON body.", 400);
     }
 
-    const input = parseFlightWriteInput(body);
+    const input = parseFlightWriteInput(body, { mode: "create" });
 
     const existingFlight = await db.orm.public.Flight.where({
       code: input.code,

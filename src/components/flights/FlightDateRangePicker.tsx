@@ -123,19 +123,19 @@ function DateFieldButton({
       aria-haspopup="dialog"
       aria-controls={controlsId}
       className={cn(
-        "flex w-full items-center gap-3 rounded-lg border bg-white px-3 py-2.5 text-left transition",
+        "flex h-[86px] w-full min-w-0 items-center gap-3 rounded-lg border bg-white px-3.5 py-2.5 text-left transition",
         "border-slate-300 hover:border-slate-400",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0078D2]/30",
         expanded && "border-[#0078D2] ring-2 ring-[#0078D2]/25"
       )}
     >
       <span className="min-w-0 flex-1">
-        <span className="block text-[11px] font-medium leading-4 text-slate-500">
+        <span className="block text-sm font-semibold leading-4 text-slate-500">
           {label}
         </span>
         <span
           className={cn(
-            "mt-0.5 block truncate text-base font-medium leading-6",
+            "mt-1 block truncate text-base font-medium leading-6 sm:text-lg",
             display ? "text-slate-950" : "text-slate-400"
           )}
         >
@@ -370,7 +370,7 @@ export default function FlightDateRangePicker({
     <div
       ref={rootRef}
       className={cn(
-        "relative",
+        "relative w-full min-w-0",
         isRoundTrip && "md:col-span-2 grid gap-4 md:grid-cols-2"
       )}
     >

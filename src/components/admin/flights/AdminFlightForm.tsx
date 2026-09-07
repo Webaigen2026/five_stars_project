@@ -8,6 +8,12 @@ import {
   type SafeFlight,
 } from "../../../lib/admin-flights";
 import {
+  ADMIN_AIRCRAFT_OPTIONS,
+  CANONICAL_AIRBUS_A320,
+  describeFlightAircraft,
+  isCanonicalAdminAircraft,
+} from "../../../lib/aircraft-config";
+import {
   elapsedDurationMinutes,
   formatInstantAsDatetimeLocal,
   getAirportTimeZone,
@@ -17,11 +23,28 @@ import {
   buildAdminFareFamilyPreview,
   parseBaseFareDollarsToCents,
 } from "../../../lib/fare-families";
+import { isSeatSelectionAvailable } from "../../../lib/seat-layouts";
 import { formatMoney } from "../../../lib/trip-formatting";
 import AdminAirportDateTimeField from "./AdminAirportDateTimeField";
 
 const inputClassName =
-  "w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20";
+  "w-full rounded-lg border border-slate-300 bg-white px-4 py-3 outline-none transition focus:border-[#0078D2] focus:ring-2 focus:ring-[#0078D2]/20";
+
+function initialAircraftSelection(flight?: SafeFlight) {
+  const current = flight?.aircraft?.trim() ?? "";
+  if (!current) {
+    return "";
+  }
+  if (isCanonicalAdminAircraft(current)) {
+    return current;
+  }
+  // Supported legacy aliases (e.g. A320) show as the canonical option.
+  if (isSeatSelectionAvailable(current)) {
+    return CANONICAL_AIRBUS_A320;
+  }
+  // Unsupported legacy: keep exact stored value as the selected option.
+  return current;
+}
 
 type AdminFlightFormProps = {
   mode: "create" | "edit";
@@ -70,6 +93,20 @@ export default function AdminFlightForm({
   const [priceDollars, setPriceDollars] = useState(
     flight ? (flight.price / 100).toFixed(2) : ""
   );
+  const [aircraft, setAircraft] = useState(() =>
+    initialAircraftSelection(flight)
+  );
+
+  const aircraftMeta = describeFlightAircraft(
+    aircraft || flight?.aircraft || null
+  );
+  const legacyUnsupportedValue =
+    mode === "edit" &&
+    flight?.aircraft &&
+    !isCanonicalAdminAircraft(flight.aircraft) &&
+    !isSeatSelectionAvailable(flight.aircraft)
+      ? flight.aircraft.trim()
+      : null;
 
   const computed = useMemo(() => {
     if (!departureLocal || !arrivalLocal) {
@@ -130,7 +167,7 @@ export default function AdminFlightForm({
     const payload = {
       code: String(formData.get("code") ?? ""),
       airline: String(formData.get("airline") ?? ""),
-      aircraft: String(formData.get("aircraft") ?? ""),
+      aircraft,
       origin: String(formData.get("origin") ?? ""),
       originCode,
       destination: String(formData.get("destination") ?? ""),
@@ -174,6 +211,7 @@ export default function AdminFlightForm({
         setDepartureLocal("");
         setArrivalLocal("");
         setPriceDollars("");
+        setAircraft("");
         setSuccess("Flight created.");
         router.refresh();
         return;
@@ -226,14 +264,57 @@ export default function AdminFlightForm({
         />
       </Field>
 
-      <Field label="Aircraft" htmlFor={`${mode}-aircraft`}>
-        <input
+      <div>
+        <label
+          htmlFor={`${mode}-aircraft`}
+          className="mb-2 block text-sm font-medium text-slate-700"
+        >
+          Aircraft
+        </label>
+        <select
           id={`${mode}-aircraft`}
           name="aircraft"
-          defaultValue={flight?.aircraft ?? ""}
+          required={mode === "create"}
+          value={aircraft}
+          onChange={(event) => setAircraft(event.target.value)}
           className={inputClassName}
-        />
-      </Field>
+        >
+          {mode === "create" || !aircraft ? (
+            <option value="">Select aircraft</option>
+          ) : null}
+          {legacyUnsupportedValue ? (
+            <option value={legacyUnsupportedValue}>
+              Unsupported: {legacyUnsupportedValue}
+            </option>
+          ) : null}
+          {ADMIN_AIRCRAFT_OPTIONS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+        <p className="mt-2 text-xs text-slate-500">
+          Seat selection is available for supported aircraft layouts.
+        </p>
+        {aircraft || legacyUnsupportedValue ? (
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <span
+              className={`inline-flex rounded-md px-2.5 py-1 text-xs font-semibold ${
+                aircraftMeta.supported
+                  ? "bg-emerald-50 text-emerald-800"
+                  : "bg-amber-50 text-amber-800"
+              }`}
+            >
+              {aircraftMeta.supportLabel}
+            </span>
+            {!aircraftMeta.supported && aircraft ? (
+              <p className="text-xs text-slate-500">
+                This aircraft does not currently have a supported seat map.
+              </p>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
 
       <Field label="Origin" htmlFor={`${mode}-origin`}>
         <input

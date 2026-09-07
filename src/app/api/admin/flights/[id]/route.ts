@@ -62,7 +62,10 @@ export async function PATCH(
       throw new AdminFlightRequestError("Invalid JSON body.", 400);
     }
 
-    const input = parseFlightWriteInput(body);
+    const input = parseFlightWriteInput(body, {
+      mode: "edit",
+      existingAircraft: existingFlight.aircraft,
+    });
 
     if (input.code !== existingFlight.code) {
       const duplicate = await db.orm.public.Flight.where({

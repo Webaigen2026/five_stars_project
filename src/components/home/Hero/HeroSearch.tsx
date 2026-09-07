@@ -18,6 +18,7 @@ export default function HeroSearch() {
           className="
             grid min-w-0 grid-cols-1
             gap-y-[clamp(2rem,4vw,4rem)] gap-x-0
+            px-4 py-6
 
             dark:bg-surface
 
@@ -113,7 +114,7 @@ export default function HeroSearch() {
               
 
             </div>
-            <div className="flex w-full max-w-7xl  flex-col gap-6 sm:gap-8">
+            <div className="flex w-full min-w-0 max-w-7xl flex-col gap-6 sm:gap-8">
                   <FlightSearchForm />
                   </div>
           </div>
