@@ -204,7 +204,7 @@ export default function Header() {
 
           {/* Desktop account / CTA */}
           <div className="hidden items-center gap-2 lg:flex">
-            <HeaderAccountNav />
+            <HeaderAccountNav variant="desktop" />
 
             <Link
               href="/flights"
@@ -214,7 +214,6 @@ export default function Header() {
                 min-h-10
                 items-center
                 justify-center
-            
                 bg-[#0078D2]
                 px-5
                 text-sm
@@ -233,7 +232,6 @@ export default function Header() {
             >
               Book a Flight
             </Link>
-       
           </div>
 
           {/* Mobile menu trigger */}
@@ -444,7 +442,7 @@ export default function Header() {
                 [&_button]:text-left
               "
             >
-              <HeaderAccountNav />
+              <HeaderAccountNav variant="mobile" />
             </div>
           </div>
         </div>
