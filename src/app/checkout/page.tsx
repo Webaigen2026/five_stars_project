@@ -48,12 +48,12 @@ function CheckoutError({
 
       <main className="min-h-screen bg-slate-50">
         <section className="mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-16">
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 text-center shadow-sm sm:p-8">
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
+          <div className="bg-white p-6 shadow-[0_8px_30px_rgba(15,23,42,0.06)] sm:p-8">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#0078D2]">
               Checkout
             </p>
 
-            <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">
+            <h1 className="font-american-sans mt-3 text-3xl font-light tracking-[-0.03em] text-slate-950">
               {title}
             </h1>
 
@@ -62,14 +62,14 @@ function CheckoutError({
             <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Link
                 href="/flights"
-                className="inline-flex rounded-xl bg-primary px-6 py-3 font-semibold text-white transition hover:bg-primary-hover"
+                className="inline-flex min-h-11 items-center justify-center rounded-lg bg-[#0078D2] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#006bbd]"
               >
                 Back to Flights
               </Link>
               {showMyTrips ? (
                 <Link
                   href="/my-trips"
-                  className="inline-flex rounded-xl border border-slate-200 px-6 py-3 font-semibold text-slate-700 transition hover:bg-slate-50"
+                  className="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-200 px-6 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
                 >
                   Back to My Trips
                 </Link>
@@ -161,21 +161,21 @@ export default async function CheckoutPage({
 
       <main className="min-h-screen bg-slate-50">
         <section className="border-b border-slate-200 bg-white">
-          <div className="fs-container fs-section-y">
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
+          <div className="fs-container py-7 sm:py-8">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#0078D2]">
               Checkout
             </p>
 
-            <h1 className="mt-2 text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">
+            <h1 className="font-american-sans mt-2.5 text-[2.15rem] leading-[1.05] font-light tracking-[-0.04em] text-slate-950 sm:text-5xl">
               Review your trip
             </h1>
 
-            <div className="mt-4 flex flex-wrap items-center gap-3">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
+            <div className="mt-5 flex min-w-0 flex-wrap items-end gap-x-4 gap-y-3">
+              <div className="min-w-0">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400">
                   Booking reference
                 </p>
-                <p className="mt-1 break-all text-lg font-semibold text-slate-950">
+                <p className="fs-nums mt-1 break-all text-lg font-semibold tracking-[0.04em] text-slate-950">
                   {booking.bookingReference}
                 </p>
               </div>
@@ -185,32 +185,50 @@ export default async function CheckoutPage({
               <BookingStatusBadge status={booking.status} />
             </div>
 
-            <p className="mt-3 max-w-2xl text-base leading-7 text-slate-600 sm:text-lg">
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-600 sm:text-base sm:leading-7">
               {bookingStatus.description}
             </p>
           </div>
         </section>
 
-        <section className="fs-container fs-section-y">
-          <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
-            <div className="space-y-5">
-              <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-                <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">
-                  {isRoundTrip ? "Round-trip itinerary" : "Flight itinerary"}
-                </p>
+        <section className="fs-container py-6 sm:py-8">
+          <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(300px,360px)] lg:items-start lg:gap-7">
+            <div className="min-w-0 space-y-5">
+              {/* Flight itinerary document */}
+              <section className="min-w-0 bg-white p-4 shadow-[0_8px_30px_rgba(15,23,42,0.06)] sm:p-6">
+                <div className="flex items-end justify-between gap-3 border-b border-dashed border-slate-200 pb-4">
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#0078D2]">
+                      Travel document
+                    </p>
+                    <h2 className="font-american-sans mt-1.5 text-2xl font-light tracking-[-0.025em] text-slate-950">
+                      {isRoundTrip ? "Round-trip itinerary" : "Flight itinerary"}
+                    </h2>
+                  </div>
+                  <p
+                    aria-hidden="true"
+                    className="hidden text-[9px] font-semibold uppercase tracking-[0.16em] text-slate-400 sm:block"
+                  >
+                    Five Stars
+                  </p>
+                </div>
 
                 {legs.length > 0 ? (
-                  <div className="mt-4 space-y-4">
+                  <div className="mt-5 space-y-4">
                     {legs.map((leg) => (
-                      <BookingLegSummary key={`${leg.segmentType}-${leg.flightId}`} leg={leg} />
+                      <BookingLegSummary
+                        key={`${leg.segmentType}-${leg.flightId}`}
+                        leg={leg}
+                        variant="boardingPass"
+                      />
                     ))}
                   </div>
                 ) : (
                   <>
-                    <h2 className="mt-3 text-2xl font-semibold text-slate-950">
+                    <h3 className="font-american-sans mt-5 text-2xl font-light tracking-[-0.02em] text-slate-950">
                       Flight details unavailable.
-                    </h2>
-                    <p className="mt-3 text-slate-600">
+                    </h3>
+                    <p className="mt-3 text-sm text-slate-600">
                       We could not load the flight for this booking. Your
                       booking reference and price are still shown from the
                       saved booking.
@@ -219,12 +237,24 @@ export default async function CheckoutPage({
                 )}
               </section>
 
-              <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-                <h2 className="text-xl font-semibold text-slate-950">
-                  Travelers
-                </h2>
+              {/* Travelers manifest */}
+              <section className="min-w-0 bg-white p-4 shadow-[0_8px_30px_rgba(15,23,42,0.06)] sm:p-6">
+                <div className="flex items-end justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#0078D2]">
+                      Manifest
+                    </p>
+                    <h2 className="font-american-sans mt-1.5 text-2xl font-light tracking-[-0.025em] text-slate-950">
+                      Travelers
+                    </h2>
+                  </div>
+                  <p className="text-xs font-medium text-slate-500">
+                    {passengerCount}{" "}
+                    {passengerCount === 1 ? "passenger" : "passengers"}
+                  </p>
+                </div>
 
-                <p className="mt-2 text-slate-600">
+                <p className="mt-2 text-sm text-slate-600">
                   You are booking for{" "}
                   <span className="font-semibold text-slate-950">
                     {passengerCount}
@@ -233,26 +263,21 @@ export default async function CheckoutPage({
                 </p>
 
                 {sortedPassengers.length > 0 ? (
-                  <ol className="mt-4 space-y-3">
+                  <ol className="mt-4 divide-y divide-dashed divide-slate-200 border-y border-dashed border-slate-300">
                     {sortedPassengers.map((passenger, index) => (
-                      <li
-                        key={passenger.id}
-                        className="rounded-2xl border border-slate-200 px-4 py-3"
-                      >
-                        <p className="text-xs font-semibold uppercase tracking-[0.14em] text-primary">
-                          Passenger {index + 1}
+                      <li key={passenger.id} className="px-1 py-3.5 sm:px-2">
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#0078D2]">
+                          Passenger {String(index + 1).padStart(2, "0")}
                         </p>
-                        <p className="mt-1 font-semibold text-slate-950">
+                        <p className="mt-1 text-sm font-semibold text-slate-950">
                           {`${passenger.firstName} ${passenger.lastName}`}
                         </p>
-                        <p className="mt-1 text-sm font-medium text-slate-700">
+                        <p className="mt-0.5 text-xs text-slate-500">
                           {formatPassengerTypeLabel(passenger.passengerType)}
+                          {passenger.nationality
+                            ? ` · ${passenger.nationality}`
+                            : ""}
                         </p>
-                        {passenger.nationality ? (
-                          <p className="mt-1 text-sm text-slate-600">
-                            {passenger.nationality}
-                          </p>
-                        ) : null}
                       </li>
                     ))}
                   </ol>
@@ -282,7 +307,7 @@ export default async function CheckoutPage({
                     Review this trip anytime in{" "}
                     <Link
                       href={tripHref}
-                      className="font-semibold text-primary transition hover:text-primary-hover"
+                      className="font-semibold text-[#0078D2] transition hover:text-[#006bbd]"
                     >
                       My Trips
                     </Link>
@@ -295,7 +320,7 @@ export default async function CheckoutPage({
                 {currentUser ? (
                   <Link
                     href="/my-trips"
-                    className="inline-flex rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                    className="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
                   >
                     Back to My Trips
                   </Link>
@@ -304,13 +329,13 @@ export default async function CheckoutPage({
                   <>
                     <Link
                       href={tripHref}
-                      className="inline-flex rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                      className="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
                     >
                       View trip
                     </Link>
                     <Link
                       href={itineraryHref}
-                      className="inline-flex rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                      className="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
                     >
                       View itinerary
                     </Link>
@@ -318,24 +343,32 @@ export default async function CheckoutPage({
                 ) : null}
                 <Link
                   href="/flights"
-                  className="inline-flex rounded-xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+                  className="inline-flex min-h-11 items-center justify-center rounded-lg border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
                 >
                   Book another flight
                 </Link>
               </nav>
             </div>
 
-            <aside>
-              <div className="sticky top-6 rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-                <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">
-                  Price Summary
+            {/* Fare receipt */}
+            <aside className="min-w-0">
+              <div className="sticky top-6 min-w-0 bg-white p-4 shadow-[0_8px_30px_rgba(15,23,42,0.06)] sm:p-5">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#0078D2]">
+                  Price summary
                 </p>
 
-                <h2 className="mt-2 text-2xl font-semibold text-slate-950">
+                <h2 className="font-american-sans mt-1.5 text-2xl font-light tracking-[-0.025em] text-slate-950">
                   Your total
                 </h2>
 
-                <div className="mt-5 space-y-3 text-sm">
+                <p
+                  aria-hidden="true"
+                  className="mt-3 text-[9px] font-semibold uppercase tracking-[0.16em] text-slate-400"
+                >
+                  Five Stars • Fare summary
+                </p>
+
+                <div className="mt-4 space-y-3 text-sm">
                   {legs.map((leg) => {
                     const fareCents = resolveSegmentFarePriceCents({
                       farePriceCents: leg.farePriceCents,
@@ -347,15 +380,20 @@ export default async function CheckoutPage({
                     return (
                       <div
                         key={`${leg.segmentType}-${leg.flightId}`}
-                        className="flex justify-between gap-4"
+                        className="flex justify-between gap-4 border-b border-dashed border-slate-200 pb-3"
                       >
-                        <span className="text-slate-600">
-                          {leg.flight.code} · {getFareFamilyLabel(family)}
+                        <span className="min-w-0 text-slate-600">
+                          <span className="fs-nums block font-semibold text-slate-950">
+                            {leg.flight.code}
+                          </span>
                           <span className="mt-0.5 block text-xs text-slate-500">
+                            {getFareFamilyLabel(family)}
+                          </span>
+                          <span className="fs-nums mt-0.5 block text-xs text-slate-500">
                             {passengerCount} × {formatMoney(fareCents)}
                           </span>
                         </span>
-                        <span className="font-medium text-slate-950">
+                        <span className="fs-nums shrink-0 font-medium text-slate-950">
                           {formatMoney(lineTotal)}
                         </span>
                       </div>
@@ -365,14 +403,14 @@ export default async function CheckoutPage({
                   {legs.length === 0 ? (
                     <div className="flex justify-between gap-4">
                       <span className="text-slate-600">Flight subtotal</span>
-                      <span className="font-medium text-slate-950">
+                      <span className="fs-nums font-medium text-slate-950">
                         {formatMoney(booking.subtotal)}
                       </span>
                     </div>
                   ) : (
-                    <div className="flex justify-between gap-4 border-t border-slate-100 pt-3">
+                    <div className="flex justify-between gap-4 pt-1">
                       <span className="text-slate-600">Flight subtotal</span>
-                      <span className="font-medium text-slate-950">
+                      <span className="fs-nums font-medium text-slate-950">
                         {formatMoney(booking.subtotal)}
                       </span>
                     </div>
@@ -380,7 +418,7 @@ export default async function CheckoutPage({
 
                   <div className="flex justify-between gap-4">
                     <span className="text-slate-600">Taxes & fees</span>
-                    <span className="font-medium text-slate-950">
+                    <span className="fs-nums font-medium text-slate-950">
                       {formatMoney(booking.taxesAndFees)}
                     </span>
                   </div>
@@ -388,24 +426,42 @@ export default async function CheckoutPage({
                   {(booking.seatFeesTotal ?? 0) > 0 ? (
                     <div className="flex justify-between gap-4">
                       <span className="text-slate-600">Seat selection</span>
-                      <span className="font-medium text-slate-950">
+                      <span className="fs-nums font-medium text-slate-950">
                         {formatMoney(booking.seatFeesTotal ?? 0)}
                       </span>
                     </div>
                   ) : null}
 
-                  <div className="border-t border-slate-200 pt-3">
+                  <div className="border-t border-dashed border-slate-300 pt-3">
                     <div className="flex items-end justify-between gap-4">
-                      <span className="font-semibold text-slate-950">
+                      <span className="text-sm font-semibold uppercase tracking-[0.1em] text-slate-950">
                         Total
                       </span>
-                      <span className="text-3xl font-semibold tracking-tight text-slate-950">
+                      <span className="fs-nums text-3xl font-semibold tracking-tight text-slate-950">
                         {formatMoney(getBookingAmountDueCents(booking))}
                       </span>
                     </div>
-                    <p className="mt-2 text-right text-xs text-slate-500">
+                    <p className="mt-1 text-right text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400">
                       USD
                     </p>
+                  </div>
+                </div>
+
+                {/* Decorative receipt stub — no fake data */}
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none mt-4 border-t border-dashed border-slate-200 pt-3"
+                >
+                  <div className="flex justify-center gap-[2px]">
+                    {Array.from({ length: 28 }).map((_, index) => (
+                      <span
+                        key={index}
+                        className="h-5 w-[2px] bg-slate-300"
+                        style={{
+                          height: `${8 + ((index * 5) % 14)}px`,
+                        }}
+                      />
+                    ))}
                   </div>
                 </div>
 

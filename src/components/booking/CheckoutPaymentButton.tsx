@@ -54,12 +54,12 @@ export default function CheckoutPaymentButton({
   }
 
   return (
-    <div className="mt-6">
+    <div className="mt-2">
       <button
         type="button"
         onClick={() => void handleClick()}
         disabled={isSubmitting || disabled}
-        className="w-full rounded-xl bg-primary px-5 py-3 font-semibold text-white transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-70"
+        className="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-[#0078D2] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#006bbd] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0078D2]/30 disabled:cursor-not-allowed disabled:opacity-70"
       >
         {isSubmitting ? "Preparing payment..." : "Pay securely"}
       </button>

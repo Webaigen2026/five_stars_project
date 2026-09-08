@@ -19,7 +19,7 @@ export default function CheckoutPaymentPanel({
     paymentAction === "ready" || paymentAction === "unavailable";
 
   return (
-    <div className="mt-5 space-y-3">
+    <div className="mt-5 space-y-3 border-t border-dashed border-slate-200 pt-5">
       <p className="text-sm text-slate-600">
         Seats are subject to availability until payment is confirmed.
       </p>
@@ -34,7 +34,7 @@ export default function CheckoutPaymentPanel({
             type="checkbox"
             checked={confirmed}
             onChange={(event) => setConfirmed(event.target.checked)}
-            className="mt-0.5 h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary/20"
+            className="mt-0.5 h-4 w-4 rounded border-slate-300 text-[#0078D2] focus:ring-[#0078D2]/20"
           />
           <span>
             I confirm that the traveler names and trip details are correct.
@@ -57,7 +57,7 @@ export default function CheckoutPaymentPanel({
           <button
             type="button"
             disabled
-            className="mt-3 w-full cursor-not-allowed rounded-xl bg-slate-300 px-5 py-3 font-semibold text-slate-500"
+            className="mt-3 w-full cursor-not-allowed rounded-lg bg-slate-300 px-5 py-3 text-sm font-semibold text-slate-500"
           >
             Continue to Payment
           </button>
@@ -71,7 +71,7 @@ export default function CheckoutPaymentPanel({
           </p>
           <Link
             href="/login"
-            className="mt-3 inline-flex w-full items-center justify-center rounded-xl bg-primary px-5 py-3 font-semibold text-white transition hover:bg-primary-hover"
+            className="mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-[#0078D2] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#006bbd]"
           >
             Sign in to continue
           </Link>
