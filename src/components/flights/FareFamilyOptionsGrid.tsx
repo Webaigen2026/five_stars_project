@@ -1,6 +1,9 @@
 "use client";
 
-import FareOptionCard, { type FareOptionCardModel } from "./FareOptionCard";
+import FareOptionCard, {
+  type FareOptionCardModel,
+} from "./FareOptionCard";
+
 import {
   listFareFamilyOptions,
   type FareFamily,
@@ -19,18 +22,37 @@ export default function FareFamilyOptionsGrid({
   onSelect,
   hrefForFamily,
 }: FareFamilyOptionsGridProps) {
-  const options: FareOptionCardModel[] = listFareFamilyOptions(basePriceCents);
+  const options: FareOptionCardModel[] =
+    listFareFamilyOptions(basePriceCents);
 
   return (
-    <div className="grid gap-4 lg:grid-cols-3 lg:items-stretch lg:gap-5">
+    <div
+      className="
+        grid
+        min-w-0
+        grid-cols-1
+        gap-5
+        md:grid-cols-2
+        xl:grid-cols-3
+        xl:items-stretch
+        xl:gap-6
+      "
+    >
       {options.map((option) => (
-        <FareOptionCard
+        <div
           key={option.family}
-          option={option}
-          disabled={disabled}
-          onSelect={onSelect}
-          href={hrefForFamily?.(option.family)}
-        />
+          className="
+            min-w-0
+            xl:h-full
+          "
+        >
+          <FareOptionCard
+            option={option}
+            disabled={disabled}
+            onSelect={onSelect}
+            href={hrefForFamily?.(option.family)}
+          />
+        </div>
       ))}
     </div>
   );

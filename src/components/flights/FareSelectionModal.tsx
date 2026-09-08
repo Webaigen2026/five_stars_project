@@ -3,7 +3,9 @@
 import { useEffect, useId, useRef, useState } from "react";
 
 import FareFamilyOptionsGrid from "./FareFamilyOptionsGrid";
+
 import type { FareFamily } from "../../lib/fare-families";
+
 import {
   formatArrivalTime,
   formatDepartureDateShort,
@@ -41,14 +43,106 @@ function CloseIcon() {
       className="h-4 w-4"
       fill="none"
       stroke="currentColor"
-      strokeWidth="2"
+      strokeWidth="1.8"
     >
       <path d="M5 5l10 10M15 5 5 15" strokeLinecap="round" />
     </svg>
   );
 }
 
-function FlightSummaryStrip({
+function ArrowRightIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-4 w-4"
+      aria-hidden="true"
+    >
+      <path d="M5 12h14" />
+      <path d="m13 6 6 6-6 6" />
+    </svg>
+  );
+}
+
+function TicketCorners() {
+  return (
+    <>
+      <span
+        aria-hidden="true"
+        className="
+          pointer-events-none
+          absolute
+          -left-4
+          -top-4
+          z-20
+          hidden
+          h-8
+          w-8
+          rounded-full
+          bg-slate-100
+          sm:block
+        "
+      />
+
+      <span
+        aria-hidden="true"
+        className="
+          pointer-events-none
+          absolute
+          -right-4
+          -top-4
+          z-20
+          hidden
+          h-8
+          w-8
+          rounded-full
+          bg-slate-100
+          sm:block
+        "
+      />
+
+      <span
+        aria-hidden="true"
+        className="
+          pointer-events-none
+          absolute
+          -bottom-4
+          -left-4
+          z-20
+          hidden
+          h-8
+          w-8
+          rounded-full
+          bg-slate-100
+          sm:block
+        "
+      />
+
+      <span
+        aria-hidden="true"
+        className="
+          pointer-events-none
+          absolute
+          -bottom-4
+          -right-4
+          z-20
+          hidden
+          h-8
+          w-8
+          rounded-full
+          bg-slate-100
+          sm:block
+        "
+      />
+    </>
+  );
+}
+
+function FlightSummaryTicket({
   flight,
   passengerCount,
 }: {
@@ -56,49 +150,222 @@ function FlightSummaryStrip({
   passengerCount: number;
 }) {
   return (
-    <div className="mt-2.5 rounded-2xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 sm:px-4 sm:py-3">
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-        <span className="rounded-full bg-sky-50 px-2.5 py-0.5 text-xs font-semibold text-primary">
-          {flight.code}
-        </span>
-        <span className="text-xs font-medium text-slate-500">
-          {formatDepartureDateShort(flight)}
-        </span>
-        <span className="text-xs text-slate-500">
-          {passengerCount}{" "}
-          {passengerCount === 1 ? "passenger" : "passengers"}
-        </span>
+    <div
+      className="
+        relative
+        mt-4
+        overflow-hidden
+        bg-slate-50/75
+      "
+    >
+      {/* Top perforation */}
+      <div
+        className="
+          relative
+          border-b
+          border-dashed
+          border-slate-300
+          px-4
+          py-3.5
+          sm:px-5
+        "
+      >
+        <span
+          aria-hidden="true"
+          className="
+            pointer-events-none
+            absolute
+            -bottom-3
+            -left-3
+            h-6
+            w-6
+            rounded-full
+            bg-white
+          "
+        />
+
+        <span
+          aria-hidden="true"
+          className="
+            pointer-events-none
+            absolute
+            -bottom-3
+            -right-3
+            h-6
+            w-6
+            rounded-full
+            bg-white
+          "
+        />
+
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <span
+            className="
+              inline-flex
+              rounded-full
+              bg-[#0078D2]/[0.07]
+              px-3
+              py-1.5
+              text-[10px]
+              font-semibold
+              uppercase
+              tracking-[0.1em]
+              text-[#0078D2]
+            "
+          >
+            {flight.code}
+          </span>
+
+          <span className="text-xs font-medium text-slate-500">
+            {formatDepartureDateShort(flight)}
+          </span>
+
+          <span
+            aria-hidden="true"
+            className="hidden h-1 w-1 rounded-full bg-slate-300 sm:block"
+          />
+
+          <span className="text-xs text-slate-500">
+            {passengerCount}{" "}
+            {passengerCount === 1 ? "passenger" : "passengers"}
+          </span>
+        </div>
       </div>
 
-      <div className="mt-2.5 grid gap-2.5 sm:grid-cols-[1fr_auto_1fr] sm:items-center">
+      {/* Route */}
+      <div
+        className="
+          grid
+          gap-5
+          px-4
+          py-5
+          sm:grid-cols-[minmax(0,1fr)_minmax(160px,220px)_minmax(0,1fr)]
+          sm:items-center
+          sm:px-5
+        "
+      >
+        {/* Departure */}
         <div className="min-w-0">
-          <p className="text-lg font-semibold text-slate-950 sm:text-xl">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+            Departure
+          </p>
+
+          <p
+            className="
+              font-american-sans
+              mt-1.5
+              text-2xl
+              font-light
+              tracking-[-0.025em]
+              text-slate-950
+            "
+          >
             {formatDepartureTime(flight)}
           </p>
-          <p className="mt-0.5 text-sm font-semibold text-slate-900">
+
+          <p className="mt-1 text-sm font-semibold text-[#0078D2]">
             {flight.originCode}
           </p>
-          <p className="truncate text-xs text-slate-500">{flight.origin}</p>
-        </div>
 
-        <div className="min-w-0 text-left sm:min-w-28 sm:px-2 sm:text-center">
-          <p className="text-[10px] font-medium uppercase tracking-wider text-slate-400">
-            {formatDuration(flight.durationMinutes)} · Nonstop
-          </p>
-          <div className="my-1.5 h-px bg-slate-300" />
-          <p className="text-[10px] text-slate-400" aria-hidden="true">
-            →
+          <p className="mt-1 truncate text-xs text-slate-500">
+            {flight.origin}
           </p>
         </div>
 
+        {/* Flight path */}
+        <div className="min-w-0">
+          <div className="flex items-center justify-center gap-2">
+            <span className="h-px w-4 bg-slate-200" />
+
+            <p className="text-[9px] font-semibold uppercase tracking-[0.12em] text-slate-400">
+              {formatDuration(flight.durationMinutes)}
+            </p>
+
+            <span className="h-px w-4 bg-slate-200" />
+          </div>
+
+          <div className="mt-3 flex items-center">
+            <span
+              className="
+                h-2
+                w-2
+                shrink-0
+                rounded-full
+                border-2
+                border-[#0078D2]
+                bg-white
+              "
+            />
+
+            <div className="relative flex-1 px-1">
+              <div className="border-t border-dashed border-slate-300" />
+
+              <span
+                className="
+                  absolute
+                  left-1/2
+                  top-1/2
+                  flex
+                  h-7
+                  w-7
+                  -translate-x-1/2
+                  -translate-y-1/2
+                  items-center
+                  justify-center
+                  rounded-full
+                  border
+                  border-slate-200
+                  bg-white
+                  text-[#0078D2]
+                  shadow-sm
+                "
+              >
+                <ArrowRightIcon />
+              </span>
+            </div>
+
+            <span
+              className="
+                h-2
+                w-2
+                shrink-0
+                rounded-full
+                border-2
+                border-[#0078D2]
+                bg-white
+              "
+            />
+          </div>
+
+          <p className="mt-3 text-center text-[9px] font-semibold uppercase tracking-[0.12em] text-slate-400">
+            Nonstop
+          </p>
+        </div>
+
+        {/* Arrival */}
         <div className="min-w-0 sm:text-right">
-          <p className="text-lg font-semibold text-slate-950 sm:text-xl">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+            Arrival
+          </p>
+
+          <p
+            className="
+              font-american-sans
+              mt-1.5
+              text-2xl
+              font-light
+              tracking-[-0.025em]
+              text-slate-950
+            "
+          >
             {formatArrivalTime(flight)}
           </p>
-          <p className="mt-0.5 text-sm font-semibold text-slate-900">
+
+          <p className="mt-1 text-sm font-semibold text-[#0078D2]">
             {flight.destinationCode}
           </p>
-          <p className="truncate text-xs text-slate-500">
+
+          <p className="mt-1 truncate text-xs text-slate-500">
             {flight.destination}
           </p>
         </div>
@@ -116,11 +383,14 @@ export default function FareSelectionModal({
   onSelectFare,
 }: FareSelectionModalProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
+
   const titleId = useId();
+
   const [isNavigating, setIsNavigating] = useState(false);
 
   useEffect(() => {
     const dialog = dialogRef.current;
+
     if (!dialog) {
       return;
     }
@@ -129,6 +399,7 @@ export default function FareSelectionModal({
       if (!dialog.open) {
         dialog.showModal();
       }
+
       setIsNavigating(false);
     } else if (dialog.open) {
       dialog.close();
@@ -145,7 +416,9 @@ export default function FareSelectionModal({
     if (isNavigating) {
       return;
     }
+
     setIsNavigating(true);
+
     onSelectFare(family);
   }
 
@@ -155,55 +428,189 @@ export default function FareSelectionModal({
       role="dialog"
       aria-modal="true"
       aria-labelledby={titleId}
-      className="fixed inset-0 m-0 max-h-none w-full max-w-none border-0 bg-transparent p-0 open:flex open:items-end open:justify-center open:sm:items-center [&::backdrop]:bg-slate-950/40"
+      className="
+        fixed
+        inset-0
+        m-0
+        max-h-none
+        w-full
+        max-w-none
+        border-0
+        bg-transparent
+        p-0
+        open:flex
+        open:items-end
+        open:justify-center
+        open:sm:items-center
+        [&::backdrop]:bg-slate-950/45
+        [&::backdrop]:backdrop-blur-[2px]
+      "
       onClose={onClose}
       onCancel={(event) => {
         event.preventDefault();
+
         if (!isNavigating) {
           onClose();
         }
       }}
       onClick={(event) => {
-        if (event.target === dialogRef.current && !isNavigating) {
+        if (
+          event.target === dialogRef.current &&
+          !isNavigating
+        ) {
           onClose();
         }
       }}
     >
       <div
-        className="mx-auto flex max-h-[100dvh] w-full max-w-5xl flex-col overflow-hidden rounded-t-3xl border border-slate-200 bg-white shadow-xl sm:max-h-[min(90dvh,52rem)] sm:rounded-3xl"
+        className="
+          relative
+          mx-auto
+          flex
+          max-h-[100dvh]
+          w-full
+          max-w-6xl
+          flex-col
+          overflow-hidden
+          bg-white
+          shadow-[0_24px_80px_rgba(15,23,42,0.22)]
+          sm:max-h-[min(92dvh,56rem)]
+        "
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="relative shrink-0 border-b border-slate-200 px-4 pb-3.5 pt-3.5 sm:px-6 sm:pb-4 sm:pt-4">
+        <TicketCorners />
+
+        {/* =====================================================
+            MODAL HEADER
+        ===================================================== */}
+        <header
+          className="
+            relative
+            shrink-0
+            border-b
+            border-dashed
+            border-slate-300
+            px-4
+            pb-5
+            pt-5
+            sm:px-6
+            sm:pb-6
+            sm:pt-6
+            lg:px-8
+          "
+        >
+          {/* Perforation cutouts */}
+          <span
+            aria-hidden="true"
+            className="
+              pointer-events-none
+              absolute
+              -bottom-3
+              -left-3
+              z-20
+              h-6
+              w-6
+              rounded-full
+              bg-slate-100
+            "
+          />
+
+          <span
+            aria-hidden="true"
+            className="
+              pointer-events-none
+              absolute
+              -bottom-3
+              -right-3
+              z-20
+              h-6
+              w-6
+              rounded-full
+              bg-slate-100
+            "
+          />
+
+          {/* Close */}
           <button
             type="button"
             onClick={onClose}
             disabled={isNavigating}
-            className="absolute right-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 disabled:opacity-50 sm:right-4 sm:top-4"
+            className="
+              absolute
+              right-4
+              top-4
+              z-30
+              inline-flex
+              h-10
+              w-10
+              items-center
+              justify-center
+              rounded-full
+              border
+              border-slate-200
+              bg-white
+              text-slate-500
+              shadow-sm
+              transition
+              hover:border-slate-300
+              hover:bg-slate-50
+              hover:text-slate-950
+              focus-visible:outline-none
+              focus-visible:ring-2
+              focus-visible:ring-[#0078D2]/30
+              disabled:cursor-not-allowed
+              disabled:opacity-50
+              sm:right-6
+              sm:top-6
+            "
             aria-label="Close fare selection"
           >
             <CloseIcon />
           </button>
 
-          <div className="min-w-0 pr-12">
-            <p
-              id={titleId}
-              className="text-xs font-semibold uppercase tracking-[0.18em] text-primary sm:text-sm"
-            >
-              Choose your fare
-            </p>
-            <p className="mt-1 text-base font-semibold text-slate-950 sm:text-lg">
-              {legLabel}
-            </p>
-            {flight ? (
-              <FlightSummaryStrip
-                flight={flight}
-                passengerCount={passengerCount}
-              />
-            ) : null}
-          </div>
-        </div>
+          <div className="min-w-0 pr-14">
+        
 
-        <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3.5 sm:px-6 sm:py-4">
+            <h2
+              className="
+                font-american-sans
+                mt-2
+                text-2xl
+                font-light
+                tracking-[-0.025em]
+                text-slate-950
+                sm:text-3xl
+              "
+            >
+              {legLabel}
+            </h2>
+
+            <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-600">
+              Compare the available fare families and select the option that
+              works best for your trip.
+            </p>
+
+            
+          </div>
+        </header>
+
+        {/* =====================================================
+            FARE OPTIONS
+        ===================================================== */}
+        <div
+          className="
+            min-h-0
+            flex-1
+            overflow-y-auto
+            px-4
+            py-5
+            sm:px-6
+            sm:py-6
+            lg:px-8
+          "
+        >
+          
+
           {flight ? (
             <FareFamilyOptionsGrid
               basePriceCents={flight.price}
@@ -212,6 +619,27 @@ export default function FareSelectionModal({
             />
           ) : null}
         </div>
+
+        {/* =====================================================
+            MODAL FOOTER
+        ===================================================== */}
+        <footer
+          className="
+            shrink-0
+            border-t
+            border-dashed
+            border-slate-300
+            bg-slate-50/60
+            px-4
+            py-3
+            text-center
+            sm:px-6
+          "
+        >
+          <p className="text-[9px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+            Five Stars • Fare selection
+          </p>
+        </footer>
       </div>
     </dialog>
   );

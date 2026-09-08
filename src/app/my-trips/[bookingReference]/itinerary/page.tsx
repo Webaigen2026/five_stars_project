@@ -98,17 +98,17 @@ export default async function ItineraryPage({ params }: ItineraryPageProps) {
 
       <main className="min-h-screen bg-slate-50 print:min-h-0 print:bg-white">
         <section className="print-itinerary mx-auto max-w-4xl px-4 py-8 sm:px-6 sm:py-10 print:max-w-none print:px-0 print:py-0">
-          <div className="print-hide mb-6 flex flex-wrap items-center justify-between gap-3">
-            <div className="flex flex-wrap gap-4">
+          <div className="print-hide mb-5 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
               <Link
                 href={tripHref}
-                className="text-sm font-semibold text-primary transition hover:text-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                className="text-sm font-medium text-slate-600 transition hover:text-[#0078D2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0078D2]/30"
               >
                 ← Back to trip
               </Link>
               <Link
                 href="/my-trips"
-                className="text-sm font-semibold text-primary transition hover:text-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+                className="text-sm font-medium text-slate-600 transition hover:text-[#0078D2] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0078D2]/30"
               >
                 Back to My Trips
               </Link>
