@@ -1,14 +1,12 @@
 import Footer from "../components/layout/Footer";
 import Header from "../components/layout/Header";
 import FAQSection from "../components/layout/FAQSection";
-
 import HeroSearch from "../components/home/Hero/HeroSearch";
-
 import TravelPromoSection from "../components/layout/TravelPromoSection1";
 import RouteMap from "../components/layout/RouteMap";
 import RavelDealsCarousel from "../components/layout/raveldealscarousel";
-
 import ScrollReveal from "../components/ui/ScrollReveal";
+import FiveStarsAssistant from "../components/assistant/FiveStarsAssistant";
 
 export default function HomePage() {
   return (
@@ -16,31 +14,28 @@ export default function HomePage() {
       <Header />
 
       <main className="flex w-full min-w-0 max-w-full flex-1 flex-col">
-        {/* Hero */}
         <HeroSearch />
 
-        {/* Featured destination / flight alerts */}
         <ScrollReveal>
           <TravelPromoSection />
         </ScrollReveal>
 
-        {/* Featured fares */}
         <ScrollReveal delay={80}>
           <RavelDealsCarousel />
         </ScrollReveal>
 
-        {/* Five Stars route network */}
         <ScrollReveal delay={100}>
           <RouteMap />
         </ScrollReveal>
 
-        {/* FAQ */}
         <ScrollReveal delay={120}>
           <FAQSection />
         </ScrollReveal>
       </main>
 
       <Footer />
+
+      <FiveStarsAssistant />
     </>
   );
 }
