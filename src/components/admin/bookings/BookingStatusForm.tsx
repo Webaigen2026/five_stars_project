@@ -9,12 +9,48 @@ type BookingStatusFormProps = {
   allowedTransitions: string[];
 };
 
+function ChevronDownIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-4 w-4"
+      aria-hidden="true"
+    >
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  );
+}
+
+function ArrowRightIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-4 w-4"
+      aria-hidden="true"
+    >
+      <path d="M5 12h14" />
+      <path d="m13 6 6 6-6 6" />
+    </svg>
+  );
+}
+
 export default function BookingStatusForm({
   bookingId,
   currentStatus,
   allowedTransitions,
 }: BookingStatusFormProps) {
   const router = useRouter();
+
   const [status, setStatus] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -25,9 +61,34 @@ export default function BookingStatusForm({
 
   if (allowedTransitions.length === 0) {
     return (
-      <p className="mt-6 text-sm text-slate-600">
-        No manual status changes available.
-      </p>
+      <div
+        className="
+          mt-6
+          border-t
+          border-dashed
+          border-slate-200
+          pt-5
+        "
+      >
+        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+          Status management
+        </p>
+
+        <div
+          className="
+            mt-3
+            border-l-2
+            border-slate-300
+            bg-slate-50/70
+            px-4
+            py-3
+          "
+        >
+          <p className="text-sm leading-6 text-slate-600">
+            No manual status changes are available for this booking.
+          </p>
+        </div>
+      </div>
     );
   }
 
@@ -68,43 +129,169 @@ export default function BookingStatusForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mt-6 flex flex-wrap items-end gap-3">
-      <div className="min-w-56 flex-1">
-        <label
-          htmlFor="booking-status"
-          className="mb-2 block text-sm font-medium text-slate-700"
-        >
-          Next status
-        </label>
-        <select
-          id="booking-status"
-          value={status}
-          required
-          onChange={(event) => setStatus(event.target.value)}
-          className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-        >
-          <option value="" disabled>
-            Select a new status
-          </option>
-          {allowedTransitions.map((value) => (
-            <option key={value} value={value}>
-              {value}
-            </option>
-          ))}
-        </select>
+    <form
+      onSubmit={handleSubmit}
+      className="
+        mt-6
+        border-t
+        border-dashed
+        border-slate-200
+        pt-5
+      "
+    >
+      {/* Header */}
+      <div className="mb-4">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#0078D2]">
+          Status management
+        </p>
+
+        <p className="mt-1.5 text-sm leading-6 text-slate-600">
+          Choose the next valid status for this booking.
+        </p>
       </div>
 
-      <button
-        type="submit"
-        disabled={isSubmitting || !status}
-        className="rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-70"
+      {/* Controls */}
+      <div
+        className="
+          grid
+          gap-3
+          sm:grid-cols-[minmax(0,1fr)_auto]
+          sm:items-end
+        "
       >
-        {isSubmitting ? "Saving..." : "Update status"}
-      </button>
+        <div className="min-w-0">
+          <label
+            htmlFor="booking-status"
+            className="
+              mb-2
+              block
+              text-[11px]
+              font-semibold
+              uppercase
+              tracking-[0.12em]
+              text-slate-500
+            "
+          >
+            Next status
+          </label>
 
-      {error && (
-        <p className="w-full text-sm font-medium text-red-600">{error}</p>
-      )}
+          <div className="relative">
+            <select
+              id="booking-status"
+              value={status}
+              required
+              onChange={(event) => {
+                setStatus(event.target.value);
+                setError(null);
+              }}
+              className="
+                min-h-12
+                w-full
+                appearance-none
+                rounded-lg
+                border
+                border-slate-300
+                bg-white
+                px-4
+                py-3
+                pr-11
+                text-sm
+                font-medium
+                text-slate-950
+                outline-none
+                transition
+                hover:border-slate-400
+                focus:border-[#0078D2]
+                focus:ring-2
+                focus:ring-[#0078D2]/15
+              "
+            >
+              <option value="" disabled>
+                Select a new status
+              </option>
+
+              {allowedTransitions.map((value) => (
+                <option key={value} value={value}>
+                  {value}
+                </option>
+              ))}
+            </select>
+
+            <span
+              aria-hidden="true"
+              className="
+                pointer-events-none
+                absolute
+                right-4
+                top-1/2
+                -translate-y-1/2
+                text-slate-400
+              "
+            >
+              <ChevronDownIcon />
+            </span>
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          disabled={isSubmitting || !status}
+          className="
+            group
+            inline-flex
+            min-h-12
+            items-center
+            justify-center
+            gap-2
+            rounded-lg
+            bg-[#0078D2]
+            px-5
+            py-3
+            text-sm
+            font-semibold
+            text-white
+            shadow-[0_4px_12px_rgba(0,120,210,0.16)]
+            transition
+            hover:bg-[#006bbd]
+            hover:shadow-[0_7px_18px_rgba(0,120,210,0.22)]
+            focus-visible:outline-none
+            focus-visible:ring-2
+            focus-visible:ring-[#0078D2]/30
+            focus-visible:ring-offset-2
+            disabled:cursor-not-allowed
+            disabled:opacity-50
+            disabled:shadow-none
+            sm:min-w-[155px]
+          "
+        >
+          <span>{isSubmitting ? "Saving..." : "Update status"}</span>
+
+          {!isSubmitting ? (
+            <span className="transition-transform duration-200 group-hover:translate-x-0.5">
+              <ArrowRightIcon />
+            </span>
+          ) : null}
+        </button>
+      </div>
+
+      {/* Error */}
+      {error ? (
+        <div
+          role="alert"
+          className="
+            mt-4
+            border-l-2
+            border-rose-500
+            bg-rose-50
+            px-4
+            py-3
+          "
+        >
+          <p className="text-sm font-medium text-rose-700">
+            {error}
+          </p>
+        </div>
+      ) : null}
     </form>
   );
 }

@@ -17,7 +17,7 @@ export default async function AdminLayout({ children }: LayoutProps<"/admin">) {
   const user = await requireStaffOrAdmin();
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen ">
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-6 py-5">
           <div>
