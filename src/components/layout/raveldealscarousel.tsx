@@ -6,10 +6,8 @@ import {
   useRef,
   useState,
 } from "react";
-
 import Image from "next/image";
 import Link from "next/link";
-
 import {
   ArrowRight,
   ArrowUpRight,
@@ -36,8 +34,7 @@ const deals: TravelDeal[] = [
     duration: "1h 44m, non-stop",
     dateRange: "Thu 8/20 – Mon 8/24",
     priceFrom: 109,
-    imageUrl:
-      "/location/CitadelleLaferriereHaiti.jpg",
+    imageUrl: "/location/CitadelleLaferriereHaiti.jpg",
     imageAlt: "Travel destination",
   },
   {
@@ -45,8 +42,7 @@ const deals: TravelDeal[] = [
     duration: "1h 43m, non-stop",
     dateRange: "Tue 8/25 – Sat 8/29",
     priceFrom: 117,
-    imageUrl:
-      "/location/mid-beach-aerial1-1440x900.jpg",
+    imageUrl: "/location/mid-beach-aerial1-1440x900.jpg",
     imageAlt: "Travel destination",
   },
   {
@@ -136,201 +132,189 @@ export default function TravelDealsCarousel() {
   }
 
   return (
-    <section
-      className="
-        relative
-        overflow-hidden
-        bg-white
-        py-14
-        sm:py-16
-        lg:py-20
-      "
-    >
-      {/*
-        Bottom half background.
-
-        The section itself is `relative`, so this layer is
-        anchored specifically to TravelDealsCarousel.
-
-        It starts at exactly 50% of the section height and
-        continues all the way to the bottom.
-      */}
-      <div
-        aria-hidden="true"
-        className="
-          pointer-events-none
-          absolute
-          inset-x-0
-          bottom-0
-          z-0
-          h-[50%]
-          bg-[#DCEAF6]
-        "
-      />
-
-      {/*
-        Soft transition just above the 50% boundary.
-
-        This prevents the white -> blue transition from
-        looking like a harsh horizontal stripe.
-      */}
-      <div
-        aria-hidden="true"
-        className="
-          pointer-events-none
-          absolute
-          inset-x-0
-          top-1/2
-          z-0
-          h-20
-          -translate-y-full
-          bg-gradient-to-b
-          from-transparent
-          via-[#DCEAF6]/10
-          to-[#DCEAF6]/35
-        "
-      />
-
-      {/*
-        Content sits above both decorative background layers.
-      */}
+    <section className="relative overflow-hidden bg-white">
       <div
         className="
-          relative
-          z-10
           mx-auto
           w-full
-          max-w-[1600px]
-          px-4
+          max-w-[1540px]
+          px-5
+          py-16
           sm:px-6
+          sm:py-20
           lg:px-10
-          xl:px-16
+          lg:py-24
+          xl:px-12
         "
       >
-        {/* Header */}
+        {/* =========================================================
+            SECTION HEADER
+        ========================================================== */}
+
         <div
           className="
-            mb-10
-            flex
-            flex-col
-            gap-6
             border-b
-            border-slate-300/80
+            border-slate-200
             pb-7
-            sm:flex-row
-            sm:items-end
-            sm:justify-between
-            lg:mb-12
+            sm:pb-8
           "
         >
-          <div className="max-w-2xl">
-            {/* <p
-              className="
-                text-xs
-                font-semibold
-                uppercase
-                tracking-[0.18em]
-                text-primary
-              "
-            >
-              Featured fares
-            </p> */}
-
-            <h2
-              className="
-                font-american-sans
-                mt-3
-                text-3xl
-                font-light
-                tracking-[-0.025em]
-                text-slate-950
-                sm:text-4xl
-                lg:text-[42px]
-                lg:leading-[1.1]
-              "
-            >
-              Travel deals worth checking out.
-            </h2>
-
-            <p
-              className="
-                mt-4
-                max-w-xl
-                text-base
-                leading-7
-                text-slate-600
-                sm:text-lg
-              "
-            >
-              Explore selected fares and find a trip
-              that fits your schedule and budget.
-            </p>
-          </div>
-
-          <Link
-            href="/flights"
+          <div
             className="
-              group
-              inline-flex
-              w-fit
-              items-center
-              gap-2
-              border-b
-              border-primary/40
-              pb-1
-              text-sm
-              font-semibold
-              text-primary
-              transition-all
-              duration-300
-              hover:border-primary
-              hover:text-primary-hover
-              focus-visible:outline-none
-              focus-visible:ring-2
-              focus-visible:ring-primary/30
+              flex
+              flex-col
+              gap-7
+              lg:flex-row
+              lg:items-end
+              lg:justify-between
             "
           >
-            Explore all deals
+            <div className="max-w-[700px]">
+              <div className="flex items-center gap-3">
+                <span
+                  aria-hidden="true"
+                  className="h-px w-7 bg-[#0078D2]"
+                />
 
-            <ArrowUpRight
+                <p
+                  className="
+                    text-[11px]
+                    font-semibold
+                    uppercase
+                    tracking-[0.19em]
+                    text-[#0078D2]
+                  "
+                >
+                  Featured fares
+                </p>
+              </div>
+
+              <h2
+                className="
+                  mt-4
+                  font-american-sans
+                  text-[32px]
+                  font-light
+                  leading-[1.1]
+                  tracking-[-0.035em]
+                  text-slate-950
+                  sm:text-[38px]
+                  lg:text-[42px]
+                "
+              >
+                Explore current fares.
+              </h2>
+
+              <p
+                className="
+                  mt-4
+                  max-w-[590px]
+                  text-[15px]
+                  leading-6
+                  text-slate-600
+                  sm:text-base
+                  sm:leading-7
+                "
+              >
+                Browse selected round-trip fares and
+                find a trip that fits your schedule.
+              </p>
+            </div>
+
+            <div
               className="
-                h-4
-                w-4
-                transition-transform
-                duration-300
-                group-hover:-translate-y-0.5
-                group-hover:translate-x-0.5
+                flex
+                items-center
+                justify-between
+                gap-5
+                sm:justify-start
+                lg:justify-end
               "
-              aria-hidden="true"
-            />
-          </Link>
+            >
+              <Link
+                href="/flights"
+                className="
+                  group
+                  inline-flex
+                  items-center
+                  gap-2
+                  text-sm
+                  font-semibold
+                  text-slate-900
+                  transition-colors
+                  hover:text-[#0078D2]
+                  focus-visible:outline-none
+                  focus-visible:ring-2
+                  focus-visible:ring-[#0078D2]/30
+                  focus-visible:ring-offset-4
+                "
+              >
+                View all fares
+
+                <ArrowUpRight
+                  aria-hidden="true"
+                  className="
+                    h-4
+                    w-4
+                    text-[#0078D2]
+                    transition-transform
+                    duration-200
+                    group-hover:-translate-y-0.5
+                    group-hover:translate-x-0.5
+                  "
+                />
+              </Link>
+
+              <div className="flex items-center">
+                <NavButton
+                  direction="prev"
+                  disabled={mounted && atStart}
+                  onClick={() =>
+                    scrollByCard("prev")
+                  }
+                />
+
+                <NavButton
+                  direction="next"
+                  disabled={mounted && atEnd}
+                  onClick={() =>
+                    scrollByCard("next")
+                  }
+                />
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Carousel — width-bounded viewport; horizontal scroll stays internal */}
-        <div className="w-full min-w-0 max-w-full">
+        {/* =========================================================
+            DEAL CAROUSEL
+        ========================================================== */}
+
+        <div className="mt-8 sm:mt-10">
           <div
             ref={trackRef}
             onScroll={updateEdges}
             className="
-              -mx-4
+              -mx-5
               flex
-              w-auto
-              min-w-0
-              max-w-none
               snap-x
               snap-mandatory
-              gap-5
+              gap-4
               overflow-x-auto
               overscroll-x-contain
-              px-4
-              pb-4
+              px-5
+              pb-2
               scroll-smooth
               [scrollbar-width:none]
+
               sm:-mx-6
+              sm:gap-5
               sm:px-6
+
               lg:mx-0
-              lg:gap-6
+              lg:gap-5
               lg:px-0
+
               [&::-webkit-scrollbar]:hidden
             "
           >
@@ -343,24 +327,44 @@ export default function TravelDealsCarousel() {
           </div>
         </div>
 
-        {/* Navigation */}
-        <div className="mt-6 flex items-center justify-end gap-2">
-          <NavButton
-            direction="prev"
-            disabled={mounted && atStart}
-            onClick={() => scrollByCard("prev")}
-          />
+        {/* =========================================================
+            DISCLAIMER / UTILITY LINE
+        ========================================================== */}
 
-          <NavButton
-            direction="next"
-            disabled={mounted && atEnd}
-            onClick={() => scrollByCard("next")}
-          />
+        <div
+          className="
+            mt-8
+            flex
+            flex-col
+            gap-2
+            border-t
+            border-slate-200
+            pt-5
+            text-[12px]
+            leading-5
+            text-slate-500
+            sm:flex-row
+            sm:items-center
+            sm:justify-between
+          "
+        >
+          <p>
+            Fares shown are sample round-trip prices
+            and may vary by travel date and availability.
+          </p>
+
+          <p className="shrink-0">
+            Prices shown in USD.
+          </p>
         </div>
       </div>
     </section>
   );
 }
+
+/* ===============================================================
+   DEAL CARD
+================================================================ */
 
 function DealCard({
   deal,
@@ -372,48 +376,56 @@ function DealCard({
       className="
         group
         flex
-        w-[84vw]
-        max-w-[380px]
+        w-[86vw]
+        max-w-[350px]
         shrink-0
         snap-start
         flex-col
+        overflow-hidden
         border
         border-slate-200
         bg-white
-        shadow-[0_8px_24px_rgba(15,23,42,0.06)]
-        transition-all
-        duration-300
-        hover:-translate-y-1
-        hover:border-slate-300
-        hover:shadow-[0_16px_34px_rgba(15,23,42,0.10)]
-        sm:w-[360px]
+
+        sm:w-[340px]
         sm:max-w-none
-        lg:w-[390px]
-        xl:w-[410px]
+
+        lg:w-[calc((100%-2.5rem)/3)]
+        lg:min-w-[300px]
+
+        xl:min-w-[350px]
       "
     >
-      {/* Image */}
-      <div className="relative h-56 overflow-hidden bg-slate-100 lg:h-60">
+      {/* IMAGE */}
+
+      <div
+        className="
+          relative
+          h-[190px]
+          overflow-hidden
+          bg-slate-100
+          sm:h-[205px]
+          lg:h-[215px]
+        "
+      >
         <Image
           src={deal.imageUrl}
           alt={deal.imageAlt}
           fill
           sizes="
-            (min-width: 1280px) 410px,
-            (min-width: 1024px) 390px,
-            (min-width: 640px) 360px,
-            84vw
+            (min-width: 1280px) 350px,
+            (min-width: 1024px) 32vw,
+            (min-width: 640px) 340px,
+            86vw
           "
           className="
             object-cover
             transition-transform
-            duration-700
+            duration-500
             ease-out
-            group-hover:scale-[1.03]
+            group-hover:scale-[1.02]
           "
         />
 
-        {/* Image shading */}
         <div
           aria-hidden="true"
           className="
@@ -421,32 +433,42 @@ function DealCard({
             absolute
             inset-0
             bg-gradient-to-t
-            from-slate-950/45
-            via-slate-950/[0.03]
+            from-slate-950/65
+            via-slate-950/5
             to-transparent
           "
         />
 
-        {/* Destination */}
         <div
           className="
             absolute
             inset-x-0
             bottom-0
-            border-t
-            border-white/20
-            bg-slate-950/20
             px-5
-            py-4
-            backdrop-blur-[2px]
+            pb-5
+            pt-12
           "
         >
+          <p
+            className="
+              mb-1
+              text-[10px]
+              font-semibold
+              uppercase
+              tracking-[0.18em]
+              text-white/75
+            "
+          >
+            Destination
+          </p>
+
           <h3
             className="
               font-american-sans
-              text-2xl
+              text-[25px]
               font-light
-              tracking-[-0.02em]
+              leading-tight
+              tracking-[-0.025em]
               text-white
             "
           >
@@ -455,67 +477,129 @@ function DealCard({
         </div>
       </div>
 
-      {/* Card content */}
-      <div className="flex flex-1 flex-col px-5 py-5 sm:px-6">
-        {/* Flight type */}
-        <div className="flex items-center gap-2 text-sm text-slate-600">
+      {/* DETAILS */}
+
+      <div
+        className="
+          flex
+          flex-1
+          flex-col
+          px-5
+          py-5
+        "
+      >
+        <div
+          className="
+            flex
+            items-center
+            gap-2
+            text-[13px]
+            font-medium
+            text-slate-700
+          "
+        >
           <Plane
-            className="h-4 w-4 shrink-0 text-primary"
             aria-hidden="true"
+            className="
+              h-[15px]
+              w-[15px]
+              shrink-0
+              text-[#0078D2]
+            "
           />
 
           <span>Non-stop</span>
         </div>
 
-        {/* Duration */}
-        <div className="mt-3 flex items-center gap-2 text-sm text-slate-600">
+        <div
+          className="
+            mt-3
+            flex
+            items-center
+            gap-2
+            text-[13px]
+            text-slate-600
+          "
+        >
           <Clock3
-            className="h-4 w-4 shrink-0 text-primary"
             aria-hidden="true"
+            className="
+              h-[15px]
+              w-[15px]
+              shrink-0
+              text-[#0078D2]
+            "
           />
 
           <span>{deal.duration}</span>
         </div>
 
-        {/* Dates */}
-        <p className="mt-2 text-sm text-slate-500">
+        <p
+          className="
+            mt-2
+            text-[13px]
+            text-slate-500
+          "
+        >
           {deal.dateRange}
         </p>
 
-        {/* Fare */}
-        <div className="mt-6 border-t border-slate-200 pt-5">
-          <div className="flex items-end justify-between gap-5">
-            <div>
-              <p
+        {/* FARE */}
+
+        <div
+          className="
+            mt-5
+            border-t
+            border-slate-200
+            pt-5
+          "
+        >
+          <p
+            className="
+              text-[10px]
+              font-semibold
+              uppercase
+              tracking-[0.16em]
+              text-slate-500
+            "
+          >
+            Round-trip from
+          </p>
+
+          <div
+            className="
+              mt-2
+              flex
+              items-end
+              justify-between
+              gap-4
+            "
+          >
+            <div className="flex items-end gap-1.5">
+              <span
                 className="
-                  text-xs
-                  font-semibold
-                  uppercase
-                  tracking-[0.14em]
+                  fs-nums
+                  font-american-sans
+                  text-[32px]
+                  font-light
+                  leading-none
+                  tracking-[-0.035em]
+                  text-slate-950
+                "
+              >
+                ${deal.priceFrom}
+              </span>
+
+              <span
+                className="
+                  mb-[3px]
+                  text-[11px]
+                  font-medium
                   text-slate-500
                 "
               >
-                Round-trip from
-              </p>
-
-              <div className="mt-1 flex items-end gap-1">
-                <p
-                  className="
-                    fs-nums
-                    font-american-sans
-                    text-3xl
-                    font-light
-                    tracking-[-0.025em]
-                    text-slate-950
-                  "
-                >
-                  ${deal.priceFrom}
-                </p>
-
-                <span className="mb-1 text-xs text-slate-500">
-                  USD
-                </span>
-              </div>
+                USD
+              </span>
             </div>
 
             <Link
@@ -524,35 +608,34 @@ function DealCard({
               )}`}
               aria-label={`View flights to ${deal.city}`}
               className="
-                group/button
+                group/link
                 inline-flex
+                shrink-0
                 items-center
-                gap-2
-                border-b
-                border-primary
-                pb-1
-                text-sm
+                gap-1.5
+                text-[13px]
                 font-semibold
-                text-primary
-                transition
-                hover:border-primary-hover
-                hover:text-primary-hover
+                text-slate-900
+                transition-colors
+                hover:text-[#0078D2]
                 focus-visible:outline-none
                 focus-visible:ring-2
-                focus-visible:ring-primary/30
+                focus-visible:ring-[#0078D2]/30
+                focus-visible:ring-offset-4
               "
             >
               View flights
 
               <ArrowRight
+                aria-hidden="true"
                 className="
                   h-4
                   w-4
+                  text-[#0078D2]
                   transition-transform
                   duration-200
-                  group-hover/button:translate-x-1
+                  group-hover/link:translate-x-1
                 "
-                aria-hidden="true"
               />
             </Link>
           </div>
@@ -561,6 +644,10 @@ function DealCard({
     </article>
   );
 }
+
+/* ===============================================================
+   CAROUSEL NAVIGATION
+================================================================ */
 
 function NavButton({
   direction,
@@ -583,8 +670,8 @@ function NavButton({
       disabled={disabled}
       aria-label={
         direction === "prev"
-          ? "Previous deals"
-          : "Next deals"
+          ? "Previous fares"
+          : "Next fares"
       }
       className="
         inline-flex
@@ -595,25 +682,30 @@ function NavButton({
         border
         border-slate-300
         bg-white
-        text-slate-800
-        transition-all
-        duration-200
-        hover:border-primary
-        hover:bg-primary
+        text-slate-700
+        transition-colors
+
+        first:border-r-0
+
+        hover:border-slate-900
+        hover:bg-slate-950
         hover:text-white
+
+        focus-visible:relative
+        focus-visible:z-10
         focus-visible:outline-none
         focus-visible:ring-2
-        focus-visible:ring-primary/30
+        focus-visible:ring-[#0078D2]/30
+
         disabled:cursor-not-allowed
-        disabled:opacity-30
+        disabled:bg-slate-50
+        disabled:text-slate-300
         disabled:hover:border-slate-300
-        disabled:hover:bg-white
-        disabled:hover:text-slate-800
       "
     >
       <Icon
-        className="h-5 w-5"
         aria-hidden="true"
+        className="h-4 w-4"
       />
     </button>
   );
