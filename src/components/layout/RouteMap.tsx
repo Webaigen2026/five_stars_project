@@ -1,5 +1,7 @@
 import type { CSSProperties } from "react";
+
 import Link from "next/link";
+
 import {
   ArrowRight,
   MapPin,
@@ -137,11 +139,11 @@ export default function RouteMap() {
           w-full
           max-w-[1540px]
           px-5
-          py-16
+          py-12
           sm:px-6
-          sm:py-20
+          sm:py-14
           lg:px-10
-          lg:py-24
+          lg:py-16
           xl:px-12
         "
       >
@@ -149,11 +151,11 @@ export default function RouteMap() {
           className="
             grid
             items-center
-            gap-12
-            lg:grid-cols-[380px_minmax(0,1fr)]
-            lg:gap-14
-            xl:grid-cols-[420px_minmax(0,1fr)]
-            xl:gap-20
+            gap-10
+            lg:grid-cols-[350px_minmax(0,1fr)]
+            lg:gap-12
+            xl:grid-cols-[380px_minmax(0,1fr)]
+            xl:gap-16
           "
         >
           {/* =====================================================
@@ -191,7 +193,7 @@ export default function RouteMap() {
                 tracking-[-0.035em]
                 text-slate-950
                 sm:text-[40px]
-                lg:text-[44px]
+                lg:text-[42px]
               "
             >
               Connecting the U.S.
@@ -201,29 +203,22 @@ export default function RouteMap() {
 
             <p
               className="
-                mt-5
-                max-w-[390px]
+                mt-4
+                max-w-[380px]
                 text-[15px]
                 leading-7
                 text-slate-600
                 sm:text-base
               "
             >
-              Five Stars connects key U.S.
-              gateways with destinations across
-              Haiti, making travel between both
-              countries simpler.
+              Five Stars connects key U.S. gateways
+              with destinations across Haiti, making
+              travel between both countries simpler.
             </p>
 
-            {/* ROUTE SUMMARY */}
+            {/* Gateway summary */}
 
-            <div
-              className="
-                mt-8
-                border-y
-                border-slate-200
-              "
-            >
+            <div className="mt-7 border-y border-slate-200">
               <RouteRow
                 code="BOS"
                 city="Boston"
@@ -241,9 +236,9 @@ export default function RouteMap() {
               />
             </div>
 
-            {/* DESTINATIONS */}
+            {/* Haiti destinations */}
 
-            <div className="mt-7">
+            <div className="mt-6">
               <p
                 className="
                   text-[10px]
@@ -277,11 +272,7 @@ export default function RouteMap() {
                 >
                   <MapPin
                     aria-hidden="true"
-                    className="
-                      h-4
-                      w-4
-                      text-[#0078D2]
-                    "
+                    className="h-4 w-4 text-[#0078D2]"
                   />
 
                   Cap-Haïtien
@@ -299,11 +290,7 @@ export default function RouteMap() {
                 >
                   <MapPin
                     aria-hidden="true"
-                    className="
-                      h-4
-                      w-4
-                      text-[#0078D2]
-                    "
+                    className="h-4 w-4 text-[#0078D2]"
                   />
 
                   Port-au-Prince
@@ -315,7 +302,7 @@ export default function RouteMap() {
               href="/flights"
               className="
                 group
-                mt-8
+                mt-7
                 inline-flex
                 items-center
                 gap-2
@@ -361,12 +348,12 @@ export default function RouteMap() {
                 px-3
                 py-4
                 sm:px-5
-                sm:py-6
+                sm:py-5
                 lg:px-6
-                lg:py-7
+                lg:py-6
               "
             >
-              {/* MAP HEADER */}
+              {/* Map header */}
 
               <div
                 className="
@@ -434,10 +421,12 @@ export default function RouteMap() {
                 viewBox="0 0 1000 560"
                 className="
                   relative
-                  mt-3
+                  mx-auto
+                  mt-2
                   block
                   h-auto
                   w-full
+                  max-w-[900px]
                 "
                 role="img"
                 aria-labelledby="
@@ -446,15 +435,15 @@ export default function RouteMap() {
                 "
               >
                 <title id="route-map-title">
-                  Five Stars routes from the
-                  United States to Haiti
+                  Five Stars routes from the United
+                  States to Haiti
                 </title>
 
                 <desc id="route-map-description">
-                  A map showing flight routes
-                  from Boston, New York and Miami
-                  to Cap-Haïtien and
-                  Port-au-Prince in Haiti.
+                  A map showing flight routes from
+                  Boston, New York and Miami to
+                  Cap-Haïtien and Port-au-Prince in
+                  Haiti.
                 </desc>
 
                 <defs>
@@ -470,7 +459,7 @@ export default function RouteMap() {
                       dy="3"
                       stdDeviation="5"
                       floodColor="#0F172A"
-                      floodOpacity="0.10"
+                      floodOpacity="0.08"
                     />
                   </filter>
 
@@ -502,13 +491,13 @@ export default function RouteMap() {
                     <stop
                       offset="0%"
                       stopColor="#0078D2"
-                      stopOpacity="0.35"
+                      stopOpacity="0.30"
                     />
 
                     <stop
                       offset="55%"
                       stopColor="#0078D2"
-                      stopOpacity="0.7"
+                      stopOpacity="0.65"
                     />
 
                     <stop
@@ -519,7 +508,7 @@ export default function RouteMap() {
                   </linearGradient>
                 </defs>
 
-                {/* MAP IMAGES */}
+                {/* Map images */}
 
                 <g
                   aria-hidden="true"
@@ -544,7 +533,7 @@ export default function RouteMap() {
                   />
                 </g>
 
-                {/* ROUTES */}
+                {/* Route lines */}
 
                 <g aria-hidden="true">
                   {originCities.flatMap(
@@ -587,7 +576,7 @@ export default function RouteMap() {
                   )}
                 </g>
 
-                {/* U.S. GATEWAYS */}
+                {/* U.S. gateways */}
 
                 <g aria-hidden="true">
                   {originCities.map((city) => (
@@ -636,7 +625,7 @@ export default function RouteMap() {
                   ))}
                 </g>
 
-                {/* HAITI DESTINATIONS */}
+                {/* Haiti destinations */}
 
                 <g aria-hidden="true">
                   {destinationCities.map(
@@ -646,9 +635,7 @@ export default function RouteMap() {
                           cx={city.x}
                           cy={city.y}
                           r="16"
-                          className="
-                            destination-pulse
-                          "
+                          className="destination-pulse"
                           fill="#0078D2"
                           opacity="0.12"
                           style={cssVars({
@@ -713,10 +700,9 @@ export default function RouteMap() {
             </div>
 
             <figcaption className="sr-only">
-              Available Five Stars routes
-              between Boston, New York and Miami
-              in the United States and
-              Cap-Haïtien and Port-au-Prince
+              Available Five Stars routes between
+              Boston, New York and Miami in the United
+              States and Cap-Haïtien and Port-au-Prince
               in Haiti.
             </figcaption>
           </figure>
@@ -728,11 +714,13 @@ export default function RouteMap() {
           stroke-dasharray: 1;
           stroke-dashoffset: 1;
           opacity: 0;
+
           animation:
             route-draw
             1.6s
             cubic-bezier(0.16, 1, 0.3, 1)
             forwards;
+
           animation-delay:
             var(--route-delay, 0.2s);
         }
@@ -740,11 +728,13 @@ export default function RouteMap() {
         .destination-pulse {
           transform-box: fill-box;
           transform-origin: center;
+
           animation:
             destination-pulse
             3s
             ease-in-out
             infinite;
+
           animation-delay:
             var(--pulse-delay, 0s);
         }
@@ -793,6 +783,10 @@ export default function RouteMap() {
     </section>
   );
 }
+
+/* ===============================================================
+   ROUTE ROW
+================================================================ */
 
 function RouteRow({
   code,

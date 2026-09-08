@@ -22,41 +22,35 @@ export default function HeroSearch() {
             grid
             min-w-0
             grid-cols-1
-            gap-8
+            gap-7
             py-6
-            sm:py-8
-            lg:grid-cols-[minmax(0,1fr)_300px]
+            sm:py-7
+            lg:grid-cols-[minmax(0,1fr)_280px]
             lg:items-start
-            lg:gap-8
-            lg:py-10
-            xl:grid-cols-[minmax(0,1fr)_320px]
-            xl:gap-10
+            lg:gap-7
+            lg:py-8
+            xl:grid-cols-[minmax(0,1fr)_300px]
+            xl:gap-8
           "
         >
-          {/* ============================================================= */}
-          {/* MAIN BOOKING AREA                                             */}
-          {/* ============================================================= */}
-
           <div className="min-w-0">
-            {/* Hero image */}
             <div
               className="
                 relative
                 isolate
-                h-[220px]
+                h-[215px]
                 w-full
                 min-w-0
                 overflow-hidden
                 bg-slate-100
-                sm:h-[260px]
-                md:h-[280px]
-                lg:h-[250px]
-                xl:h-[270px]
+                sm:h-[245px]
+                md:h-[265px]
+                lg:h-[245px]
+                xl:h-[260px]
               "
             >
               <HeroBackground />
 
-              {/* Very light image treatment only */}
               <div
                 aria-hidden="true"
                 className="
@@ -65,13 +59,12 @@ export default function HeroSearch() {
                   inset-0
                   z-10
                   bg-gradient-to-t
-                  from-slate-950/[0.08]
+                  from-slate-950/[0.07]
                   via-transparent
                   to-transparent
                 "
               />
 
-              {/* Airplane is decorative and cannot affect document width */}
               <div
                 aria-hidden="true"
                 className="
@@ -86,7 +79,6 @@ export default function HeroSearch() {
               </div>
             </div>
 
-            {/* Booking/search panel */}
             <div
               className="
                 relative
@@ -97,12 +89,12 @@ export default function HeroSearch() {
                 border-slate-200
                 bg-white
                 px-4
-                py-6
-                shadow-[0_18px_45px_-35px_rgba(15,23,42,0.35)]
+                py-5
+                shadow-[0_14px_35px_-30px_rgba(15,23,42,0.30)]
                 sm:px-6
-                sm:py-7
+                sm:py-6
                 lg:px-7
-                lg:py-7
+                lg:py-6
                 xl:px-8
               "
             >
@@ -110,26 +102,17 @@ export default function HeroSearch() {
             </div>
           </div>
 
-          {/* ============================================================= */}
-          {/* TRAVEL VISUALS                                                */}
-          {/* ============================================================= */}
-
           <aside
             aria-label="Five Stars travel destinations"
-            className="
-              hidden
-              min-w-0
-              overflow-hidden
-              lg:block
-            "
+            className="hidden min-w-0 overflow-hidden lg:block"
           >
             <div
               className="
                 mx-auto
                 w-full
-                max-w-[300px]
+                max-w-[280px]
                 overflow-hidden
-                xl:max-w-[320px]
+                xl:max-w-[300px]
               "
             >
               <TravelImageWall />
@@ -139,12 +122,6 @@ export default function HeroSearch() {
       </div>
 
       <style>{`
-        /*
-         * Hero airplane
-         *
-         * Keep the decorative airplane centered without allowing its
-         * oversized artwork to participate in page layout.
-         */
         .hs-plane {
           left: 50%;
           width: 100%;
@@ -223,7 +200,6 @@ export default function HeroSearch() {
           .hs-plane {
             opacity: 1;
             animation: none;
-
             transform:
               translateX(calc(-50% + var(--hs-plane-x, 0px)))
               translateY(var(--hs-plane-y, 0px))

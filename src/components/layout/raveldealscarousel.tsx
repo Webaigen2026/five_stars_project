@@ -6,8 +6,10 @@ import {
   useRef,
   useState,
 } from "react";
+
 import Image from "next/image";
 import Link from "next/link";
+
 import {
   ArrowRight,
   ArrowUpRight,
@@ -94,16 +96,11 @@ export default function TravelDealsCarousel() {
     window.addEventListener("resize", updateEdges);
 
     return () => {
-      window.removeEventListener(
-        "resize",
-        updateEdges
-      );
+      window.removeEventListener("resize", updateEdges);
     };
   }, [updateEdges]);
 
-  function scrollByCard(
-    direction: "prev" | "next"
-  ) {
+  function scrollByCard(direction: "prev" | "next") {
     const track = trackRef.current;
 
     const firstCard =
@@ -119,14 +116,10 @@ export default function TravelDealsCarousel() {
       styles.columnGap || styles.gap || "0"
     );
 
-    const distance =
-      firstCard.offsetWidth + gap;
+    const distance = firstCard.offsetWidth + gap;
 
     track.scrollBy({
-      left:
-        direction === "next"
-          ? distance
-          : -distance,
+      left: direction === "next" ? distance : -distance,
       behavior: "smooth",
     });
   }
@@ -139,11 +132,11 @@ export default function TravelDealsCarousel() {
           w-full
           max-w-[1540px]
           px-5
-          py-16
+          py-12
           sm:px-6
-          sm:py-20
+          sm:py-14
           lg:px-10
-          lg:py-24
+          lg:py-16
           xl:px-12
         "
       >
@@ -151,19 +144,12 @@ export default function TravelDealsCarousel() {
             SECTION HEADER
         ========================================================== */}
 
-        <div
-          className="
-            border-b
-            border-slate-200
-            pb-7
-            sm:pb-8
-          "
-        >
+        <div className="border-b border-slate-200 pb-6 sm:pb-7">
           <div
             className="
               flex
               flex-col
-              gap-7
+              gap-6
               lg:flex-row
               lg:items-end
               lg:justify-between
@@ -195,7 +181,7 @@ export default function TravelDealsCarousel() {
                   font-american-sans
                   text-[32px]
                   font-light
-                  leading-[1.1]
+                  leading-[1.08]
                   tracking-[-0.035em]
                   text-slate-950
                   sm:text-[38px]
@@ -207,7 +193,7 @@ export default function TravelDealsCarousel() {
 
               <p
                 className="
-                  mt-4
+                  mt-3
                   max-w-[590px]
                   text-[15px]
                   leading-6
@@ -216,8 +202,8 @@ export default function TravelDealsCarousel() {
                   sm:leading-7
                 "
               >
-                Browse selected round-trip fares and
-                find a trip that fits your schedule.
+                Browse selected round-trip fares and find a
+                trip that fits your schedule.
               </p>
             </div>
 
@@ -269,17 +255,13 @@ export default function TravelDealsCarousel() {
                 <NavButton
                   direction="prev"
                   disabled={mounted && atStart}
-                  onClick={() =>
-                    scrollByCard("prev")
-                  }
+                  onClick={() => scrollByCard("prev")}
                 />
 
                 <NavButton
                   direction="next"
                   disabled={mounted && atEnd}
-                  onClick={() =>
-                    scrollByCard("next")
-                  }
+                  onClick={() => scrollByCard("next")}
                 />
               </div>
             </div>
@@ -287,10 +269,10 @@ export default function TravelDealsCarousel() {
         </div>
 
         {/* =========================================================
-            DEAL CAROUSEL
+            CAROUSEL
         ========================================================== */}
 
-        <div className="mt-8 sm:mt-10">
+        <div className="mt-7 sm:mt-8">
           <div
             ref={trackRef}
             onScroll={updateEdges}
@@ -306,15 +288,12 @@ export default function TravelDealsCarousel() {
               pb-2
               scroll-smooth
               [scrollbar-width:none]
-
               sm:-mx-6
               sm:gap-5
               sm:px-6
-
               lg:mx-0
               lg:gap-5
               lg:px-0
-
               [&::-webkit-scrollbar]:hidden
             "
           >
@@ -328,18 +307,18 @@ export default function TravelDealsCarousel() {
         </div>
 
         {/* =========================================================
-            DISCLAIMER / UTILITY LINE
+            DISCLAIMER
         ========================================================== */}
 
         <div
           className="
-            mt-8
+            mt-7
             flex
             flex-col
             gap-2
             border-t
             border-slate-200
-            pt-5
+            pt-4
             text-[12px]
             leading-5
             text-slate-500
@@ -349,8 +328,8 @@ export default function TravelDealsCarousel() {
           "
         >
           <p>
-            Fares shown are sample round-trip prices
-            and may vary by travel date and availability.
+            Fares shown are sample round-trip prices and may
+            vary by travel date and availability.
           </p>
 
           <p className="shrink-0">
@@ -366,11 +345,7 @@ export default function TravelDealsCarousel() {
    DEAL CARD
 ================================================================ */
 
-function DealCard({
-  deal,
-}: {
-  deal: TravelDeal;
-}) {
+function DealCard({ deal }: { deal: TravelDeal }) {
   return (
     <article
       className="
@@ -385,26 +360,23 @@ function DealCard({
         border
         border-slate-200
         bg-white
-
         sm:w-[340px]
         sm:max-w-none
-
         lg:w-[calc((100%-2.5rem)/3)]
         lg:min-w-[300px]
-
         xl:min-w-[350px]
       "
     >
-      {/* IMAGE */}
+      {/* Image */}
 
       <div
         className="
           relative
-          h-[190px]
+          h-[185px]
           overflow-hidden
           bg-slate-100
-          sm:h-[205px]
-          lg:h-[215px]
+          sm:h-[195px]
+          lg:h-[205px]
         "
       >
         <Image
@@ -433,8 +405,8 @@ function DealCard({
             absolute
             inset-0
             bg-gradient-to-t
-            from-slate-950/65
-            via-slate-950/5
+            from-slate-950/70
+            via-slate-950/10
             to-transparent
           "
         />
@@ -477,17 +449,9 @@ function DealCard({
         </div>
       </div>
 
-      {/* DETAILS */}
+      {/* Details */}
 
-      <div
-        className="
-          flex
-          flex-1
-          flex-col
-          px-5
-          py-5
-        "
-      >
+      <div className="flex flex-1 flex-col px-5 py-5">
         <div
           className="
             flex
@@ -500,12 +464,7 @@ function DealCard({
         >
           <Plane
             aria-hidden="true"
-            className="
-              h-[15px]
-              w-[15px]
-              shrink-0
-              text-[#0078D2]
-            "
+            className="h-[15px] w-[15px] shrink-0 text-[#0078D2]"
           />
 
           <span>Non-stop</span>
@@ -523,37 +482,19 @@ function DealCard({
         >
           <Clock3
             aria-hidden="true"
-            className="
-              h-[15px]
-              w-[15px]
-              shrink-0
-              text-[#0078D2]
-            "
+            className="h-[15px] w-[15px] shrink-0 text-[#0078D2]"
           />
 
           <span>{deal.duration}</span>
         </div>
 
-        <p
-          className="
-            mt-2
-            text-[13px]
-            text-slate-500
-          "
-        >
+        <p className="mt-2 text-[13px] text-slate-500">
           {deal.dateRange}
         </p>
 
-        {/* FARE */}
+        {/* Fare */}
 
-        <div
-          className="
-            mt-5
-            border-t
-            border-slate-200
-            pt-5
-          "
-        >
+        <div className="mt-5 border-t border-slate-200 pt-4">
           <p
             className="
               text-[10px]
@@ -646,7 +587,7 @@ function DealCard({
 }
 
 /* ===============================================================
-   CAROUSEL NAVIGATION
+   NAVIGATION BUTTON
 ================================================================ */
 
 function NavButton({
@@ -684,19 +625,15 @@ function NavButton({
         bg-white
         text-slate-700
         transition-colors
-
         first:border-r-0
-
         hover:border-slate-900
         hover:bg-slate-950
         hover:text-white
-
         focus-visible:relative
         focus-visible:z-10
         focus-visible:outline-none
         focus-visible:ring-2
         focus-visible:ring-[#0078D2]/30
-
         disabled:cursor-not-allowed
         disabled:bg-slate-50
         disabled:text-slate-300
