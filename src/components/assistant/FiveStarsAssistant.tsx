@@ -1,14 +1,16 @@
 "use client";
 
 import {
+  ArrowRight,
   ArrowUp,
-  Bot,
   MoreHorizontal,
   Paperclip,
   Plane,
-  Sparkles,
   X,
 } from "lucide-react";
+
+import { useRouter } from "next/navigation";
+
 import {
   FormEvent,
   KeyboardEvent,
@@ -17,85 +19,187 @@ import {
   useState,
 } from "react";
 
+import {
+  buildFlightSearchParams,
+  validateFlightSearch,
+} from "../../lib/flight-search";
+
+type FlightSearch = {
+  ready: boolean;
+  from: string;
+  to: string;
+  departure: string;
+  returnDate: string;
+  tripType:
+    | "one-way"
+    | "round-trip";
+  adults: number;
+  seniors: number;
+  children: number;
+  infants: number;
+};
+
 type Message = {
   id: number;
   role: "assistant" | "user";
   text: string;
+  flightSearch?: FlightSearch;
+};
+
+type AssistantApiResponse = {
+  reply?: string;
+  flightSearch?: FlightSearch;
+  error?: string;
 };
 
 const initialMessages: Message[] = [
   {
     id: 1,
     role: "assistant",
-    text: "Hi, how can I help you with Five Stars? The more details you provide, the better.",
+    text:
+      "Hi, how can I help you with Five Stars? The more details you provide, the better.",
   },
 ];
 
-function getAssistantResponse(message: string) {
-  const value = message.toLowerCase();
+function totalTravelers(
+  search: FlightSearch
+) {
+  return (
+    search.adults +
+    search.seniors +
+    search.children +
+    search.infants
+  );
+}
 
-  if (
-    value.includes("flight") ||
-    value.includes("fly") ||
-    value.includes("ticket")
-  ) {
-    return "I can help you with flights. Tell me where you're traveling from, your destination, and your preferred travel date.";
+function formatDate(
+  value: string
+) {
+  const match =
+    /^(\d{4})-(\d{2})-(\d{2})$/.exec(
+      value
+    );
+
+  if (!match) {
+    return value;
   }
 
-  if (
-    value.includes("booking") ||
-    value.includes("reservation") ||
-    value.includes("trip")
-  ) {
-    return "I can help with your Five Stars booking. Tell me whether you want to find, review, or manage an existing trip.";
+  const [, year, month, day] =
+    match;
+
+  return new Intl.DateTimeFormat(
+    "en-US",
+    {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      timeZone: "UTC",
+    }
+  ).format(
+    new Date(
+      Date.UTC(
+        Number(year),
+        Number(month) - 1,
+        Number(day)
+      )
+    )
+  );
+}
+
+function airportLabel(
+  code: string
+) {
+  const labels: Record<
+    string,
+    string
+  > = {
+    BOS: "Boston",
+    MIA: "Miami",
+    FLL: "Fort Lauderdale",
+    JFK: "New York",
+    CAP: "Cap-Haïtien",
+    PAP: "Port-au-Prince",
+  };
+
+  return labels[code]
+    ? `${labels[code]} (${code})`
+    : code;
+}
+
+function passengerLabel(
+  search: FlightSearch
+) {
+  const parts: string[] = [];
+
+  if (search.adults > 0) {
+    parts.push(
+      `${search.adults} ${
+        search.adults === 1
+          ? "adult"
+          : "adults"
+      }`
+    );
   }
 
-  if (
-    value.includes("cargo") ||
-    value.includes("shipping") ||
-    value.includes("package")
-  ) {
-    return "I can help with Five Stars cargo services between Haiti and the United States. Tell me what you need to send and where it is going.";
+  if (search.seniors > 0) {
+    parts.push(
+      `${search.seniors} ${
+        search.seniors === 1
+          ? "senior"
+          : "seniors"
+      }`
+    );
   }
 
-  if (
-    value.includes("charter") ||
-    value.includes("private")
-  ) {
-    return "I can help with private charter services. Tell me your departure location, destination, preferred date, and approximate number of passengers.";
+  if (search.children > 0) {
+    parts.push(
+      `${search.children} ${
+        search.children === 1
+          ? "child"
+          : "children"
+      }`
+    );
   }
 
-  if (
-    value.includes("baggage") ||
-    value.includes("luggage") ||
-    value.includes("bag")
-  ) {
-    return "I can help with baggage information. Tell me what you would like to know about your baggage or upcoming trip.";
+  if (search.infants > 0) {
+    parts.push(
+      `${search.infants} ${
+        search.infants === 1
+          ? "infant"
+          : "infants"
+      }`
+    );
   }
 
-  if (
-    value.includes("haiti") ||
-    value.includes("boston") ||
-    value.includes("miami") ||
-    value.includes("new york")
-  ) {
-    return "I can help with travel between Haiti and the United States. Tell me your departure city and destination.";
-  }
-
-  return "I can help with Five Stars flights, bookings, cargo, charter services, baggage, and travel support. Tell me a little more about what you need.";
+  return parts.join(", ");
 }
 
 export default function FiveStarsAssistant() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [input, setInput] = useState("");
+  const router = useRouter();
+
+  const [isOpen, setIsOpen] =
+    useState(false);
+
+  const [input, setInput] =
+    useState("");
+
   const [messages, setMessages] =
-    useState<Message[]>(initialMessages);
+    useState<Message[]>(
+      initialMessages
+    );
+
+  const [isLoading, setIsLoading] =
+    useState(false);
 
   const textareaRef =
-    useRef<HTMLTextAreaElement | null>(null);
+    useRef<HTMLTextAreaElement | null>(
+      null
+    );
 
   const messagesEndRef =
-    useRef<HTMLDivElement | null>(null);
+    useRef<HTMLDivElement | null>(
+      null
+    );
 
   useEffect(() => {
     if (!isOpen) return;
@@ -103,7 +207,8 @@ export default function FiveStarsAssistant() {
     const previousOverflow =
       document.body.style.overflow;
 
-    document.body.style.overflow = "hidden";
+    document.body.style.overflow =
+      "hidden";
 
     return () => {
       document.body.style.overflow =
@@ -114,16 +219,30 @@ export default function FiveStarsAssistant() {
   useEffect(() => {
     if (!isOpen) return;
 
-    messagesEndRef.current?.scrollIntoView({
-      behavior: "smooth",
-      block: "nearest",
-    });
-  }, [messages, isOpen]);
+    messagesEndRef.current?.scrollIntoView(
+      {
+        behavior: "smooth",
+        block: "nearest",
+      }
+    );
+  }, [
+    messages,
+    isOpen,
+    isLoading,
+  ]);
 
-  function sendMessage(rawMessage: string) {
-    const cleanMessage = rawMessage.trim();
+  async function sendMessage(
+    rawMessage: string
+  ) {
+    const cleanMessage =
+      rawMessage.trim();
 
-    if (!cleanMessage) return;
+    if (
+      !cleanMessage ||
+      isLoading
+    ) {
+      return;
+    }
 
     const userMessage: Message = {
       id: Date.now(),
@@ -131,23 +250,95 @@ export default function FiveStarsAssistant() {
       text: cleanMessage,
     };
 
-    const assistantMessage: Message = {
-      id: Date.now() + 1,
-      role: "assistant",
-      text: getAssistantResponse(cleanMessage),
-    };
-
-    setMessages((current) => [
-      ...current,
+    const conversation = [
+      ...messages,
       userMessage,
-      assistantMessage,
-    ]);
+    ];
 
+    setMessages(conversation);
     setInput("");
+    setIsLoading(true);
 
-    requestAnimationFrame(() => {
-      textareaRef.current?.focus();
-    });
+    try {
+      const response = await fetch(
+        "/api/assistant",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type":
+              "application/json",
+          },
+          body: JSON.stringify({
+            messages:
+              conversation.map(
+                (message) => ({
+                  role:
+                    message.role,
+                  text:
+                    message.text,
+                })
+              ),
+          }),
+        }
+      );
+
+      const data =
+        (await response.json()) as AssistantApiResponse;
+
+      if (!response.ok) {
+        throw new Error(
+          data.error ||
+            "The assistant is temporarily unavailable."
+        );
+      }
+
+      if (!data.reply?.trim()) {
+        throw new Error(
+          "The assistant returned an empty response."
+        );
+      }
+
+      const assistantMessage: Message =
+        {
+          id: Date.now() + 1,
+          role: "assistant",
+          text: data.reply.trim(),
+          flightSearch:
+            data.flightSearch,
+        };
+
+      setMessages(
+        (current) => [
+          ...current,
+          assistantMessage,
+        ]
+      );
+    } catch (error) {
+      console.error(
+        "Five Stars Assistant request failed:",
+        error
+      );
+
+      const errorMessage: Message = {
+        id: Date.now() + 1,
+        role: "assistant",
+        text:
+          "I'm having trouble connecting right now. Please try again in a moment.",
+      };
+
+      setMessages(
+        (current) => [
+          ...current,
+          errorMessage,
+        ]
+      );
+    } finally {
+      setIsLoading(false);
+
+      requestAnimationFrame(() => {
+        textareaRef.current?.focus();
+      });
+    }
   }
 
   function handleSubmit(
@@ -155,7 +346,7 @@ export default function FiveStarsAssistant() {
   ) {
     event.preventDefault();
 
-    sendMessage(input);
+    void sendMessage(input);
   }
 
   function handleKeyDown(
@@ -167,174 +358,213 @@ export default function FiveStarsAssistant() {
     ) {
       event.preventDefault();
 
-      sendMessage(input);
+      void sendMessage(input);
     }
+  }
+
+  function searchFlights(
+    search: FlightSearch
+  ) {
+    const passengers =
+      totalTravelers(search);
+
+    if (
+      !search.ready ||
+      passengers < 1
+    ) {
+      return;
+    }
+
+    const values = {
+      tripType:
+        search.tripType,
+      from: search.from,
+      to: search.to,
+      departure:
+        search.departure,
+      returnDate:
+        search.tripType ===
+        "round-trip"
+          ? search.returnDate
+          : "",
+      passengers:
+        String(passengers),
+      adults:
+        String(search.adults),
+      seniors:
+        String(search.seniors),
+      children:
+        String(search.children),
+      infants:
+        String(search.infants),
+    };
+
+    const validationError =
+      validateFlightSearch(values);
+
+    if (validationError) {
+      console.error(
+        "Assistant flight search validation failed:",
+        validationError
+      );
+
+      return;
+    }
+
+    const params =
+      buildFlightSearchParams(
+        values
+      );
+
+    router.push(
+      `/flights/results?${params.toString()}`
+    );
   }
 
   return (
     <>
-      {/* =========================================================
-          FLOATING LAUNCH BUTTON
-      ========================================================== */}
-
       {!isOpen && (
         <button
           type="button"
-          onClick={() => setIsOpen(true)}
+          onClick={() =>
+            setIsOpen(true)
+          }
           aria-label="Open Five Stars Assistant"
           className="
             fixed
             bottom-6
             right-6
             z-[70]
-
             flex
-            h-14
-            w-14
+            h-12
+            w-12
             items-center
             justify-center
-
             rounded-full
-
             bg-[#0078D2]
             text-white
-
-            shadow-[0_8px_24px_rgba(15,23,42,0.16)]
-
+            shadow-[0_6px_18px_rgba(15,23,42,0.14)]
             transition
             duration-200
-
             hover:bg-[#006bbd]
-
+            hover:shadow-[0_8px_22px_rgba(15,23,42,0.18)]
             focus-visible:outline-none
             focus-visible:ring-4
             focus-visible:ring-[#0078D2]/20
           "
         >
-          <Sparkles
-            size={23}
-            strokeWidth={2}
+          <Plane
+            size={20}
+            strokeWidth={1.9}
+            className="-rotate-[18deg]"
           />
         </button>
       )}
 
-      {/* =========================================================
-          BACKDROP
-      ========================================================== */}
-
-      {isOpen && (
-        <button
-          type="button"
-          aria-label="Close Five Stars Assistant"
-          onClick={() => setIsOpen(false)}
-          className="
-            fixed
-            inset-0
-            z-[79]
-
-            cursor-default
-
-            bg-slate-950/10
-
-            sm:bg-slate-950/15
-          "
-        />
-      )}
-
-      {/* =========================================================
-          ASSISTANT
-      ========================================================== */}
-
       {isOpen && (
         <aside
           role="dialog"
-          aria-modal="true"
+          aria-modal="false"
           aria-label="Five Stars Assistant"
           className="
             fixed
             inset-y-0
             right-0
             z-[80]
-
             flex
             h-[100dvh]
             w-full
             flex-col
-
             overflow-hidden
-
             border-l
             border-slate-200
-
             bg-white
-
-            sm:w-[480px]
-            md:w-[500px]
-            lg:w-[520px]
+            sm:w-[360px]
+            md:w-[370px]
+            lg:w-[380px]
+            xl:w-[390px]
+            2xl:w-[400px]
           "
         >
-          {/* =====================================================
-              HEADER
-          ====================================================== */}
-
           <header
             className="
               flex
-              h-[76px]
+              h-[64px]
               shrink-0
               items-center
               justify-between
-
               border-b
               border-slate-200
-
               bg-white
-
-              px-7
+              px-5
             "
           >
-            <div className="flex items-center gap-3">
-              <Sparkles
-                size={25}
-                strokeWidth={2}
-                className="text-[#0078D2]"
-              />
-
-              <h2
+            <div className="flex items-center gap-2.5">
+              <div
                 className="
-                  text-[20px]
-                  font-semibold
-                  tracking-[-0.02em]
-                  text-slate-900
+                  flex
+                  h-8
+                  w-8
+                  items-center
+                  justify-center
+                  rounded-md
+                  bg-[#0078D2]
+                  text-white
                 "
               >
-                Assistant
-              </h2>
+                <Plane
+                  size={17}
+                  strokeWidth={2}
+                  className="-rotate-[18deg]"
+                />
+              </div>
+
+              <div>
+                <h2
+                  className="
+                    text-[16px]
+                    font-semibold
+                    leading-5
+                    tracking-[-0.01em]
+                    text-slate-900
+                  "
+                >
+                  Assistant
+                </h2>
+
+                <p
+                  className="
+                    mt-0.5
+                    text-[10.5px]
+                    font-medium
+                    leading-4
+                    text-slate-500
+                  "
+                >
+                  Five Stars travel support
+                </p>
+              </div>
             </div>
 
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-0.5">
               <button
                 type="button"
                 aria-label="Assistant options"
                 className="
                   flex
-                  h-10
-                  w-10
+                  h-8
+                  w-8
                   items-center
                   justify-center
-
-                  rounded-lg
-
+                  rounded-md
                   text-slate-500
-
                   transition
-
                   hover:bg-slate-100
                   hover:text-slate-900
                 "
               >
                 <MoreHorizontal
-                  size={22}
+                  size={19}
                   strokeWidth={2}
                 />
               </button>
@@ -347,32 +577,24 @@ export default function FiveStarsAssistant() {
                 aria-label="Close assistant"
                 className="
                   flex
-                  h-10
-                  w-10
+                  h-8
+                  w-8
                   items-center
                   justify-center
-
-                  rounded-lg
-
+                  rounded-md
                   text-slate-500
-
                   transition
-
                   hover:bg-slate-100
                   hover:text-slate-900
                 "
               >
                 <X
-                  size={23}
+                  size={19}
                   strokeWidth={2}
                 />
               </button>
             </div>
           </header>
-
-          {/* =====================================================
-              CONVERSATION
-          ====================================================== */}
 
           <div
             className="
@@ -380,10 +602,9 @@ export default function FiveStarsAssistant() {
               relative
               flex-1
               overflow-y-auto
+              bg-white
             "
           >
-            {/* Decorative line pattern */}
-
             <div
               aria-hidden="true"
               className="
@@ -392,35 +613,28 @@ export default function FiveStarsAssistant() {
                 left-0
                 right-0
                 top-0
-                h-[420px]
+                h-[310px]
                 overflow-hidden
-                opacity-70
+                opacity-40
               "
             >
               <svg
-                viewBox="0 0 520 420"
+                viewBox="0 0 470 310"
                 preserveAspectRatio="none"
                 className="h-full w-full"
               >
                 <defs>
                   <pattern
                     id="assistant-wave-pattern"
-                    width="80"
-                    height="16"
+                    width="72"
+                    height="15"
                     patternUnits="userSpaceOnUse"
                   >
                     <path
-                      d="
-                        M -20 8
-                        C 0 0,
-                          20 16,
-                          40 8
-                        S 80 0,
-                          100 8
-                      "
+                      d="M -18 7.5 C 0 1, 18 14, 36 7.5 S 72 1, 90 7.5"
                       fill="none"
                       stroke="#dce7f3"
-                      strokeWidth="1"
+                      strokeWidth="0.8"
                     />
                   </pattern>
 
@@ -438,9 +652,9 @@ export default function FiveStarsAssistant() {
                     />
 
                     <stop
-                      offset="72%"
+                      offset="62%"
                       stopColor="white"
-                      stopOpacity="0.65"
+                      stopOpacity="0.42"
                     />
 
                     <stop
@@ -452,69 +666,67 @@ export default function FiveStarsAssistant() {
 
                   <mask id="assistant-wave-mask">
                     <rect
-                      width="520"
-                      height="420"
+                      width="470"
+                      height="310"
                       fill="url(#assistant-wave-fade)"
                     />
                   </mask>
                 </defs>
 
                 <rect
-                  width="520"
-                  height="420"
+                  width="470"
+                  height="310"
                   fill="url(#assistant-wave-pattern)"
                   mask="url(#assistant-wave-mask)"
-                  transform="skewY(-5)"
+                  transform="skewY(-4)"
                 />
               </svg>
             </div>
-
-            {/* Messages */}
 
             <div
               className="
                 relative
                 z-10
-
                 flex
                 min-h-full
                 flex-col
-
-                px-7
-                pb-8
-                pt-7
+                px-5
+                pb-6
+                pt-5
               "
             >
-              <div className="space-y-5">
+              <div className="space-y-4">
                 {messages.map(
-                  (message, index) => {
+                  (
+                    message,
+                    index
+                  ) => {
                     const isAssistant =
                       message.role ===
                       "assistant";
 
-                    /*
-                     * First assistant greeting follows
-                     * the Stripe-style large plain text.
-                     */
                     if (
                       isAssistant &&
                       index === 0
                     ) {
                       return (
                         <div
-                          key={message.id}
+                          key={
+                            message.id
+                          }
                           className="
-                            max-w-[430px]
-
-                            text-[18px]
+                            max-w-[390px]
+                            pr-3
+                            text-[14px]
                             font-normal
                             leading-[1.55]
-                            tracking-[-0.015em]
-
+                            tracking-[-0.005em]
                             text-slate-800
                           "
                         >
-                          {message.text}
+                          {
+                            message.text
+                          }
                         </div>
                       );
                     }
@@ -525,34 +737,32 @@ export default function FiveStarsAssistant() {
                     ) {
                       return (
                         <div
-                          key={message.id}
+                          key={
+                            message.id
+                          }
                           className="
                             flex
                             justify-end
-                            pt-1
+                            py-0.5
                           "
                         >
                           <div
                             className="
-                              max-w-[84%]
-
-                              rounded-[28px]
-
-                              border-2
-                              border-[#0078D2]
-
-                              bg-white
-
-                              px-5
-                              py-3
-
-                              text-[15px]
-                              leading-6
-
+                              max-w-[78%]
+                              rounded-[16px]
+                              bg-[#f1f5f9]
+                              px-3.5
+                              py-2.5
+                              text-[14px]
+                              font-normal
+                              leading-[1.5]
+                              tracking-[-0.003em]
                               text-slate-800
                             "
                           >
-                            {message.text}
+                            {
+                              message.text
+                            }
                           </div>
                         </div>
                       );
@@ -560,157 +770,289 @@ export default function FiveStarsAssistant() {
 
                     return (
                       <div
-                        key={message.id}
+                        key={
+                          message.id
+                        }
                         className="
                           flex
                           items-start
-                          gap-3
                         "
                       >
-                        <div
-                          className="
-                            mt-1
+                        <div className="max-w-[92%]">
+                          <div
+                            className="
+                              whitespace-pre-wrap
+                              rounded-[12px]
+                              bg-[#f6f8fa]
+                              px-3.5
+                              py-3
+                              text-[14px]
+                              font-normal
+                              leading-[1.6]
+                              tracking-[-0.003em]
+                              text-slate-700
+                            "
+                          >
+                            {
+                              message.text
+                            }
+                          </div>
 
-                            flex
-                            h-8
-                            w-8
-                            shrink-0
-                            items-center
-                            justify-center
+                          {message
+                            .flightSearch
+                            ?.ready && (
+                            <div
+                              className="
+                                mt-2
+                                overflow-hidden
+                                rounded-[12px]
+                                border
+                                border-slate-200
+                                bg-white
+                              "
+                            >
+                              <div className="px-3.5 py-3">
+                                <div
+                                  className="
+                                    text-[12px]
+                                    font-semibold
+                                    uppercase
+                                    tracking-[0.08em]
+                                    text-slate-500
+                                  "
+                                >
+                                  Flight
+                                  search
+                                </div>
 
-                            rounded-lg
+                                <div
+                                  className="
+                                    mt-2
+                                    text-[14px]
+                                    font-semibold
+                                    leading-5
+                                    text-slate-900
+                                  "
+                                >
+                                  {airportLabel(
+                                    message
+                                      .flightSearch
+                                      .from
+                                  )}
+                                  {" → "}
+                                  {airportLabel(
+                                    message
+                                      .flightSearch
+                                      .to
+                                  )}
+                                </div>
 
-                            bg-[#edf6fc]
+                                <div
+                                  className="
+                                    mt-1
+                                    text-[12px]
+                                    leading-5
+                                    text-slate-500
+                                  "
+                                >
+                                  {formatDate(
+                                    message
+                                      .flightSearch
+                                      .departure
+                                  )}
 
-                            text-[#0078D2]
-                          "
-                        >
-                          <Bot
-                            size={17}
-                            strokeWidth={2}
-                          />
-                        </div>
+                                  {message
+                                    .flightSearch
+                                    .tripType ===
+                                  "round-trip"
+                                    ? ` – ${formatDate(
+                                        message
+                                          .flightSearch
+                                          .returnDate
+                                      )}`
+                                    : ""}
 
-                        <div
-                          className="
-                            max-w-[82%]
+                                  {" · "}
 
-                            rounded-xl
+                                  {message
+                                    .flightSearch
+                                    .tripType ===
+                                  "round-trip"
+                                    ? "Round trip"
+                                    : "One way"}
 
-                            border
-                            border-slate-200
+                                  {" · "}
 
-                            bg-white
+                                  {passengerLabel(
+                                    message
+                                      .flightSearch
+                                  )}
+                                </div>
+                              </div>
 
-                            px-4
-                            py-3
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  searchFlights(
+                                    message.flightSearch!
+                                  )
+                                }
+                                className="
+                                  flex
+                                  w-full
+                                  items-center
+                                  justify-between
+                                  border-t
+                                  border-slate-200
+                                  bg-white
+                                  px-3.5
+                                  py-3
+                                  text-left
+                                  text-[13px]
+                                  font-semibold
+                                  text-[#0078D2]
+                                  transition
+                                  hover:bg-slate-50
+                                "
+                              >
+                                <span>
+                                  Search
+                                  flights
+                                </span>
 
-                            text-[14px]
-                            leading-6
-
-                            text-slate-700
-                          "
-                        >
-                          {message.text}
+                                <ArrowRight
+                                  size={
+                                    16
+                                  }
+                                  strokeWidth={
+                                    2
+                                  }
+                                />
+                              </button>
+                            </div>
+                          )}
                         </div>
                       </div>
                     );
                   }
                 )}
 
+                {isLoading && (
+                  <div className="flex items-start">
+                    <div
+                      className="
+                        rounded-[12px]
+                        bg-[#f6f8fa]
+                        px-3.5
+                        py-3
+                        text-[13px]
+                        leading-5
+                        text-slate-500
+                      "
+                    >
+                      Thinking...
+                    </div>
+                  </div>
+                )}
+
                 <div
-                  ref={messagesEndRef}
+                  ref={
+                    messagesEndRef
+                  }
                 />
               </div>
             </div>
           </div>
 
-          {/* =====================================================
-              INPUT AREA
-          ====================================================== */}
-
           <div
             className="
               shrink-0
-
+              border-t
+              border-slate-100
               bg-white
-
-              px-6
-              pb-5
+              px-5
+              pb-4
               pt-3
             "
           >
-            <form onSubmit={handleSubmit}>
+            <form
+              onSubmit={
+                handleSubmit
+              }
+            >
               <div
                 className="
                   relative
-
-                  min-h-[116px]
-
-                  rounded-[22px]
-
-                  border-2
-                  border-[#0078D2]
-
+                  min-h-[86px]
+                  rounded-[15px]
+                  border
+                  border-slate-300
                   bg-white
-
-                  px-5
-                  pb-12
-                  pt-4
-
-                  shadow-[0_8px_28px_rgba(15,23,42,0.10)]
-
+                  px-4
+                  pb-10
+                  pt-3.5
+                  shadow-[0_4px_16px_rgba(15,23,42,0.07)]
                   transition
-
-                  focus-within:shadow-[0_10px_32px_rgba(0,120,210,0.13)]
+                  duration-200
+                  focus-within:border-[#0078D2]
+                  focus-within:ring-1
+                  focus-within:ring-[#0078D2]/10
+                  focus-within:shadow-[0_6px_20px_rgba(15,23,42,0.09)]
                 "
               >
                 <textarea
-                  ref={textareaRef}
+                  ref={
+                    textareaRef
+                  }
                   value={input}
-                  onChange={(event) =>
+                  onChange={(
+                    event
+                  ) =>
                     setInput(
-                      event.target.value
+                      event
+                        .target
+                        .value
                     )
                   }
                   onKeyDown={
                     handleKeyDown
                   }
-                  rows={2}
-                  placeholder="Ask Five Stars about your trip..."
+                  rows={1}
+                  placeholder={
+                    isLoading
+                      ? "Assistant is responding..."
+                      : "Ask a question"
+                  }
                   aria-label="Message Five Stars Assistant"
+                  disabled={
+                    isLoading
+                  }
                   className="
                     block
-
-                    max-h-32
-                    min-h-[48px]
+                    max-h-28
+                    min-h-[30px]
                     w-full
-
                     resize-none
-
                     border-0
                     bg-transparent
-
                     p-0
-
-                    text-[16px]
-                    leading-6
-
+                    text-[14px]
+                    font-normal
+                    leading-[1.5]
+                    tracking-[-0.003em]
                     text-slate-900
-
                     outline-none
-
                     placeholder:text-slate-400
+                    disabled:cursor-not-allowed
                   "
                 />
 
                 <div
                   className="
                     absolute
-                    bottom-3
-                    left-4
-                    right-3
-
+                    bottom-2.5
+                    left-2.5
+                    right-2.5
                     flex
                     items-center
                     justify-between
@@ -721,56 +1063,54 @@ export default function FiveStarsAssistant() {
                     aria-label="Attach file"
                     className="
                       flex
-                      h-9
-                      w-9
+                      h-8
+                      w-8
                       items-center
                       justify-center
-
                       rounded-full
-
                       text-slate-400
-
                       transition
-
                       hover:bg-slate-100
                       hover:text-slate-700
                     "
                   >
                     <Paperclip
-                      size={21}
-                      strokeWidth={2}
+                      size={18}
+                      strokeWidth={
+                        2
+                      }
                     />
                   </button>
 
                   <button
                     type="submit"
-                    disabled={!input.trim()}
+                    disabled={
+                      !input.trim() ||
+                      isLoading
+                    }
                     aria-label="Send message"
                     className="
                       flex
-                      h-10
-                      w-10
+                      h-8
+                      w-8
                       items-center
                       justify-center
-
                       rounded-full
-
                       bg-[#0078D2]
-
                       text-white
-
                       transition
-
+                      duration-150
                       hover:bg-[#006bbd]
-
                       disabled:cursor-not-allowed
                       disabled:bg-slate-100
                       disabled:text-slate-400
                     "
                   >
                     <ArrowUp
-                      size={20}
-                      strokeWidth={2}
+                      size={17}
+                      strokeWidth={
+                        2
+                      }
                     />
                   </button>
                 </div>
@@ -779,17 +1119,15 @@ export default function FiveStarsAssistant() {
 
             <p
               className="
-                mt-4
-
+                mt-3
                 text-center
-                text-[12px]
-                leading-5
-
+                text-[10.5px]
+                leading-4
                 text-slate-500
               "
             >
-              Five Stars Assistant may make mistakes. Verify
-              important travel information.
+              Five Stars Assistant may make mistakes.
+              Verify important travel information.
             </p>
           </div>
         </aside>
