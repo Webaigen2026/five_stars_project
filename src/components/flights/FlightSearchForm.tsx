@@ -381,9 +381,9 @@ export default function FlightSearchForm({
           value={tripType}
           onChange={selectTripType}
         />
-        <h2 className="font-american-sans  hidden md:block w-full min-w-0 text-balance text-3xl font-light leading-[1.15] tracking-[-0.015em] text-slate-950 lg:mt-0 lg:flex-1 lg:text-right lg:text-3xl xl:text-[2.125rem] xl:leading-[1.12]">
-          Find your next flight with Five Stars.
-        </h2>
+        <h2 className="hidden md:block w-full min-w-0 text-balance text-[26px] font-medium leading-[1.2] tracking-[-0.025em] text-slate-950 lg:mt-0 lg:flex-1 lg:text-right">
+  Find your next flight with Five Stars.
+</h2>
       </div>
 
       {/* Search fields */}

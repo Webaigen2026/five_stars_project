@@ -33,12 +33,21 @@ export default function FindTripContent() {
     try {
       const response = await fetch("/api/guest/find-trip", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ bookingReference, email }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          bookingReference,
+          email,
+        }),
       });
 
       const payload = (await response.json().catch(() => null)) as
-        | { error?: string; success?: boolean; message?: string }
+        | {
+            error?: string;
+            success?: boolean;
+            message?: string;
+          }
         | null;
 
       if (!response.ok) {
@@ -60,81 +69,119 @@ export default function FindTripContent() {
   }
 
   return (
-    <div className="fs-auth-card w-full max-w-md  border border-slate-200 bg-white shadow-sm">
-      <div>
-        <p className="text-sm font-semibold uppercase tracking-[0.18em] text-primary">
-          Five Stars
-        </p>
+    <div className="mx-auto w-full max-w-[620px]">
+      {/* Section heading */}
+      <div className="border-b border-slate-200 pb-4">
+        <h2 className="text-[18px] font-semibold tracking-[-0.015em] text-slate-950">
+          Reservation details
+        </h2>
 
-        <h1 className="font-american-sans mt-2 text-3xl font-light tracking-[-0.02em] text-slate-950">
-          Find your trip
-        </h1>
-
-        <p className="mt-2 font-normal leading-6 text-slate-600">
-          Enter your booking reference and the email used for the reservation.
+        <p className="mt-1 text-[12px] leading-5 text-slate-500">
+          Enter the information exactly as it appears on your reservation.
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-        <div>
-          <label
-            htmlFor="bookingReference"
-            className="mb-1.5 block text-sm font-medium text-slate-700"
-          >
-            Booking reference
-          </label>
+      {/* Reservation form */}
+      <form onSubmit={handleSubmit} className="pt-5">
+        <div className="space-y-[14px]">
+          {/* Booking reference */}
+          <div>
+            <label
+              htmlFor="bookingReference"
+              className="mb-1.5 block text-[12px] font-medium text-slate-700"
+            >
+              Booking reference
+              <span className="ml-0.5 text-red-500" aria-hidden="true">
+                *
+              </span>
+            </label>
 
-          <input
-            id="bookingReference"
-            name="bookingReference"
-            type="text"
-            required
-            autoComplete="off"
-            placeholder="SJ-XXXXXX"
-            className="fs-nums w-full rounded-xl border border-slate-300 px-4 py-3 font-medium uppercase outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-          />
+            <input
+              id="bookingReference"
+              name="bookingReference"
+              type="text"
+              required
+              autoComplete="off"
+              autoCapitalize="characters"
+              spellCheck={false}
+              placeholder="SJ-XXXXXX"
+              className="fs-nums h-[43px] w-full rounded-[4px] border border-slate-300 bg-white px-3.5 text-[13px] font-medium uppercase text-slate-900 outline-none transition-colors placeholder:font-normal placeholder:text-slate-400 hover:border-slate-400 focus:border-[#0078D2] focus:ring-1 focus:ring-[#0078D2]"
+            />
+          </div>
+
+          {/* Email address */}
+          <div>
+            <label
+              htmlFor="email"
+              className="mb-1.5 block text-[12px] font-medium text-slate-700"
+            >
+              Email address
+              <span className="ml-0.5 text-red-500" aria-hidden="true">
+                *
+              </span>
+            </label>
+
+            <input
+              id="email"
+              name="email"
+              type="email"
+              required
+              autoComplete="email"
+              placeholder="guest@example.com"
+              className="h-[43px] w-full rounded-[4px] border border-slate-300 bg-white px-3.5 text-[13px] text-slate-900 outline-none transition-colors placeholder:text-slate-400 hover:border-slate-400 focus:border-[#0078D2] focus:ring-1 focus:ring-[#0078D2]"
+            />
+          </div>
         </div>
 
-        <div>
-          <label
-            htmlFor="email"
-            className="mb-1.5 block text-sm font-medium text-slate-700"
+        {/* Error */}
+        {error && (
+          <div
+            role="alert"
+            className="mt-4 border-l-2 border-red-500 bg-red-50 px-3.5 py-2.5"
           >
-            Email
-          </label>
+            <p className="text-[12px] font-medium leading-5 text-red-700">
+              {error}
+            </p>
+          </div>
+        )}
 
-          <input
-            id="email"
-            name="email"
-            type="email"
-            required
-            autoComplete="email"
-            placeholder="guest@example.com"
-            className="w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-          />
+        {/* Primary action */}
+        <div className="mt-5">
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="inline-flex h-[40px] min-w-[138px] items-center justify-center rounded-[4px] bg-[#0078D2] px-6 text-[13px] font-semibold text-white transition-colors hover:bg-[#006bbd] disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isSubmitting ? "Continuing..." : "Continue"}
+          </button>
         </div>
 
-        {error ? (
-          <p className="text-sm font-medium text-red-600" role="alert">
-            {error}
-          </p>
-        ) : null}
-
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className="w-full rounded-xl bg-primary px-5 py-3 font-semibold text-white transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-70"
-        >
-          {isSubmitting ? "Continuing..." : "Continue"}
-        </button>
+        {/* Booking reference help */}
+        <p className="mt-3 text-[10.5px] leading-[18px] text-slate-500">
+          Your booking reference is available in your reservation confirmation
+          email.
+        </p>
       </form>
 
-      <p className="mt-5 text-center text-sm text-slate-600">
-        Have an account?{" "}
-        <Link href="/login" className="font-semibold text-primary">
-          Sign in
-        </Link>
-      </p>
+      {/* Account sign in */}
+      <div className="mt-6 border-t border-slate-200 pt-5">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <p className="text-[12px] font-medium text-slate-800">
+            Have a Five Stars account?
+          </p>
+
+          <Link
+            href="/login"
+            className="text-[12px] font-semibold text-[#0078D2] transition-colors hover:text-[#006bbd]"
+          >
+            Sign in
+          </Link>
+        </div>
+
+        <p className="mt-1 text-[10.5px] leading-[18px] text-slate-500">
+          View your saved trips and traveler details.
+        </p>
+      </div>
     </div>
   );
 }

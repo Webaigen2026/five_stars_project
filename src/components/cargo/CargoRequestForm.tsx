@@ -1,11 +1,13 @@
 "use client";
 
 import { FormEvent, useState, type ReactNode } from "react";
-
 import { CARGO_TYPES, type SafeCargoRequest } from "../../lib/cargo";
 
 const inputClassName =
-  "w-full rounded-xl border border-slate-300 px-4 py-3 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20";
+  "h-11 w-full rounded-md border border-slate-300 bg-white px-3.5 text-[14px] font-normal text-slate-900 outline-none transition placeholder:text-slate-400 hover:border-slate-400 focus:border-primary focus:ring-1 focus:ring-primary/20";
+
+const textareaClassName =
+  "w-full resize-y rounded-md border border-slate-300 bg-white px-3.5 py-3 text-[14px] font-normal leading-6 text-slate-900 outline-none transition placeholder:text-slate-400 hover:border-slate-400 focus:border-primary focus:ring-1 focus:ring-primary/20";
 
 export default function CargoRequestForm({
   defaultFullName = "",
@@ -27,7 +29,10 @@ export default function CargoRequestForm({
 
     const form = event.currentTarget;
     const formData = new FormData(form);
-    const quantityValue = String(formData.get("quantity") ?? "").trim();
+
+    const quantityValue = String(
+      formData.get("quantity") ?? ""
+    ).trim();
 
     setError(null);
     setCreated(null);
@@ -49,21 +54,30 @@ export default function CargoRequestForm({
           description: String(formData.get("description") ?? ""),
           quantity: quantityValue ? Number(quantityValue) : null,
           weight: String(formData.get("weight") ?? ""),
-          preferredDate: String(formData.get("preferredDate") ?? ""),
+          preferredDate: String(
+            formData.get("preferredDate") ?? ""
+          ),
         }),
       });
 
       const payload = (await response.json().catch(() => null)) as
-        | { error?: string; request?: SafeCargoRequest }
+        | {
+            error?: string;
+            request?: SafeCargoRequest;
+          }
         | null;
 
       if (!response.ok) {
-        setError(payload?.error ?? "Unable to submit cargo request.");
+        setError(
+          payload?.error ?? "Unable to submit cargo request."
+        );
         return;
       }
 
       if (!payload?.request) {
-        setError("Request was created, but no reference was returned.");
+        setError(
+          "Request was created, but no reference was returned."
+        );
         return;
       }
 
@@ -78,167 +92,262 @@ export default function CargoRequestForm({
 
   if (created) {
     return (
-      <div className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-        <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">
-          Request received
-        </p>
+      <section className="mx-auto max-w-[800px] py-2">
+        <div className="border-l-2 border-primary pl-5 sm:pl-6">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-primary">
+            Request received
+          </p>
 
-        <h2 className="font-american-sans mt-2 text-2xl font-light tracking-[-0.015em] text-slate-950">
-          Cargo request received
-        </h2>
+          <h2 className="font-american-sans mt-2 text-[21px] font-medium leading-tight tracking-[-0.015em] text-slate-950">
+            Your cargo request has been submitted
+          </h2>
 
-        <p className="fs-nums mt-3 text-sm font-semibold text-slate-950">
-          Reference: {created.reference}
-        </p>
+          <p className="fs-nums mt-4 text-[13px] font-semibold text-slate-900">
+            Reference: {created.reference}
+          </p>
 
-        <p className="mt-3 text-slate-600">
-          We received your cargo request from {created.origin} to{" "}
-          {created.destination}. Keep this reference for follow-up.
-        </p>
+          <p className="mt-2 max-w-xl text-[13px] leading-5 text-slate-600">
+            We received your request from {created.origin} to{" "}
+            {created.destination}. Keep your reference number for
+            follow-up.
+          </p>
 
-        <button
-          type="button"
-          onClick={() => setCreated(null)}
-          className="mt-6 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-primary-hover"
-        >
-          Submit another request
-        </button>
-      </div>
+          <button
+            type="button"
+            onClick={() => setCreated(null)}
+            className="mt-5 h-10 rounded-md bg-primary px-5 text-[13px] font-semibold text-white transition hover:bg-primary-hover"
+          >
+            Submit another request
+          </button>
+        </div>
+      </section>
     );
   }
 
   return (
     <form
       onSubmit={handleSubmit}
-      className="rounded-3xl border border-slate-200 bg-white p-8 shadow-sm"
+      className="mx-auto max-w-[800px]"
     >
-      <h2 className="font-american-sans text-2xl font-light tracking-[-0.015em] text-slate-950">
-        Cargo request
-      </h2>
+      {/* FORM HEADER */}
+      <div className="border-b border-slate-200 pb-5">
+        <h2 className="font-american-sans text-[20px] font-medium leading-tight tracking-[-0.015em] text-slate-950">
+          Cargo request
+        </h2>
 
-      <p className="mt-2 text-slate-600">
-        You can submit this form without creating an account.
-      </p>
+        <p className="mt-1.5 text-[13px] leading-5 text-slate-500">
+          Provide your shipment details and contact information.
+        </p>
+      </div>
 
-      <div className="mt-8 grid gap-5 md:grid-cols-2">
-        <Field label="Full name" htmlFor="fullName">
-          <input
-            id="fullName"
-            name="fullName"
+      {/* CONTACT INFORMATION */}
+      <fieldset className="py-6">
+        <legend className="mb-4 text-[13px] font-semibold tracking-[-0.005em] text-slate-800">
+          Contact information
+        </legend>
+
+        <div className="grid gap-x-5 gap-y-4 sm:grid-cols-2">
+          {/* FULL NAME */}
+          <Field
+            label="Full name"
+            htmlFor="fullName"
             required
-            defaultValue={defaultFullName}
-            className={inputClassName}
-          />
-        </Field>
-
-        <Field label="Email" htmlFor="email">
-          <input
-            id="email"
-            name="email"
-            type="email"
-            required
-            defaultValue={defaultEmail}
-            className={inputClassName}
-          />
-        </Field>
-
-        <Field label="Phone" htmlFor="phone">
-          <input
-            id="phone"
-            name="phone"
-            className={inputClassName}
-          />
-        </Field>
-
-        <Field label="Cargo type" htmlFor="cargoType">
-          <select
-            id="cargoType"
-            name="cargoType"
-            required
-            defaultValue="BOX"
-            className={inputClassName}
           >
-            {CARGO_TYPES.map((type) => (
-              <option key={type} value={type}>
-                {type}
-              </option>
-            ))}
-          </select>
-        </Field>
+            <input
+              id="fullName"
+              name="fullName"
+              required
+              defaultValue={defaultFullName}
+              autoComplete="name"
+              className={inputClassName}
+            />
+          </Field>
 
-        <Field label="Origin" htmlFor="origin">
-          <input
-            id="origin"
-            name="origin"
+          {/* EMAIL */}
+          <Field
+            label="Email"
+            htmlFor="email"
             required
-            placeholder="Boston"
-            className={inputClassName}
-          />
-        </Field>
+          >
+            <input
+              id="email"
+              name="email"
+              type="email"
+              required
+              defaultValue={defaultEmail}
+              autoComplete="email"
+              className={inputClassName}
+            />
+          </Field>
 
-        <Field label="Destination" htmlFor="destination">
-          <input
-            id="destination"
-            name="destination"
+          {/* PHONE */}
+          <Field
+            label="Phone"
+            htmlFor="phone"
             required
-            placeholder="Port-au-Prince"
-            className={inputClassName}
-          />
-        </Field>
+          >
+            <input
+              id="phone"
+              name="phone"
+              type="tel"
+              required
+              autoComplete="tel"
+              className={inputClassName}
+            />
+          </Field>
 
-        <Field label="Quantity" htmlFor="quantity">
-          <input
-            id="quantity"
-            name="quantity"
-            type="number"
-            min={1}
-            className={inputClassName}
-          />
-        </Field>
+          {/* CARGO TYPE */}
+          <Field
+            label="Cargo type"
+            htmlFor="cargoType"
+            required
+          >
+            <select
+              id="cargoType"
+              name="cargoType"
+              required
+              defaultValue="BOX"
+              className={inputClassName}
+            >
+              {CARGO_TYPES.map((type) => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
+              ))}
+            </select>
+          </Field>
+        </div>
+      </fieldset>
 
-        <Field label="Weight" htmlFor="weight">
-          <input
-            id="weight"
-            name="weight"
-            placeholder="45 lb"
-            className={inputClassName}
-          />
-        </Field>
+      {/* SHIPMENT INFORMATION */}
+      <fieldset className="border-t border-slate-200 py-6">
+        <legend className="px-0 text-[13px] font-semibold tracking-[-0.005em] text-slate-800">
+          Shipment information
+        </legend>
 
-        <Field label="Preferred date" htmlFor="preferredDate">
-          <input
-            id="preferredDate"
-            name="preferredDate"
-            type="date"
-            className={inputClassName}
-          />
-        </Field>
+        <div className="mt-4 grid gap-x-5 gap-y-4 sm:grid-cols-2">
+          {/* ORIGIN */}
+          <Field
+            label="Origin"
+            htmlFor="origin"
+            required
+          >
+            <input
+              id="origin"
+              name="origin"
+              required
+              placeholder="Boston"
+              className={inputClassName}
+            />
+          </Field>
 
-        <div className="md:col-span-2">
-          <Field label="Description" htmlFor="description">
-            <textarea
-              id="description"
-              name="description"
-              rows={4}
+          {/* DESTINATION */}
+          <Field
+            label="Destination"
+            htmlFor="destination"
+            required
+          >
+            <input
+              id="destination"
+              name="destination"
+              required
+              placeholder="Port-au-Prince"
+              className={inputClassName}
+            />
+          </Field>
+
+          {/* QUANTITY */}
+          <Field
+            label="Quantity"
+            htmlFor="quantity"
+          >
+            <input
+              id="quantity"
+              name="quantity"
+              type="number"
+              min={1}
+              placeholder="1"
+              className={inputClassName}
+            />
+          </Field>
+
+          {/* WEIGHT */}
+          <Field
+            label="Weight"
+            htmlFor="weight"
+          >
+            <input
+              id="weight"
+              name="weight"
+              placeholder="45 lb"
+              className={inputClassName}
+            />
+          </Field>
+
+          {/* DATE */}
+          <Field
+            label="Preferred shipping date"
+            htmlFor="preferredDate"
+          >
+            <input
+              id="preferredDate"
+              name="preferredDate"
+              type="date"
               className={inputClassName}
             />
           </Field>
         </div>
-      </div>
+      </fieldset>
 
+      {/* ADDITIONAL DETAILS */}
+      <fieldset className="border-t border-slate-200 py-6">
+        <legend className="px-0 text-[13px] font-semibold tracking-[-0.005em] text-slate-800">
+          Additional details
+        </legend>
+
+        <div className="mt-4">
+          <Field
+            label="Cargo description"
+            htmlFor="description"
+          >
+            <textarea
+              id="description"
+              name="description"
+              rows={3}
+              placeholder="Contents, dimensions, handling requirements, or other relevant details"
+              className={textareaClassName}
+            />
+          </Field>
+        </div>
+      </fieldset>
+
+      {/* ERROR MESSAGE */}
       {error && (
-        <p className="mt-5 text-sm font-medium text-red-600" role="alert">
+        <p
+          className="mt-1 text-[12px] font-medium text-red-600"
+          role="alert"
+        >
           {error}
         </p>
       )}
 
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="mt-6 rounded-xl bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-70"
-      >
-        {isSubmitting ? "Submitting..." : "Submit cargo request"}
-      </button>
+      {/* SUBMIT AREA */}
+      <div className="flex flex-col gap-4 border-t border-slate-200 pt-5 sm:flex-row sm:items-center sm:justify-between">
+        <p className="max-w-md text-[11px] leading-4 text-slate-500">
+          Requests are reviewed by our cargo team before
+          confirmation.
+        </p>
+
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="h-10 shrink-0 rounded-md bg-primary px-5 text-[13px] font-semibold text-white transition hover:bg-primary-hover disabled:cursor-not-allowed disabled:opacity-70"
+        >
+          {isSubmitting
+            ? "Submitting..."
+            : "Submit cargo request"}
+        </button>
+      </div>
     </form>
   );
 }
@@ -246,19 +355,34 @@ export default function CargoRequestForm({
 function Field({
   label,
   htmlFor,
+  required = false,
   children,
 }: {
   label: string;
   htmlFor: string;
+  required?: boolean;
   children: ReactNode;
 }) {
   return (
     <div>
       <label
         htmlFor={htmlFor}
-        className="mb-2 block text-sm font-medium text-slate-700"
+        className="mb-1.5 block text-[12px] font-medium tracking-[0.005em] text-slate-700"
       >
         {label}
+
+        {required && (
+          <>
+            <span
+              className="ml-0.5 text-[12px] font-semibold text-red-500"
+              aria-hidden="true"
+            >
+              *
+            </span>
+
+            <span className="sr-only"> required</span>
+          </>
+        )}
       </label>
 
       {children}
